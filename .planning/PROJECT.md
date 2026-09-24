@@ -27,7 +27,7 @@ Raw inspection data in → a defensible, code-cited acceptance decision and repo
 - [ ] User can enter PT/MT indication notes and component context
 - [ ] System computes acceptance per applicable code criteria (t-min / remaining-life evaluation, indication assessment) with visible reasoning
 - [ ] System generates a formatted inspection report citing code clauses with clear pass / fail / re-check decisions
-- [ ] Model routing: Nemotron Nano/Super for extraction + formatting; Nemotron Ultra reserved for acceptance reasoning
+- [ ] Model routing: `nemotron-3-super-120b-a12b` for acceptance reasoning; `Nemotron-3_5-Lightning` for extraction/formatting (corrected by research — Ultra-253B/Nano-Omni removed from Token Factory serverless 2026-08-31)
 - [ ] Tavily integration for live code-edition / errata / interpretation lookup
 - [ ] Deployed demo reachable via public URL on Nebius infrastructure
 - [ ] 3-minute demo video (with audio) + README highlighting Nebius and NVIDIA model usage
@@ -49,7 +49,7 @@ Raw inspection data in → a defensible, code-cited acceptance decision and repo
 ## Constraints
 
 - **Timeline**: 2 weeks to MVP inside the 37-day hackathon window (deadline 30 Oct 2026)
-- **Budget**: $25 Nebius Builder Program credits — Nano/Super-dominant routing, Ultra only for reasoning steps, aggressive caching
+- **Budget**: $25 Nebius Builder Program credits — Lightning-dominant routing, Super-120B only for reasoning steps, aggressive caching (~$0.004–0.005/report ⇒ $25 ≈ 5,000+ runs; abuse, not volume, is the risk)
 - **Team**: solo builder (domain expert, not a professional coder; all code agent-executed)
 - **Platform**: Nebius Token Factory for model serving (+ Serverless Endpoints/Jobs encouraged for deploy); Tavily API free tier
 - **Deliverables**: hosted demo URL, ≤3-min public YouTube demo with audio, public repo with OSS license + setup README
@@ -60,8 +60,10 @@ Raw inspection data in → a defensible, code-cited acceptance decision and repo
 |----------|-----------|---------|
 | Track: Best Apps and Agents | Hardware limits rule out Physical AI; Coding track crowdspace is brutal for a non-SWE builder; domain app maximizes "genuine problem-space understanding" judging points | — Pending |
 | Idea: NDT report copilot (over plant-reliability personal AI, defect photo triage, HVAC checker) | Leverages NDT L2 + ASME edge; lowest AI-slop risk; Nano-heavy usage fits $25 credits; Tavily prize synergy | — Pending |
-| Model routing: Ultra for acceptance reasoning, Nano/Super for extraction/formatting | Stretches credits; matches hackathon's own guidance for Nemotron tiering | — Pending |
+| Model routing: Super-120B for acceptance reasoning, Lightning for extraction/formatting | Research correction: Ultra-253B/Nano-Omni removed from Token Factory 2026-08-31; verified live catalog pricing ($0.30/$0.90 vs $0.06/$0.24 per 1M) | — Pending |
 | No verbatim ASME text in app or repo | ASME codes are copyrighted; compute from parameters + cite clause numbers instead | — Pending |
+| TypeScript computes every number; LLM only extracts, structures, narrates | LLM arithmetic is where models confidently fail; a wrong digit flips pass→fail on pressure-retaining components (ARCHITECTURE.md invariant, lint-enforced) | — Pending |
+| Stack: Next.js 16 + @react-pdf/renderer on Vercel Hobby; fixed pipeline, no agentic loops | One language/repo, SSE streaming, free tier with verified 300s limit; fixed pipeline protects credits and credibility (STACK.md) | — Pending |
 
 ## Evolution
 
