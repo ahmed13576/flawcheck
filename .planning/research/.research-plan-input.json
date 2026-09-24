@@ -1,0 +1,14 @@
+{
+  "ecosystem": "web",
+  "config": { "exa_search": false, "brave_search": true, "firecrawl": false, "tavily_search": true },
+  "questions": [
+    { "text": "Nebius Token Factory NVIDIA Nemotron model tiers: which Nemotron Nano, Super, Ultra models are served, context window sizes, and how to call them via OpenAI-compatible API?", "kind": "web" },
+    { "text": "Nebius Token Factory pricing per million tokens for nemotron nano, super, ultra models", "kind": "web" },
+    { "text": "Nebius Serverless Endpoints vs Serverless Jobs: what they are, when to use each for hosting a web app demo", "kind": "web" },
+    { "text": "LLM structured output JSON schema enforcement: best practices for extraction pipelines using OpenAI-compatible response_format json_schema", "kind": "docs", "library": "openai" },
+    { "text": "Preventing hallucinated citations in RAG systems: citation grounding, inline citation verification, quote-checking techniques", "kind": "web" },
+    { "text": "Tavily search API: query endpoint, basic/advanced search depth, response format, rate limits free tier", "kind": "docs", "library": "tavily" },
+    { "text": "ASME B31.3 API 570 remaining life calculation t-required formula minimum thickness pressure integrity", "kind": "web" },
+    { "text": "LLM pipeline architecture pattern: parse with cheap model, deterministic calculation in code, reasoning with expensive model, cache strategy to minimize token cost", "kind": "web" }
+  ]
+}
