@@ -53,7 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Routing (corrected by research): Super-120B = acceptance reasoning, Lightning = extraction/formatting; Ultra-253B/Nano-Omni removed from Token Factory serverless 2026-08-31. NOTE: PROJECT.md Key Decisions row still carries the obsolete routing — correct at next PROJECT.md touch
+- Routing (corrected by research): Super-120B = acceptance reasoning, Lightning = extraction/formatting; Ultra-253B/Nano-Omni removed from Token Factory serverless 2026-08-31. PROJECT.md Key Decisions row corrected in commit 3d85271 (stale-flag note no longer applies)
 - TypeScript computes every number; LLM only extracts/structures/narrates — enforced via forbidden-import lint (Phase 2) + verdict-agreement/numeric lints (Phase 3)
 - Cite-don't-quote: no verbatim ASME/API text in repo/prompts/output; clause IDs from builder-vetted edition-pinned allowlist only, renderer-enforced
 - Print-CSS fallback ships before @react-pdf/renderer; sign-off + disclaimer in the report template from its first version
@@ -80,6 +80,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-24
-Stopped at: ROADMAP.md + STATE.md written; REQUIREMENTS.md traceability populated (26/26 mapped)
-Resume file: None
+Last session: 2026-09-26
+Stopped at: Session resumed from handoff — pre-phase-1 prep verified complete (lib/criteria configs, AGENTS.md, graphify-out, adversarial review, grilling decisions); ROADMAP/STATE/REQUIREMENTS committed; proceeding to Phase 1 planning
+Resume file: handoff.md (root) + .planning/.continue-here.md
