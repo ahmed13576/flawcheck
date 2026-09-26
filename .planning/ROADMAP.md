@@ -28,7 +28,13 @@ FlawCheck ships as a five-phase vertical build for the Nebius x NVIDIA hackathon
   3. A hello-fixture call against BOTH Super-120B and Lightning returns structured JSON that passes Zod validation, and a forced-bad-output test proves the one bounded retry fires with a clear error surfaced after it
   4. An SSE streamed response from Token Factory is consumed end-to-end through a route handler to a client, proving the streaming path the Phase 3 reasoning pane will build on
   5. The spike record states whether `json_schema` structured output works on Super-120B/Lightning, and the @react-pdf/renderer 4.9.0 + React 19.3 install result is recorded so Phase 4 can choose print-CSS-first vs react-pdf-first on evidence
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Scaffold Next.js 16 via temp-dir ADD-only merge; single user-approved install gate (checkpoint)
+- [ ] 01-02-PLAN.md — Env contract + API-key checkpoint + validated-call tracer proven live on both routed models
+- [ ] 01-03-PLAN.md — Startup model validation, /api/health red banner, SSE spike route + client page
+- [ ] 01-04-PLAN.md — Offline exactly-one-retry proof, committed docs/model-catalog.json dump, spike record (json_schema + react-pdf)
 
 ### Phase 2: Ingestion & Deterministic Calc Engine
 **Goal**: Raw inspection data in, deterministic verdicts out — CSV upload with editable mapping preview, component metadata, and PT/MT notes feed a pure, unit-tested calc engine (t-required, short/long-term corrosion rate, remaining life, verdict bands, outliers, re-inspection interval) that would stand alone even if every LLM call failed
@@ -87,7 +93,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Spike & App Skeleton | 0/TBD | Not started | - |
+| 1. Platform Spike & App Skeleton | 0/4 | Not started | - |
 | 2. Ingestion & Deterministic Calc Engine | 0/TBD | Not started | - |
 | 3. LLM Reasoning & Citation Layer | 0/TBD | Not started | - |
 | 4. Report Rendering | 0/TBD | Not started | - |
