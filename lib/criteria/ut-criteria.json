@@ -1,0 +1,67 @@
+{
+  "code": "API 570 / ASME B31.3",
+  "editions": {
+    "API_570": "5th Edition",
+    "API_574": "5th Edition (2024)",
+    "ASME_B31_3": "2024 Edition"
+  },
+  "t_min_formulas": {
+    "asme_b31_3_straight_pipe": {
+      "clause": "ASME B31.3 para. 304.1.2 eq. (3a) & 304.1.1 eq. (2)",
+      "formula": "t_required = (P * OD) / (2 * (S * E * W + P * Y)) + FCA",
+      "symbols": {
+        "P": "Internal design gauge pressure (psi or MPa)",
+        "OD": "Outside diameter of pipe (in. or mm)",
+        "S": "Allowable stress from ASME B31.3 Table A-1 (psi or MPa)",
+        "E": "Longitudinal quality factor from Table A-1A / A-1B (1.0 for seamless)",
+        "W": "Weld joint strength reduction factor (1.0 default for normal temperatures)",
+        "Y": "Material coefficient from Table 304.1.1-1 (0.4 for ferritic steels <= 900°F / 482°C)",
+        "FCA": "Future corrosion allowance (c) specified for component"
+      }
+    },
+    "barlow_in_service": {
+      "clause": "API 574 para. 10.5.1.2",
+      "formula": "t_pressure = (P * OD) / (2 * S * E)",
+      "t_required": "t_pressure + FCA"
+    }
+  },
+  "corrosion_rate_formulas": {
+    "long_term": {
+      "clause": "API 570 para. 7.1.2",
+      "formula": "CR_LT = (t_initial - t_actual) / delta_t_years"
+    },
+    "short_term": {
+      "clause": "API 570 para. 7.1.2",
+      "formula": "CR_ST = (t_previous - t_actual) / delta_t_years"
+    },
+    "governing_rate_rule": {
+      "clause": "API 570 para. 7.1.2 & Builder Decision",
+      "rule": "max(CR_LT, CR_ST) governs remaining life; both values displayed in report"
+    }
+  },
+  "remaining_life_formula": {
+    "clause": "API 570 para. 7.2",
+    "formula": "RL_years = (t_actual - t_required) / CR_governing"
+  },
+  "inspection_interval_rules": {
+    "half_life_rule": {
+      "clause": "API 570 para. 6.3.3",
+      "rule": "Interval = min(RL / 2, max_interval_by_class); if RL < 4 years, interval = min(RL, 2.0)"
+    },
+    "max_interval_by_class": {
+      "clause": "API 570 Table 1",
+      "Class 1": 5.0,
+      "Class 2": 10.0,
+      "Class 3": 10.0,
+      "Class 4": "optional"
+    }
+  },
+  "verdict_bands": {
+    "default_gauge_uncertainty_mm": 0.1,
+    "criteria": {
+      "accept": "t_actual >= (t_required + gauge_uncertainty)",
+      "re_check": "t_required <= t_actual < (t_required + gauge_uncertainty)",
+      "reject": "t_actual < t_required"
+    }
+  }
+}

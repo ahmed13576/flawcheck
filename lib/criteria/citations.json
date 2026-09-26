@@ -1,0 +1,145 @@
+[
+  {
+    "id": "asme_b31_3_304_1_2",
+    "code": "ASME B31.3",
+    "edition": "2024 Edition",
+    "clause": "304.1.2 (eq. 3a) & 304.1.1 (eq. 2)",
+    "title": "Straight Pipe Under Internal Pressure — Pressure Design Thickness",
+    "scope_note": "tm = t + c, where pressure design thickness t = (P*D) / [2*(S*E*W + P*Y)] for t < D/6. W is weld strength reduction factor (=1.0 for normal temp); Y is material/temp coefficient from Table 304.1.1-1 (0.4 for ferritic steels <= 900°F); c is mechanical + corrosion allowance (FCA).",
+    "verified": "2026-09-26",
+    "source_file": "ASME-B31.3-2024.pdf",
+    "page": 56
+  },
+  {
+    "id": "api574_10_5_1_2",
+    "code": "API 574",
+    "edition": "5th Edition (2024)",
+    "clause": "10.5.1.2",
+    "title": "Pressure Design Thickness for In-Service Piping",
+    "scope_note": "Specifies Barlow formula t = (P*D) / (2*S*E) for simple in-service wall thickness, and notes equivalence to ASME B31.3 formula t = (P*D) / [2*(S*E*W + P*Y)]. Governs pressure design thickness prior to structural minimum comparison.",
+    "verified": "2026-09-26",
+    "source_file": "API 574 Inspection Practices for Piping System Components.pdf",
+    "page": 113
+  },
+  {
+    "id": "api574_10_5_1_3",
+    "code": "API 574",
+    "edition": "5th Edition (2024)",
+    "clause": "10.5.1.3",
+    "title": "Structural Minimum Thickness Determination",
+    "scope_note": "Minimum required thickness cannot be lower than structural minimum thickness (Annex D, Tables D.2a/D.2b) to prevent sag, buckling, and collapse at pipe supports regardless of pressure design result.",
+    "verified": "2026-09-26",
+    "source_file": "API 574 Inspection Practices for Piping System Components.pdf",
+    "page": 113
+  },
+  {
+    "id": "api570_7_6",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "7.6",
+    "title": "Required Thickness Determination",
+    "scope_note": "The required thickness of a pipe shall be the greater of pressure design thickness or structural minimum thickness. Refers to API 574 Section 10 for pressure design and structural minimum formulas.",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 64
+  },
+  {
+    "id": "api570_7_1_2_lt",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "7.1.2",
+    "title": "Long-Term (LT) Corrosion Rate Determination",
+    "scope_note": "Corrosion rate (LT) = (t_initial - t_actual) / time (years) between t_initial and t_actual. Point-to-point method calculated for each individual CML.",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 62
+  },
+  {
+    "id": "api570_7_1_2_st",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "7.1.2",
+    "title": "Short-Term (ST) Corrosion Rate Determination",
+    "scope_note": "Corrosion rate (ST) = (t_previous - t_actual) / time (years) between t_previous and t_actual. Reflects recent interval degradation rate.",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 62
+  },
+  {
+    "id": "api570_7_1_2_governing",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "7.1.2",
+    "title": "Governing Corrosion Rate Comparison and Selection",
+    "scope_note": "LT and ST corrosion rates should be compared to see which results in the shortest remaining life as part of data assessment. The authorized inspector selects the governing rate best reflecting the process.",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 62
+  },
+  {
+    "id": "api570_7_2",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "7.2",
+    "title": "Remaining Life Calculations",
+    "scope_note": "Remaining life (years) = (t_actual - t_required) / corrosion rate [inches (mm) per year]. t_required is computed by design formulas (pressure and structural) before corrosion allowance.",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 63
+  },
+  {
+    "id": "api570_6_3_3_halflife",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "6.3.3",
+    "title": "Inspection Intervals Without RBI — Half Remaining Life Rule",
+    "scope_note": "For Class 1, 2, and 3 piping, thickness measurement intervals shall not exceed one-half the remaining life, or Table 1 maximums, whichever is less. When remaining life < 4 years, interval may be full remaining life up to maximum 2 years.",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 52
+  },
+  {
+    "id": "api570_table1",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "Table 1 (per 6.3.3)",
+    "title": "Recommended Maximum Thickness Measurement Intervals by Piping Class",
+    "scope_note": "Class 1: 5 years max. Class 2: 10 years max. Class 3: 10 years max. Class 4: optional. Injection points: 3 years max.",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 52
+  },
+  {
+    "id": "api570_6_3_4",
+    "code": "API 570",
+    "edition": "5th Edition",
+    "clause": "6.3.4",
+    "title": "Piping Service Classification (Class 1 through Class 4)",
+    "scope_note": "Class 1: Highest emergency consequence (autorefrigeration, rapid vaporization, H2S > 3%, HF acid, over water). Class 2: Unit process piping (on-site hydrocarbons below boiling point, hydrogen, acids). Class 3: Low volatility, off-site/storage, below flash point. Class 4: Utilities (steam, air, nitrogen, water).",
+    "verified": "2026-09-26",
+    "source_file": "API 570 5th EDITION.pdf",
+    "page": 53
+  },
+  {
+    "id": "asme_b31_3_344_3_2",
+    "code": "ASME B31.3",
+    "edition": "2024 Edition",
+    "clause": "344.3.2",
+    "title": "Magnetic Particle Examination (MT) — Acceptance Criteria",
+    "scope_note": "Only indications with any dimension > 1.5 mm (1/16 in.) are relevant. Linear indication: length > 3*width. Rounded indication: circular or elliptical with length <= 3*width. All surfaces shall be free of: (1) relevant linear indications, (2) relevant rounded indications > 5.0 mm (> 3/16 in.), (3) 4 or more relevant rounded indications in a line separated by 1.5 mm or less edge-to-edge.",
+    "verified": "2026-09-26",
+    "source_file": "ASME-B31.3-2024.pdf",
+    "page": 126
+  },
+  {
+    "id": "asme_b31_3_344_4_2",
+    "code": "ASME B31.3",
+    "edition": "2024 Edition",
+    "clause": "344.4.2",
+    "title": "Liquid Penetrant Examination (PT) — Acceptance Criteria",
+    "scope_note": "Only indications with any dimension > 1.5 mm (1/16 in.) are relevant. Linear indication: length > 3*width. Rounded indication: circular or elliptical with length <= 3*width. All surfaces shall be free of: (1) relevant linear indications, (2) relevant rounded indications > 5.0 mm (> 3/16 in.), (3) 4 or more relevant rounded indications in a line separated by 1.5 mm or less edge-to-edge.",
+    "verified": "2026-09-26",
+    "source_file": "ASME-B31.3-2024.pdf",
+    "page": 126
+  }
+]

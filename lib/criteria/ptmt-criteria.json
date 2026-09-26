@@ -1,0 +1,34 @@
+{
+  "code": "ASME B31.3",
+  "edition": "2024",
+  "applicable_methods": ["PT", "MT"],
+  "clauses": {
+    "MT": "344.3.2",
+    "PT": "344.4.2"
+  },
+  "relevance_threshold_mm": 1.5,
+  "morphology_definitions": {
+    "linear": {
+      "definition": "Length greater than three times width (L > 3W)",
+      "acceptance_rule": "Reject all relevant linear indications (must escalate to Level 2/3 inspector evaluation)"
+    },
+    "rounded": {
+      "definition": "Circular or elliptical shape with length equal to or less than three times width (L <= 3W)",
+      "acceptance_rule": "Acceptable if relevant dimension <= 5.0 mm and not part of an aligned cluster"
+    }
+  },
+  "limits": {
+    "max_rounded_dimension_mm": 5.0,
+    "aligned_rounded_cluster": {
+      "count_threshold": 4,
+      "max_separation_edge_to_edge_mm": 1.5,
+      "verdict": "reject"
+    }
+  },
+  "escalation_rules": [
+    "Any relevant linear indication (crack, lack of fusion, or crack-suspect) is strictly NON-ACCEPTABLE and must escalate to inspector sign-off.",
+    "Any rounded indication with dimension > 5.0 mm is strictly NON-ACCEPTABLE.",
+    "Four or more relevant rounded indications in a line separated by 1.5 mm or less edge-to-edge are strictly NON-ACCEPTABLE.",
+    "Non-relevant indications (<= 1.5 mm) do not require repair unless verified as crack-suspect by the inspector."
+  ]
+}
