@@ -617,7 +617,9 @@ export function evaluateIndication(ind: PtmIndication): { verdict: Verdict; deta
 | A6 | Session lives purely in client state; refresh loses it (no persistence in v1) | R7 | UX nit only; optional sessionStorage noted |
 | A7 | Per-reading results (4,912 rows) rather than per-CML aggregation — per UI-SPEC Screen 3 ("4,912 readings · 12 locations", paginated results table) | R7 | If user intended per-CML rollup, Screen 3 would need regrouping — flagged as OQ5 |
 
-## Open Questions
+## Open Questions (RESOLVED — see plans' <open_question_resolutions>)
+
+All five questions below were resolved during planning; the resolutions are recorded verbatim in the `<open_question_resolutions>` block of `.planning/phases/02-ingestion-calc-engine/02-01-PLAN.md` (OQ1 pressureUnit selector in Plan 02-04; OQ2 either-rate flag in 02-01/02-02; OQ3 accepted; OQ4 outliers.ts constant in 02-02; OQ5 per-reading granularity). The text below is retained for traceability only.
 
 1. **Pressure/stress unit selector is missing from the UI-SPEC metadata form.**
    - What we know: `ut-criteria.json:10` requires P and S in consistent units ("MPa or psi — must be consistent with S (allowable stress) units; record the chosen system in the evaluation"), but the UI-SPEC design-conditions table has no unit control for P/S.
