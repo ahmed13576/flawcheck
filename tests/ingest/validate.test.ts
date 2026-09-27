@@ -286,6 +286,44 @@ describe("validate — CR-02 regression: explicitly-mapped scantling columns war
   });
 });
 
+describe("validate — WR-07 regression: all-empty data records are never silently dropped", () => {
+  it("',,' is a real RFC 4180 record: it reaches rowIssues and row numbering is preserved", () => {
+    const csv = [
+      "Reading_ID,Tank,Measured_Thickness_mm,Measurement_Date",
+      "R1,T1,9.5,2025-01-15",
+      ",,",
+      "R3,T1,9.4,2025-01-15",
+    ].join("\n");
+    const { records } = tokenize(csv, ",");
+    expect(records).toHaveLength(4); // header + 3 data records (the ',,' survives)
+    const rows = buildParsedRows(records[0], records.slice(1));
+    expect(rows.map((r) => r.row)).toEqual([1, 2, 3]);
+    const issues = rowIssues(
+      rows,
+      { ...FULL_MAPPING, tInitial: null },
+      BASE_OPTS,
+    );
+    // The empty record reports missing values on its own row number —
+    // pre-fix the record vanished and every subsequent row number shifted.
+    expect(issues.map((i) => i.message)).toContain("Row 2: Reading ID — missing value.");
+    expect(issues.map((i) => i.message)).toContain("Row 2: Measured thickness — missing value.");
+    // R3 stays Row 3 exactly as the user sees it in their file.
+    expect(issues.map((i) => i.message)).not.toContain("Row 3: Reading ID — missing value.");
+  });
+
+  it("true blank lines and the trailing newline still never become phantom rows", () => {
+    const csv = "Reading_ID,Measured_Thickness_mm\n9.5,1.0\n\n \n2.0,2.0\n";
+    const { records } = tokenize(csv, ",");
+    expect(records).toHaveLength(3); // header + 2 data records only
+  });
+
+  it("a quoted empty field is an explicit record and is kept (missing values surface)", () => {
+    const csv = 'Reading_ID,Measured_Thickness_mm\n""\n';
+    const { records } = tokenize(csv, ",");
+    expect(records).toHaveLength(2);
+  });
+});
+
 describe("validate — row cap (T-02-06 loud over-limit)", () => {
   it("MAX_ROWS is 50,000 and exceeding it throws a loud over-limit error", () => {
     expect(MAX_ROWS).toBe(50_000);

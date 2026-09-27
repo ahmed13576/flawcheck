@@ -23,7 +23,12 @@ export interface CsvParseError {
 }
 
 export interface TokenizeResult {
-  /** All records including the header row at index 0; fully-empty records are skipped. */
+  /**
+   * All records including the header row at index 0. True blank lines (a
+   * single unquoted empty field) are skipped; records with delimiter-
+   * separated empty fields (',,') are REAL records and are kept — the
+   * validation layer reports their missing values (WR-07).
+   */
   records: string[][];
   errors: CsvParseError[];
   delimiter: Delimiter;
@@ -61,9 +66,10 @@ export function sniffDelimiter(input: string): Delimiter {
 /**
  * Quote-aware state machine (IN_FIELD / IN_QUOTED). Strips the UTF-8 BOM,
  * handles doubled-quote escapes, CRLF/LF/CR record separators outside quotes,
- * trailing record without newline, and skips fully-empty records (a trailing
- * newline must not produce a phantom row — Pitfall 5). Unquoted fields are
- * trimmed; quoted fields are preserved byte-for-byte.
+ * trailing record without newline, and skips only true blank lines (a trailing
+ * newline must not produce a phantom row — Pitfall 5; a ',,' record is data
+ * and is kept — WR-07). Unquoted fields are trimmed; quoted fields are
+ * preserved byte-for-byte.
  */
 export function tokenize(
   input: string,
@@ -85,11 +91,18 @@ export function tokenize(
     quotedField = false;
   };
   const pushRecord = () => {
+    // WR-07: capture the last field's quoted flag before pushField resets it —
+    // a quoted empty field ('""') is an EXPLICIT record, not a blank line.
+    const lastFieldQuoted = quotedField;
     pushField();
-    // Skip fully-empty records (blank lines, trailing newline) — never a
-    // phantom row. Record keeps its cells otherwise, ragged or not; ragged
-    // rows become row errors at the validation layer (no silent truncation).
-    if (record.some((cell) => cell !== "")) records.push(record);
+    // Skip only TRUE blank lines: a record consisting of a single unquoted
+    // empty field (a bare newline, a whitespace-only line, the trailing
+    // newline) — never a phantom row (Pitfall 5). A record carrying
+    // delimiter-separated empty fields (',,') is a real RFC 4180 record: it
+    // flows to the validation layer (missing-value errors) and the 1-based
+    // data-row numbering stays aligned with what the user sees in the file.
+    // Ragged records keep their cells either way — no silent truncation.
+    if (record.length > 1 || record[0] !== "" || lastFieldQuoted) records.push(record);
     record = [];
   };
 
