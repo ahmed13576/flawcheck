@@ -71,9 +71,11 @@ describe("results formatters — locked precision (UI-24)", () => {
     expect(formatCaption(951, 1000, 4912)).toBe("Showing 951–1,000 of 4,912");
   });
 
-  it("dates render as ISO YYYY-MM-DD; evaluated-at as YYYY-MM-DD HH:mm", () => {
+  it("dates render as ISO YYYY-MM-DD; evaluated-at as YYYY-MM-DD HH:mm with an explicit UTC marker (IN-07)", () => {
     expect(formatReadingDate("2025-01-15")).toBe("2025-01-15");
-    expect(formatEvaluatedAt("2026-09-27T17:05:00.000Z")).toBe("2026-09-27 17:05");
+    // IN-07: the timestamp is UTC wall-clock — without a marker a UTC+5:30
+    // user reads it as local and is hours off.
+    expect(formatEvaluatedAt("2026-09-27T17:05:00.000Z")).toBe("2026-09-27 17:05 UTC");
   });
 });
 
