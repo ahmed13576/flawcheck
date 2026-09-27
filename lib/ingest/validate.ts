@@ -27,7 +27,14 @@ export const MAX_FILE_BYTES = 5 * 1024 * 1024; // T-02-06: 5 MB hard cap
 
 export class InputLimitError extends Error {}
 
-/** Loud over-limit error — callers surface it in the error panel, never freeze. */
+/**
+ * Loud over-limit error — callers surface it in the error panel, never freeze.
+ * IN-03 (documented approximation): the in-reducer call measures
+ * `content.length` — UTF-16 code units, not bytes — so multibyte content can
+ * under-count up to ~3x vs UTF-8 (the reducer cap admits ~15 MB of CJK text
+ * as "5 MB"). The dropzone's `file.size` check (WR-06 makes it cover the
+ * replace path too) is the real byte gate; this check is belt-and-braces.
+ */
 export function assertFileBytes(bytes: number): void {
   if (bytes > MAX_FILE_BYTES) {
     throw new InputLimitError(
