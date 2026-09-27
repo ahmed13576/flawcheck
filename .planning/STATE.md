@@ -2,17 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: ingestion-calc-engine
-status: phase_complete_p1
-stopped_at: "Phase 1 COMPLETE: verified 15/15, review fixed+dispositioned, merged to master"
-last_updated: "2026-09-27T07:05:00.000Z"
+current_plan: 5
+status: verifying
+stopped_at: Completed 02-05-PLAN.md (Phase 2 plans complete)
+last_updated: "2026-09-27T12:04:00.427Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 1 verified (15/15 must-haves) and merged; criteria review actions queued
-state_head: bc9a5d1
+state_head: 3fa3cf9fcce0d0d7d559bfede71ef1d143bced5f
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 9
+  completed_plans: 9
   percent: 20
 ---
 
@@ -27,10 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 
 ## Current Position
 
-Phase: 2 (ingestion-calc-engine) — NEXT
-Plan: 0 of TBD in current phase
-Status: Phase 1 complete (verification passed 15/15, review clean); criteria-review fix branch in flight
-Last activity: 2026-09-27 — Phase 1 verified + merged to master; adversarial_review_v2 C2 REFUTED against API 570 Table 1 (Class 2 thickness = 10 yr correct)
+Phase: 2 (ingestion-calc-engine) — EXECUTING
+Current Plan: 5
+Total Plans in Phase: 5
+Status: Phase complete — ready for verification
+Last activity: 2026-09-27 — 02-03 complete (ingest library + Zenodo fixture + units gate); resuming wave-2 executor to continue with 02-04
 
 Progress: [██░░░░░░░░] 20%
 
@@ -59,6 +61,11 @@ Progress: [██░░░░░░░░] 20%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 1 P01-04 | 43min | 11 tasks | 37 files |
+| Phase 02 P01 | 18m | 2 tasks | 20 files |
+| Phase 02 P02 | 25m | 3 tasks | 17 files |
+| Phase 2 P03 | 40min | 3 tasks | 14 files |
+| Phase 2 P04 | 55min | 3 tasks | 16 files |
+| Phase 2 P05 | 35min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -75,6 +82,13 @@ Recent decisions affecting current work:
 - [Phase 1]: Phase 1 executed on build/phase-1: single approved install at 14 verified pins; UNINSTALL.md ledger started
 - [Phase 1]: Production LLM calls use documented json_object + Zod + exactly-one-retry; json_schema verified live-working on both routed models but kept as optional tightening
 - [Phase 1]: win32/Node 24.14 libuv teardown workaround: 500ms socket settle before exit in catalog script
+- [Phase 2]: Tracer slice: calc spine + tokenizer + wizard shell golden-tested (G1/G2/G4/G8/G9b/G13); inline grouping until 02-02/02-03 land
+- [Phase 2]: Full calc engine golden-tested (G1-G13, P1-P7) with purity gates; boundary guard matches module specifiers after negative-proof gap; deferred: Phase 1 live-LLM test flake
+- [Phase 2]: 02-03: fixture assertions pin OBSERVED numbers (thickness 18.88-20.0, DD/MM/YYYY source normalized to ISO in transform) — research table rows were pre-download guesses; all hard counts held (4912/12/11/six columns/scantling 20)
+- [Phase 2]: 02-03: demo mapping leaves tInitial/tPrevious null so R6 derived campaign history governs (constant-20 design scantling is not a measured t-initial); demo smoke pins 301 accept / 538 re_check / 4073 fail
+- [Phase 2]: 02-04: wizard state = EvaluationSession + additive ui field; locked metadata copies single-sourced in reducer metadataProblems (rendered via FieldError); run-evaluation gate chain blockers -> assertUnitsDeclared -> groupByCml/evaluate
+- [Phase 2]: 02-04: tracer mapping tInitial null (constant-20 scantling is not a measured t-initial) — golden tracer values pass through the groupByCml seam unchanged; browser GUI human-check approximated by SSR markup checks (browser MCP unavailable), full pass at end-of-phase UI gate
+- [Phase 2]: 02-05: observed demo semantics pinned — 480 CMLs/first-campaign rows (not ~447), 2,030 insufficient-history (480 no-history + 1,550 negative-CR clamped with raw rates surfaced); G14 fires for re_check equality band (RL rounds to 0); format.ts is the pure render path with Infinity/NaN render-scan
 
 ### Pending Todos
 
@@ -97,6 +111,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T06:32:04.827Z
-Stopped at: Completed Phase 1 (01-01..01-04): platform spike executed, 11 commits on build/phase-1
+Last session: 2026-09-27T12:03:32.170Z
+Stopped at: Completed 02-05-PLAN.md (Phase 2 plans complete)
 Resume file: None

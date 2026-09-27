@@ -63,3 +63,15 @@ rm package-lock.json         # PowerShell: Remove-Item -Force package-lock.json
 
 # 4. Delete this phase's section from UNINSTALL.md
 ```
+
+---
+
+## Phase 2 — Ingestion & Calc Engine
+
+**Date:** 2026-09-27
+**Status:** no new packages — the ingestion and calc engines were built entirely on
+Phase 1's pinned dependency set (researcher-confirmed zero-dependency feasibility; no
+checkpoint required). Zero install tasks ran in any Phase 2 plan; `node_modules` is
+unchanged by Phase 2. CSV transform tooling for the demo fixture used the system Python
+3 stdlib (csv/json/zipfile) outside the repo dependency surface, and the fixture zip
+stayed in gitignored `scratch/`.
