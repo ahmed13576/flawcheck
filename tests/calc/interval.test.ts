@@ -53,6 +53,24 @@ describe("interval — G14 builder decision (negative-RL contract)", () => {
   });
 });
 
+describe("interval — WR-02: an unknown class is a hard error, never an uncapped interval", () => {
+  it("a class without a numeric maximum (Class 4 'optional') throws — no ?? Infinity cap drop", () => {
+    // maxIntervalByClass narrows 'Class 4': "optional" to null; pre-fix
+    // nextInterval treated null as +Infinity and silently uncapped the interval.
+    expect(() => nextInterval(30, 4 as unknown as 1)).toThrow(/maximum interval/i);
+  });
+
+  it("a NaN pipeClass (the probed uncapping path) throws instead of returning 15.00", () => {
+    // Pre-fix probe: nextInterval(30, NaN) -> maxIntervalByClass null -> 15.00.
+    expect(() => nextInterval(30, Number.NaN as unknown as 1)).toThrow(/maximum interval/i);
+  });
+
+  it("valid classes 1|2|3 still compute their capped intervals", () => {
+    expect(nextInterval(30, 1).intervalYears).toBe(5.0);
+    expect(nextInterval(30, 3).intervalYears).toBe(10.0);
+  });
+});
+
 describe("interval — every return carries state and citation ids", () => {
   it("state is ok | immediate-inspection and citations pin API 570 6.3.3 + Table 1", () => {
     for (const result of [

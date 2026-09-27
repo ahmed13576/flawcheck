@@ -9,6 +9,8 @@ import {
 } from "@/lib/wizard/format";
 import { flagChipFor } from "@/components/wizard/verdict-chip";
 import { APPARENT_GAIN_SENTENCE } from "@/components/wizard/flag-detail-row";
+import { dimensionsLine } from "@/components/wizard/ptmt-triage-list";
+import { resultRowKey } from "@/components/wizard/results-table";
 import type { ReadingResult } from "@/lib/ingest/session";
 
 /**
@@ -69,9 +71,11 @@ describe("results formatters — locked precision (UI-24)", () => {
     expect(formatCaption(951, 1000, 4912)).toBe("Showing 951–1,000 of 4,912");
   });
 
-  it("dates render as ISO YYYY-MM-DD; evaluated-at as YYYY-MM-DD HH:mm", () => {
+  it("dates render as ISO YYYY-MM-DD; evaluated-at as YYYY-MM-DD HH:mm with an explicit UTC marker (IN-07)", () => {
     expect(formatReadingDate("2025-01-15")).toBe("2025-01-15");
-    expect(formatEvaluatedAt("2026-09-27T17:05:00.000Z")).toBe("2026-09-27 17:05");
+    // IN-07: the timestamp is UTC wall-clock — without a marker a UTC+5:30
+    // user reads it as local and is hours off.
+    expect(formatEvaluatedAt("2026-09-27T17:05:00.000Z")).toBe("2026-09-27 17:05 UTC");
   });
 });
 
@@ -125,6 +129,65 @@ describe("next-inspection cell model — G14 immediate inspection", () => {
     expect(rlCell(leaked).kind === "years" ? (rlCell(leaked) as { text: string }).text : "—").toBe(
       "—",
     );
+  });
+});
+
+describe("WR-04 regression — duplicate reading IDs never collide as React keys or DOM ids", () => {
+  it("row keys namespace by position: two 'R1' results get distinct keys", () => {
+    // 'duplicate reading ID' is a WARNING that never blocks — identical IDs
+    // flow into results.readings and used to key <tr> and detail-* ids.
+    const keys = ["R1", "R1", "R1"].map((_, index) => resultRowKey("R1", index));
+    expect(new Set(keys).size).toBe(3);
+  });
+
+  it("distinct ids at distinct positions keep unique keys (no accidental overlap)", () => {
+    const keys = new Set([
+      resultRowKey("R1", 3),
+      resultRowKey("R1-3", 4), // would collide with a naive `${id}-${index}` split
+      resultRowKey("R1", 34),
+      resultRowKey("R1-3", 40),
+    ]);
+    expect(keys.size).toBe(4);
+  });
+});
+
+describe("WR-05 regression — declared morphology is labeled informational when it disagrees with the engine's derived classification", () => {
+  const base = { id: "ind-1", method: "MT" as const, count: 1, edgeSeparationMm: null, crackSuspect: false };
+
+  it("agreement renders the plain morphology line (no noise)", () => {
+    expect(dimensionsLine({ ...base, morphology: "linear", lengthMm: 4.2, widthMm: 0.8 })).toBe(
+      "Linear indication L 4.2 × W 0.8 mm",
+    );
+    expect(dimensionsLine({ ...base, morphology: "rounded", lengthMm: 2.0, widthMm: 1.9 })).toBe(
+      "Rounded indication L 2.0 × W 1.9 mm",
+    );
+  });
+
+  it("declared linear but L <= 3W: 'declared: linear (informational)' names the rounded classification", () => {
+    // The probed contradiction: declared Linear, dimensions classify rounded —
+    // the card used to print 'Linear indication ... ACCEPT' with no explanation.
+    const line = dimensionsLine({ ...base, morphology: "linear", lengthMm: 2.0, widthMm: 1.9 });
+    expect(line).toContain("declared: linear (informational)");
+    expect(line).toContain("classifies rounded");
+    expect(line).toContain("L 2.0 × W 1.9 mm");
+  });
+
+  it("declared rounded but L > 3W: 'declared: rounded (informational)' names the linear classification", () => {
+    const line = dimensionsLine({ ...base, morphology: "rounded", lengthMm: 5.0, widthMm: 1.0 });
+    expect(line).toContain("declared: rounded (informational)");
+    expect(line).toContain("classifies linear");
+  });
+
+  it("the L > 3W boundary stays locked: exactly 3W classifies rounded (P7a)", () => {
+    // Boundary constructed arithmetically (house float convention): L = 3*W
+    // exactly -> strict > is false -> derived rounded -> plain agreement line.
+    expect(dimensionsLine({ ...base, morphology: "rounded", lengthMm: 3 * 2.0, widthMm: 2.0 })).toBe(
+      "Rounded indication L 6.0 × W 2.0 mm",
+    );
+    // One epsilon above 3W flips to linear (and a declared-rounded card says so).
+    const above = dimensionsLine({ ...base, morphology: "rounded", lengthMm: 6.0000001, widthMm: 2.0 });
+    expect(above).toContain("declared: rounded (informational)");
+    expect(above).toContain("classifies linear");
   });
 });
 

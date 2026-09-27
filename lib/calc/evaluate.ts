@@ -27,6 +27,7 @@ import type {
   ReadingResult,
   Unit,
 } from "../ingest/session";
+import { EvaluationInputError } from "../ingest/session";
 import { addYearsUtc } from "./dates";
 import { rateOutcome } from "./corrosion";
 import { flagOutliers, type OutlierHistoryReading } from "./outliers";
@@ -42,6 +43,48 @@ export interface EvaluateOptions {
   ptmtIndications?: PtmIndication[];
 }
 
+/**
+ * WR-01 fail-closed guard. Verdict banding is a chain of `<` comparisons: with
+ * a NaN t_actual BOTH branches are false and the reading silently lands in
+ * `accept` with rlYears NaN — a fabricated clean bill on the Phase 3/4 public
+ * API. The engine therefore refuses any non-finite input (or any non-finite
+ * metadata numeric / computed t_required) with a typed, loud error naming the
+ * reading and field. The wizard path never hits this (error rows are filtered
+ * before grouping); this is the engine's own defense at the seam.
+ */
+function assertFinite(value: number | null, field: string, readingId: string): void {
+  if (value !== null && !Number.isFinite(value)) {
+    throw new EvaluationInputError(
+      `Evaluation refused (fail-closed): reading '${readingId}' has non-finite ${field}. ` +
+        "Non-finite input can never produce a verdict — fix the source data instead.",
+    );
+  }
+}
+
+function assertFiniteMetadata(metadata: ComponentMetadata): void {
+  const fields: Array<[keyof ComponentMetadata, string]> = [
+    ["od", "od"],
+    ["tNominal", "tNominal"],
+    ["fca", "fca"],
+    ["tStructural", "tStructural"],
+    ["gaugeUncertainty", "gaugeUncertainty"],
+    ["designPressure", "designPressure"],
+    ["allowableStress", "allowableStress"],
+    ["e", "e"],
+    ["w", "w"],
+    ["y", "y"],
+  ];
+  for (const [key, label] of fields) {
+    const value = metadata[key];
+    if (typeof value === "number" && !Number.isFinite(value)) {
+      throw new EvaluationInputError(
+        `Evaluation refused (fail-closed): metadata ${label} is non-finite. ` +
+          "Non-finite input can never produce a verdict — fix the metadata form instead.",
+      );
+    }
+  }
+}
+
 export function evaluate(
   inputs: EvaluationInput[],
   metadata: ComponentMetadata,
@@ -51,6 +94,8 @@ export function evaluate(
   // ING-05 canonicalization: metadata thickness fields are declared in the
   // metadata unit and converted to canonical mm at eval entry. P and S share
   // the metadata pressureUnit (dimensionally consistent — no conversion).
+  assertFiniteMetadata(metadata);
+
   const formulaInputs = {
     designPressure: metadata.designPressure,
     odMm: toMm(metadata.od, units.metadata),
@@ -64,6 +109,10 @@ export function evaluate(
   };
   const thickness = requiredThickness(formulaInputs);
   const gaugeUncertaintyMm = toMm(metadata.gaugeUncertainty, units.metadata);
+  // WR-01: even finite inputs can overflow the formula shape (e.g. near-zero
+  // divisor) — a non-finite t_required would silently accept everything.
+  assertFinite(thickness.tRequiredMm, "computed tRequiredMm", "(metadata)");
+  assertFinite(gaugeUncertaintyMm, "computed gaugeUncertaintyMm", "(metadata)");
 
   // Outliers per CML population: group by the CML identity (tank + grid when
   // the seam provides it, location otherwise), n >= 4.
@@ -86,6 +135,12 @@ export function evaluate(
   }
 
   const readings: ReadingResult[] = inputs.map((input) => {
+    // WR-01 fail-closed gate — before any verdict, rate, or RL is attempted.
+    assertFinite(input.tActualMm, "tActualMm", input.readingId);
+    assertFinite(input.tInitialMm, "tInitialMm", input.readingId);
+    assertFinite(input.tPreviousMm, "tPreviousMm", input.readingId);
+    assertFinite(input.dtLtYears, "dtLtYears", input.readingId);
+    assertFinite(input.dtStYears, "dtStYears", input.readingId);
     const outcome = rateOutcome(
       input.tInitialMm,
       input.tPreviousMm,

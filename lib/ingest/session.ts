@@ -118,7 +118,14 @@ export interface ReadingResult {
   tPressureMm: number;
   tStructuralMm: number;
   tRequiredMm: number;
-  /** null = insufficient history (never Infinity/NaN). */
+  /**
+   * Display rates — null = insufficient history (never Infinity/NaN).
+   * IN-01 (documented identity): today crLtMmYr/crStMmYr equal the raw pair
+   * verbatim — the clamped quantity is the GOVERNING rate, surfaced
+   * separately as crGoverningMmYr. The four fields are kept as distinct
+   * contract fields so a future display-vs-audit derivation (e.g. formatting
+   * the display pair) can never silently mutate the raw audit values.
+   */
   crLtMmYr: number | null;
   crStMmYr: number | null;
   /** Possibly negative raw rates, surfaced verbatim per negative_cr_policy. */

@@ -4,6 +4,7 @@ import {
   createInitialSession,
   wizardReducer,
   blockingChecks,
+  validateSession,
   type EvaluateFn,
   type WizardState,
 } from "@/lib/wizard/reducer";
@@ -180,6 +181,60 @@ describe("wizard reducer — parse-file (Screen 1 ingest)", () => {
   });
 });
 
+describe("wizard reducer — CR-01 regression: in/mils upload rows validate clean against the mm OD", () => {
+  const MILS_CSV = [
+    "Reading_ID,Tank,Measured_Thickness_mils,Measurement_Date",
+    "R1,T1,465,2025-01-15",
+    "R2,T1,748,2025-01-15",
+  ].join("\n");
+
+  it("a healthy 748-mil wall is NOT flagged against a 114.3 mm OD", () => {
+    const parsed = parse(MILS_CSV, "mils-register.csv");
+    // 'Measured_Thickness_mils' misses the exact thickness alias table — the
+    // user maps it manually and the suffix re-guesses the unit (UI-07/12).
+    const mapped = wizardReducer(parsed, {
+      type: "set-mapping",
+      field: "measuredThickness",
+      header: "Measured_Thickness_mils",
+    });
+    expect(mapped.units.csvThickness).toBe("mils");
+    // OD check disabled while the draft OD is blank — fill it (mm metadata unit).
+    const withOd = wizardReducer(mapped, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "114.3",
+    });
+    const odErrors = withOd.ui.rowIssues.filter((i) =>
+      i.message.includes("exceeds outer diameter"),
+    );
+    expect(odErrors).toEqual([]);
+    expect(withOd.ui.rowIssues.filter((i) => i.severity === "error")).toHaveLength(0);
+  });
+
+  it("an over-thickness mils row still fires the OD error after conversion", () => {
+    const THICK_MILS_CSV = MILS_CSV.replace("748", "6000"); // 6000 mils = 152.4 mm
+    const parsed = parse(THICK_MILS_CSV, "mils-register.csv");
+    const mapped = wizardReducer(parsed, {
+      type: "set-mapping",
+      field: "measuredThickness",
+      header: "Measured_Thickness_mils",
+    });
+    const withOd = wizardReducer(mapped, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "114.3",
+    });
+    // Direct validateSession pin (the CR-01 seam): unit pass-through keeps the
+    // guard live — the UI-state recompute itself is WR-03's regression.
+    const fresh = validateSession(withOd, withOd.ui.metadataDraft);
+    expect(
+      fresh.some((i) =>
+        i.message.includes("Row 2: Measured thickness — impossible value, exceeds outer diameter"),
+      ),
+    ).toBe(true);
+  });
+});
+
 describe("wizard reducer — load-demo (zero-network Zenodo fixture)", () => {
   const demo: WizardState = wizardReducer(createInitialState(), { type: "load-demo" });
 
@@ -325,6 +380,86 @@ describe("wizard reducer — set-mapping revalidates (UI-07)", () => {
     });
     expect(remapped.units.csvThickness).toBe("mils");
   });
+
+  it("IN-04: explicitly mapping a header that another field holds clears it there", () => {
+    const CSV = "CML,Tank,Measured_Thickness_mm,Measurement_Date\nR1,T1,9.5,2025-01-15\n";
+    const parsed = parse(CSV);
+    // auto-guess: readingId -> CML (alias order), tank -> Tank.
+    expect(parsed.mapping.readingId).toBe("CML");
+    const retarget = wizardReducer(parsed, { type: "set-mapping", field: "tank", header: "CML" });
+    expect(retarget.mapping.tank).toBe("CML");
+    expect(retarget.mapping.readingId).toBeNull(); // one header, one column
+  });
+});
+
+describe("wizard reducer — WR-03 regression: metadata edits re-gate row validation (UI-07 never stale)", () => {
+  it("set-metadata-field (OD) recomputes the thickness-vs-OD check immediately", () => {
+    const parsed = parse(SAMPLE_CSV); // thickness 10.5 / 10.2 mm, OD blank -> check disabled
+    expect(parsed.ui.rowIssues).toHaveLength(0);
+
+    const tooTight = wizardReducer(parsed, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "10.0",
+    });
+    expect(
+      tooTight.ui.rowIssues.some(
+        (i) => i.severity === "error" && i.message.includes("exceeds outer diameter"),
+      ),
+    ).toBe(true);
+
+    const roomy = wizardReducer(tooTight, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "20",
+    });
+    expect(
+      roomy.ui.rowIssues.some((i) => i.message.includes("exceeds outer diameter")),
+    ).toBe(false);
+  });
+
+  it("set-metadata-unit recomputes in the converted unit (mm od 114.3 vs mils od 114.3 differ)", () => {
+    const MILS_CSV = [
+      "Reading_ID,Tank,Measured_Thickness_mils,Measurement_Date",
+      "R1,T1,748,2025-01-15",
+    ].join("\n");
+    const state = wizardReducer(
+      wizardReducer(parse(MILS_CSV), {
+        type: "set-mapping",
+        field: "measuredThickness",
+        header: "Measured_Thickness_mils",
+      }),
+      { type: "set-metadata-field", field: "od", value: "114.3" },
+    );
+    // metadata unit mm: 114.3 mm OD vs 19.005 mm wall — clean.
+    expect(state.ui.rowIssues.filter((i) => i.severity === "error")).toHaveLength(0);
+
+    // Switch the metadata unit to mils: the SAME draft od digits now mean
+    // 2.90 mm — the recomputed issues must appear, not a stale badge set.
+    const asMils = wizardReducer(state, { type: "set-metadata-unit", unit: "mils" });
+    expect(
+      asMils.ui.rowIssues.some(
+        (i) => i.severity === "error" && i.message.includes("exceeds outer diameter"),
+      ),
+    ).toBe(true);
+  });
+
+  it("set-csv-thickness-unit recomputes (the cells' meaning changed)", () => {
+    const state = wizardReducer(parse(SAMPLE_CSV), {
+      type: "set-metadata-field",
+      field: "od",
+      value: "20",
+    });
+    // CSV read as mm: 10.5 mm < 20 mm OD — clean.
+    expect(state.ui.rowIssues.filter((i) => i.severity === "error")).toHaveLength(0);
+    // Re-declare the CSV cells as inches: 10.5 in = 266.7 mm — must re-flag.
+    const asInches = wizardReducer(state, { type: "set-csv-thickness-unit", unit: "in" });
+    expect(
+      asInches.ui.rowIssues.some(
+        (i) => i.severity === "error" && i.message.includes("exceeds outer diameter"),
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("wizard reducer — set-row-cell (UI-09)", () => {
@@ -396,10 +531,31 @@ describe("wizard reducer — metadata draft gates the blocking selector (UI-10/1
     const blockers = blockingChecks(blank);
     const messages = blockers.metadataProblems.map((p) => p.message);
     expect(messages).toContain("Outer diameter must be a number greater than 0.");
-    expect(messages).toContain("Nominal thickness must be smaller than the outer diameter.");
+    // IN-06: a blank/zero/negative t-nominal is a non-positive-number problem,
+    // not a smaller-than-OD problem — the copy is split accordingly.
+    expect(messages).toContain("Nominal thickness must be a number greater than 0.");
     expect(messages).toContain("Select a piping class.");
     expect(messages).toContain("Design pressure must be a number greater than 0.");
     expect(messages).toContain("Allowable stress must be a number greater than 0.");
+  });
+
+  it("IN-06: t-nominal copy splits — non-positive vs >= OD each get the honest message", () => {
+    const parsed = parse(SAMPLE_CSV);
+    const zero = wizardReducer(parsed, { type: "set-metadata-field", field: "tNominal", value: "0" });
+    expect(blockingChecks(zero).metadataProblems.map((p) => p.message)).toContain(
+      "Nominal thickness must be a number greater than 0.",
+    );
+    const negative = wizardReducer(parsed, { type: "set-metadata-field", field: "tNominal", value: "-3" });
+    expect(blockingChecks(negative).metadataProblems.map((p) => p.message)).toContain(
+      "Nominal thickness must be a number greater than 0.",
+    );
+    const tooThick = [
+      { type: "set-metadata-field" as const, field: "od" as const, value: "10" },
+      { type: "set-metadata-field" as const, field: "tNominal" as const, value: "12" },
+    ].reduce((acc, action) => wizardReducer(acc, action), parsed);
+    expect(blockingChecks(tooThick).metadataProblems.map((p) => p.message)).toContain(
+      "Nominal thickness must be smaller than the outer diameter.",
+    );
   });
 
   it("t-nominal >= OD, negative FCA, and negative gauge each fire their copy", () => {
@@ -418,6 +574,20 @@ describe("wizard reducer — metadata draft gates the blocking selector (UI-10/1
     expect(messages).toContain("Nominal thickness must be smaller than the outer diameter.");
     expect(messages).toContain("FCA cannot be negative.");
     expect(messages).toContain("Gauge uncertainty cannot be negative.");
+  });
+
+  it("WR-02: a non-1|2|3 pipeClass value is a metadata problem and blocks metadataFromDraft", () => {
+    const parsed = parse(SAMPLE_CSV);
+    const bad = ["4", "abc", "1.5", "-1"].map((value) =>
+      wizardReducer(parsed, { type: "set-metadata-field", field: "pipeClass", value }),
+    );
+    for (const state of bad) {
+      const problems = blockingChecks(state).metadataProblems;
+      expect(problems.some((p) => p.field === "pipeClass")).toBe(true);
+    }
+    // blank still fires the same locked copy
+    const blank = blockingChecks(parsed).metadataProblems;
+    expect(blank.map((p) => p.message)).toContain("Select a piping class.");
   });
 
   it("a session with metadata problems cannot reach evaluate (gate order)", () => {

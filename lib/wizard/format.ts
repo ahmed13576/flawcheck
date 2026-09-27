@@ -25,9 +25,13 @@ export function formatReadingDate(iso: string): string {
   return iso.slice(0, 10);
 }
 
-/** 'evaluated {YYYY-MM-DD HH:mm}' — the UI captures the timestamp at run time. */
+/**
+ * 'evaluated {YYYY-MM-DD HH:mm} UTC' — the UI captures the timestamp at run
+ * time. IN-07: the rendered clock is UTC wall-clock, so it carries an explicit
+ * ' UTC' marker — a UTC+5:30 user must not read it as their local time.
+ */
 export function formatEvaluatedAt(iso: string): string {
-  return iso.slice(0, 16).replace("T", " ");
+  return `${iso.slice(0, 16).replace("T", " ")} UTC`;
 }
 
 /**

@@ -270,10 +270,23 @@ export function createInitialState(): WizardState {
 
 // --- validation selectors (one path shared by ingest, mapping, and edits) ------
 
-/** Re-run lib/ingest rowIssues over the session (UI-07: never stale). */
-export function validateSession(session: EvaluationSession): RowIssue[] {
-  const od = toMm(session.metadata.od, session.units.metadata);
-  return rowIssues(session.rows, session.mapping, { odMm: od > 0 ? od : 0 });
+/**
+ * Re-run lib/ingest rowIssues over the session (UI-07: never stale).
+ *
+ * - CR-01: the CSV thickness unit rides along so the OD comparison happens in
+ *   canonical mm (a mils CSV is never compared as `748 >= 114.3`).
+ * - WR-03: metadata edits re-gate the OD check through the DRAFT — the draft
+ *   od is authoritative while the user fills the form (session.metadata only
+ *   updates at run-evaluation). Callers without a draft (ingest/demo/sample)
+ *   fall back to the session metadata value.
+ */
+export function validateSession(session: EvaluationSession, draft?: MetadataDraft): RowIssue[] {
+  const odRaw = draft ? draftNumber(draft.od) : session.metadata.od;
+  const od = odRaw !== null ? toMm(odRaw, session.units.metadata) : 0;
+  return rowIssues(session.rows, session.mapping, {
+    odMm: od > 0 ? od : 0,
+    csvThicknessUnit: session.units.csvThickness,
+  });
 }
 
 export interface MetadataProblem {
@@ -295,7 +308,14 @@ export function metadataProblems(draft: MetadataDraft): MetadataProblem[] {
     problems.push({ field: "od", message: "Outer diameter must be a number greater than 0." });
   }
   const tNominal = draftNumber(draft.tNominal);
-  if (tNominal === null || tNominal <= 0 || (od !== null && od > 0 && tNominal >= od)) {
+  // IN-06: the copy is split — a non-positive value is a number problem, not
+  // a smaller-than-OD problem ("0 must be smaller than the OD" is false copy).
+  if (tNominal === null || tNominal <= 0) {
+    problems.push({
+      field: "tNominal",
+      message: "Nominal thickness must be a number greater than 0.",
+    });
+  } else if (od !== null && od > 0 && tNominal >= od) {
     problems.push({
       field: "tNominal",
       message: "Nominal thickness must be smaller than the outer diameter.",
@@ -309,7 +329,11 @@ export function metadataProblems(draft: MetadataDraft): MetadataProblem[] {
   if (tStructural === null || tStructural < 0) {
     problems.push({ field: "tStructural", message: "Structural min thickness cannot be negative." });
   }
-  if (draft.pipeClass.trim() === "") {
+  // WR-02: the select constrains the UI, but the reducer is the documented
+  // gate — a draft pipeClass outside 1|2|3 must never reach the engine as a
+  // validated-looking ComponentMetadata (an unknown class would uncap the
+  // API 570 Table 1 interval maximum). Blank and invalid share the locked copy.
+  if (!["1", "2", "3"].includes(draft.pipeClass.trim())) {
     problems.push({ field: "pipeClass", message: "Select a piping class." });
   }
   const gauge = draftNumber(draft.gaugeUncertainty);
@@ -628,6 +652,16 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
 
     case "set-mapping": {
       const mapping = { ...state.mapping, [action.field]: action.header };
+      // IN-04: one header maps to one column — claiming it here clears it
+      // from any other field, so the parsed-row table never renders two
+      // identical editable columns for the same header.
+      if (action.header !== null) {
+        for (const field of Object.keys(mapping) as TargetField[]) {
+          if (field !== action.field && mapping[field] === action.header) {
+            mapping[field] = null;
+          }
+        }
+      }
       const units = { ...state.units };
       if (!state.ui.csvThicknessUnitManual) {
         units.csvThickness = csvThicknessUnitFromHeader(mapping.measuredThickness);
@@ -636,20 +670,31 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...session, ui: { ...state.ui, rowIssues: validateSession(session) } };
     }
 
-    case "set-csv-thickness-unit":
+    case "set-csv-thickness-unit": {
+      // WR-03: the CSV cells' meaning changed — re-gate the row issues now
+      // (the thickness-vs-OD check converts with the declared CSV unit).
+      const units = { ...state.units, csvThickness: action.unit };
+      const session: EvaluationSession = { ...state, units, results: null };
       return {
-        ...state,
-        units: { ...state.units, csvThickness: action.unit },
-        results: null,
-        ui: { ...state.ui, csvThicknessUnitManual: true },
+        ...session,
+        ui: {
+          ...state.ui,
+          csvThicknessUnitManual: true,
+          rowIssues: validateSession(session, state.ui.metadataDraft),
+        },
       };
+    }
 
-    case "set-metadata-unit":
+    case "set-metadata-unit": {
+      // WR-03: the metadata od converts in the NEW unit — row issues recompute
+      // so the OD gate never runs against a stale conversion (UI-07).
+      const units = { ...state.units, metadata: action.unit };
+      const session: EvaluationSession = { ...state, units, results: null };
       return {
-        ...state,
-        units: { ...state.units, metadata: action.unit },
-        results: null,
+        ...session,
+        ui: { ...state.ui, rowIssues: validateSession(session, state.ui.metadataDraft) },
       };
+    }
 
     case "set-row-cell": {
       const rows = state.rows.map((row) =>
@@ -662,15 +707,17 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
     case "set-page":
       return { ...state, ui: { ...state.ui, page: Math.max(1, action.page) } };
 
-    case "set-metadata-field":
+    case "set-metadata-field": {
+      // WR-03: the draft (not session.metadata) is authoritative while the
+      // user fills the form — OD edits must re-gate the thickness-vs-OD check
+      // immediately, exactly as set-mapping does (UI-07: never stale).
+      const metadataDraft = { ...state.ui.metadataDraft, [action.field]: action.value };
+      const session: EvaluationSession = { ...state, results: null };
       return {
-        ...state,
-        results: null,
-        ui: {
-          ...state.ui,
-          metadataDraft: { ...state.ui.metadataDraft, [action.field]: action.value },
-        },
+        ...session,
+        ui: { ...state.ui, metadataDraft, rowIssues: validateSession(session, metadataDraft) },
       };
+    }
 
     case "set-ptmt-notes":
       return {

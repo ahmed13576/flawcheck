@@ -55,14 +55,18 @@ export function FlagDetailRow({
   reading,
   flag,
   colSpan,
+  rowKey,
 }: {
   reading: ReadingResult;
   flag: ReadingFlag;
   colSpan: number;
+  /** WR-04: position-namespaced row key — duplicate reading IDs must never
+   * produce duplicate detail-* DOM ids (aria-controls wiring). */
+  rowKey: string;
 }) {
   return (
     <tr className="bg-[#0a0a0a]">
-      <td id={`detail-${reading.readingId}-${flag}`} colSpan={colSpan} className="px-6 py-2">
+      <td id={`detail-${rowKey}-${flag}`} colSpan={colSpan} className="px-6 py-2">
         <FlagDetailContent reading={reading} flag={flag} />
       </td>
     </tr>

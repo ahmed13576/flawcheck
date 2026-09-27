@@ -80,7 +80,12 @@ describe("validate — the locked error catalog (UI-SPEC copy verbatim)", () => 
   it("OD check disabled when odMm is 0 (metadata not yet entered)", () => {
     const rows = rowsFrom([["R1", "T", "G", "20", "120", "2025-01-15"]]);
     const issues = rowIssues(rows, FULL_MAPPING, BASE_OPTS);
-    expect(issues).toEqual([]);
+    expect(issues.filter((i) => i.severity === "error")).toEqual([]);
+    // FULL_MAPPING explicitly maps Original_Scantling_mm — the CR-02 warning
+    // fires (non-blocking); auto-guess never produces this mapping.
+    expect(issues.map((i) => i.message)).toContainEqual(
+      expect.stringContaining("nominal-scantling-as-t-initial ('Original_Scantling_mm')"),
+    );
   });
 
   it("unparseable date -> not a valid date ('31/02/2026')", () => {
@@ -195,6 +200,127 @@ describe("validate — ragged rows (never silent truncation)", () => {
     expect(ragged!.severity).toBe("error");
     expect(ragged!.message).toContain("Row 1:");
     expect(ragged!.message).toContain("extra-2");
+  });
+});
+
+describe("validate — CR-01 regression: thickness-vs-OD compares in canonical mm", () => {
+  it("a 748-mil row (19.005 mm) validates clean against a 114.3 mm OD when csvThicknessUnit is mils", () => {
+    const rows = rowsFrom([["R1", "T", "G", "20", "748", "2025-01-15"]]);
+    const issues = rowIssues(rows, { ...FULL_MAPPING, tInitial: null }, {
+      ...BASE_OPTS,
+      odMm: 114.3,
+      csvThicknessUnit: "mils",
+    });
+    expect(issues).toEqual([]);
+  });
+
+  it("an in-unit row (5.5 in = 139.7 mm) validates clean against a 2000 mm OD", () => {
+    const rows = rowsFrom([["R1", "T", "G", "20", "5.5", "2025-01-15"]]);
+    const issues = rowIssues(rows, { ...FULL_MAPPING, tInitial: null }, {
+      ...BASE_OPTS,
+      odMm: 2000,
+      csvThicknessUnit: "in",
+    });
+    expect(issues).toEqual([]);
+  });
+
+  it("a genuinely-too-thick mils value still fires the OD error (guard is not disabled)", () => {
+    // 6000 mils = 152.4 mm > 114.3 mm OD — must still be rejected after conversion.
+    const rows = rowsFrom([["R1", "T", "G", "20", "6000", "2025-01-15"]]);
+    const issues = rowIssues(rows, FULL_MAPPING, {
+      ...BASE_OPTS,
+      odMm: 114.3,
+      csvThicknessUnit: "mils",
+    });
+    expect(issues.map((i) => i.message)).toContain(
+      "Row 1: Measured thickness — impossible value, exceeds outer diameter (114.3 mm).",
+    );
+  });
+
+  it("defaults to mm when csvThicknessUnit is omitted (back-compat)", () => {
+    const rows = rowsFrom([["R1", "T", "G", "20", "120", "2025-01-15"]]);
+    const issues = rowIssues(rows, FULL_MAPPING, { ...BASE_OPTS, odMm: 114.3 });
+    expect(issues.map((i) => i.message)).toContain(
+      "Row 1: Measured thickness — impossible value, exceeds outer diameter (114.3 mm).",
+    );
+  });
+});
+
+describe("validate — CR-02 regression: explicitly-mapped scantling columns warn (never block)", () => {
+  it("a nominal-scantling t-initial mapping emits a warning naming the hazard on every consuming row", () => {
+    const rows = rowsFrom([
+      ["R1", "T", "G", "20", "9.5", "2015-01-15"],
+      ["R2", "T", "G", "20", "9.2", "2025-01-15"],
+    ]);
+    const issues = rowIssues(rows, FULL_MAPPING, BASE_OPTS);
+    const warnings = issues.filter((i) => i.message.includes("nominal-scantling-as-t-initial"));
+    expect(warnings).toHaveLength(2); // both rows consume the mapped column
+    for (const w of warnings) {
+      expect(w.severity).toBe("warning"); // honored mapping never blocks (UI-07)
+      expect(w.message).toContain("constant design scantling");
+    }
+  });
+
+  it("a nominal-scantling t-previous mapping warns with the t-previous token", () => {
+    const rows = rowsFrom([["R1", "T", "G", "20", "9.5", "2025-01-15"]]);
+    const issues = rowIssues(
+      rows,
+      { ...FULL_MAPPING, tPrevious: "Original_Scantling_mm" },
+      BASE_OPTS,
+    );
+    expect(
+      issues.some((i) =>
+        i.message.includes("nominal-scantling-as-t-previous ('Original_Scantling_mm')"),
+      ),
+    ).toBe(true);
+  });
+
+  it("a genuinely measured t-initial mapping emits NO scantling warning", () => {
+    const rows = rowsFrom([["R1", "T", "G", "11.5", "9.5", "2025-01-15"]]);
+    const issues = rowIssues(
+      rows,
+      { ...FULL_MAPPING, tInitial: "Initial_Thickness" },
+      BASE_OPTS,
+    );
+    expect(issues.some((i) => i.message.includes("nominal-scantling"))).toBe(false);
+  });
+});
+
+describe("validate — WR-07 regression: all-empty data records are never silently dropped", () => {
+  it("',,' is a real RFC 4180 record: it reaches rowIssues and row numbering is preserved", () => {
+    const csv = [
+      "Reading_ID,Tank,Measured_Thickness_mm,Measurement_Date",
+      "R1,T1,9.5,2025-01-15",
+      ",,",
+      "R3,T1,9.4,2025-01-15",
+    ].join("\n");
+    const { records } = tokenize(csv, ",");
+    expect(records).toHaveLength(4); // header + 3 data records (the ',,' survives)
+    const rows = buildParsedRows(records[0], records.slice(1));
+    expect(rows.map((r) => r.row)).toEqual([1, 2, 3]);
+    const issues = rowIssues(
+      rows,
+      { ...FULL_MAPPING, tInitial: null },
+      BASE_OPTS,
+    );
+    // The empty record reports missing values on its own row number —
+    // pre-fix the record vanished and every subsequent row number shifted.
+    expect(issues.map((i) => i.message)).toContain("Row 2: Reading ID — missing value.");
+    expect(issues.map((i) => i.message)).toContain("Row 2: Measured thickness — missing value.");
+    // R3 stays Row 3 exactly as the user sees it in their file.
+    expect(issues.map((i) => i.message)).not.toContain("Row 3: Reading ID — missing value.");
+  });
+
+  it("true blank lines and the trailing newline still never become phantom rows", () => {
+    const csv = "Reading_ID,Measured_Thickness_mm\n9.5,1.0\n\n \n2.0,2.0\n";
+    const { records } = tokenize(csv, ",");
+    expect(records).toHaveLength(3); // header + 2 data records only
+  });
+
+  it("a quoted empty field is an explicit record and is kept (missing values surface)", () => {
+    const csv = 'Reading_ID,Measured_Thickness_mm\n""\n';
+    const { records } = tokenize(csv, ",");
+    expect(records).toHaveLength(2);
   });
 });
 

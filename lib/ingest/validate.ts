@@ -17,15 +17,24 @@
  */
 import { z } from "zod";
 import { buildCells } from "./csv";
+import { isNominalScantlingHeader } from "./map";
 import { parseIsoUtc } from "../calc/dates";
-import type { ParsedRow, RowIssue, TargetField } from "./session";
+import { toMm } from "../calc/units";
+import type { ParsedRow, RowIssue, TargetField, Unit } from "./session";
 
 export const MAX_ROWS = 50_000; // T-02-06: hard row cap before any heavy work
 export const MAX_FILE_BYTES = 5 * 1024 * 1024; // T-02-06: 5 MB hard cap
 
 export class InputLimitError extends Error {}
 
-/** Loud over-limit error — callers surface it in the error panel, never freeze. */
+/**
+ * Loud over-limit error — callers surface it in the error panel, never freeze.
+ * IN-03 (documented approximation): the in-reducer call measures
+ * `content.length` — UTF-16 code units, not bytes — so multibyte content can
+ * under-count up to ~3x vs UTF-8 (the reducer cap admits ~15 MB of CJK text
+ * as "5 MB"). The dropzone's `file.size` check (WR-06 makes it cover the
+ * replace path too) is the real byte gate; this check is belt-and-braces.
+ */
 export function assertFileBytes(bytes: number): void {
   if (bytes > MAX_FILE_BYTES) {
     throw new InputLimitError(
@@ -117,6 +126,12 @@ function issue(row: number, field: string, problem: string, severity: "error" | 
 export interface ValidateOptions {
   /** Metadata outer diameter in canonical mm; 0 disables the thickness-vs-OD check. */
   odMm?: number;
+  /**
+   * CR-01: declared unit of the parsed thickness cell (session.units.csvThickness).
+   * The OD is canonical mm, so the cell MUST be converted before comparing —
+   * a 748-mil wall is 19.005 mm, never "748 mm". Defaults to mm (back-compat).
+   */
+  csvThicknessUnit?: Unit;
   /** Today as YYYY-MM-DD (UTC) for the future-date WARNING; defaults to the real clock. */
   todayIso?: string;
 }
@@ -184,7 +199,11 @@ export function rowIssues(
           issue(row.row, FIELD_LABELS.measuredThickness, `not a number ('${thicknessRaw}')`, "error"),
         );
       } else {
-        thicknessMm = parsed;
+        // CR-01: canonicalize to mm with the row's declared CSV unit BEFORE any
+        // comparison — the OD is canonical mm (toMm at validateSession). The
+        // sign check is unit-invariant (toMm is positive scaling); both
+        // messages render the true mm value, never the raw unit value.
+        thicknessMm = toMm(parsed, options.csvThicknessUnit ?? "mm");
         if (thicknessMm <= 0) {
           issues.push(
             issue(
@@ -238,10 +257,25 @@ export function rowIssues(
 
     // Optional wide-format numeric columns — loud, never silently coerced.
     for (const field of ["tInitial", "tPrevious"] as const) {
+      const header = mapping[field];
       const raw = cellOf(row, mapping, field);
       if (raw.trim() === "") continue; // optional + absent is legal (CR degradation)
       if (parseNumericCell(raw) === null) {
         issues.push(issue(row.row, FIELD_LABELS[field], `not a number ('${raw}')`, "error"));
+      }
+      // CR-02: auto-guess never binds a nominal-scantling column (map.ts), so
+      // a scantling header mapped here is explicit. The user is honored
+      // (UI-07 overridability) but the CMLs are warned: the wide-format
+      // precedence in lib/ingest/group will derive CRs from this column.
+      if (header && isNominalScantlingHeader(header)) {
+        issues.push(
+          issue(
+            row.row,
+            FIELD_LABELS[field],
+            `nominal-scantling-as-${field === "tInitial" ? "t-initial" : "t-previous"} ('${header}') — the mapped column is treated as measured history; verify it holds measurements, not a constant design scantling`,
+            "warning",
+          ),
+        );
       }
     }
   }
