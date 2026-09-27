@@ -32,6 +32,7 @@ export async function runValidatedCompletion<T>(o: ValidatedCallOptions<T>): Pro
     });
 
   let lastError = "";
+  let previousRaw = ""; // the model's own bad reply — replayed as an assistant turn on retry
   for (let attempt = 0; attempt < 2; attempt++) {
     // exactly one bounded retry
     const res = await call(
@@ -39,15 +40,20 @@ export async function runValidatedCompletion<T>(o: ValidatedCallOptions<T>): Pro
         ? {
             messages: [
               ...messages,
+              // The model must see its own bad output before the correction —
+              // "reply again with corrected JSON" otherwise references a reply
+              // it was never shown (WR-02).
+              { role: "assistant" as const, content: previousRaw },
               {
                 role: "user" as const,
-                content: `Your previous reply failed validation: ${lastError}. Reply again with corrected JSON only.`,
+                content: `That reply failed validation: ${lastError}. Reply again with corrected JSON only.`,
               },
             ],
           }
         : {},
     );
     const raw = res.choices[0]?.message?.content ?? "";
+    previousRaw = raw;
     try {
       return o.schema.parse(JSON.parse(raw));
     } catch (e) {

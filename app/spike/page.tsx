@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface HealthBody {
   status: "ok" | "degraded";
@@ -14,7 +14,6 @@ export default function SpikePage() {
   const [output, setOutput] = useState("");
   const [running, setRunning] = useState(false);
   const [health, setHealth] = useState<HealthBody | null>(null);
-  const outRef = useRef<HTMLElement | null>(null);
 
   const checkHealth = useCallback(async () => {
     try {
@@ -86,7 +85,11 @@ export default function SpikePage() {
     <main className="mx-auto max-w-2xl px-4 py-10">
       {health && health.status === "degraded" && (
         <div role="alert" className="fixed top-0 left-0 right-0 z-50 bg-red-600 px-4 py-2 text-sm text-white">
-          Model routing invalid — missing: {health.missing.join(", ")}. Update .env.local / Vercel env vars.
+          Model routing invalid —{" "}
+          {health.missing.length > 0
+            ? `missing: ${health.missing.join(", ")}`
+            : (health.error ?? "validation failed")}
+          . Update .env.local / Vercel env vars.
         </div>
       )}
       <h1 className="mb-4 text-xl font-semibold">Token Factory streaming spike</h1>
@@ -109,7 +112,7 @@ export default function SpikePage() {
           {running ? "Streaming…" : "Run"}
         </button>
       </div>
-      <section ref={outRef} className="min-h-40 whitespace-pre-wrap rounded bg-gray-50 p-4 text-sm dark:bg-gray-900" aria-live="polite">
+      <section className="min-h-40 whitespace-pre-wrap rounded bg-gray-50 p-4 text-sm dark:bg-gray-900" aria-live="polite">
         {output || "Output appears here as frames arrive."}
       </section>
     </main>
