@@ -9,6 +9,7 @@ import {
 } from "@/lib/wizard/format";
 import { flagChipFor } from "@/components/wizard/verdict-chip";
 import { APPARENT_GAIN_SENTENCE } from "@/components/wizard/flag-detail-row";
+import { dimensionsLine } from "@/components/wizard/ptmt-triage-list";
 import { resultRowKey } from "@/components/wizard/results-table";
 import type { ReadingResult } from "@/lib/ingest/session";
 
@@ -145,6 +146,46 @@ describe("WR-04 regression — duplicate reading IDs never collide as React keys
       resultRowKey("R1-3", 40),
     ]);
     expect(keys.size).toBe(4);
+  });
+});
+
+describe("WR-05 regression — declared morphology is labeled informational when it disagrees with the engine's derived classification", () => {
+  const base = { id: "ind-1", method: "MT" as const, count: 1, edgeSeparationMm: null, crackSuspect: false };
+
+  it("agreement renders the plain morphology line (no noise)", () => {
+    expect(dimensionsLine({ ...base, morphology: "linear", lengthMm: 4.2, widthMm: 0.8 })).toBe(
+      "Linear indication L 4.2 × W 0.8 mm",
+    );
+    expect(dimensionsLine({ ...base, morphology: "rounded", lengthMm: 2.0, widthMm: 1.9 })).toBe(
+      "Rounded indication L 2.0 × W 1.9 mm",
+    );
+  });
+
+  it("declared linear but L <= 3W: 'declared: linear (informational)' names the rounded classification", () => {
+    // The probed contradiction: declared Linear, dimensions classify rounded —
+    // the card used to print 'Linear indication ... ACCEPT' with no explanation.
+    const line = dimensionsLine({ ...base, morphology: "linear", lengthMm: 2.0, widthMm: 1.9 });
+    expect(line).toContain("declared: linear (informational)");
+    expect(line).toContain("classifies rounded");
+    expect(line).toContain("L 2.0 × W 1.9 mm");
+  });
+
+  it("declared rounded but L > 3W: 'declared: rounded (informational)' names the linear classification", () => {
+    const line = dimensionsLine({ ...base, morphology: "rounded", lengthMm: 5.0, widthMm: 1.0 });
+    expect(line).toContain("declared: rounded (informational)");
+    expect(line).toContain("classifies linear");
+  });
+
+  it("the L > 3W boundary stays locked: exactly 3W classifies rounded (P7a)", () => {
+    // Boundary constructed arithmetically (house float convention): L = 3*W
+    // exactly -> strict > is false -> derived rounded -> plain agreement line.
+    expect(dimensionsLine({ ...base, morphology: "rounded", lengthMm: 3 * 2.0, widthMm: 2.0 })).toBe(
+      "Rounded indication L 6.0 × W 2.0 mm",
+    );
+    // One epsilon above 3W flips to linear (and a declared-rounded card says so).
+    const above = dimensionsLine({ ...base, morphology: "rounded", lengthMm: 6.0000001, widthMm: 2.0 });
+    expect(above).toContain("declared: rounded (informational)");
+    expect(above).toContain("classifies linear");
   });
 });
 

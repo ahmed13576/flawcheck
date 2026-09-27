@@ -7,7 +7,7 @@
  * detail copy + the clause ref auto-selected by method (ASME B31.3 §344.3.2
  * MT / §344.4.2 PT). Empty state per the Copywriting Contract (UI-20).
  */
-import type { EvaluationResults } from "@/lib/ingest/session";
+import type { EvaluationResults, PtmIndicationResult } from "@/lib/ingest/session";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { FlagBadge } from "@/components/wizard/flag-badge";
 
@@ -15,9 +15,26 @@ function clauseRefForMethod(method: "PT" | "MT"): string {
   return method === "MT" ? "ASME B31.3 §344.3.2" : "ASME B31.3 §344.4.2";
 }
 
-function dimensionsLine(ind: EvaluationResults["indications"][number]): string {
-  const morphology = ind.morphology === "linear" ? "Linear" : "Rounded";
-  return `${morphology} indication L ${ind.lengthMm.toFixed(1)} × W ${ind.widthMm.toFixed(1)} mm`;
+/**
+ * WR-05: the engine re-derives morphology from the criteria definition
+ * (lib/calc/ptmt: linear iff L > 3W, strictly) and the verdict comes from THAT
+ * classification — the user-declared value is not an input. When the declared
+ * value disagrees with the dimensions, labeling it as fact next to the derived
+ * verdict is contradictory on a safety triage surface, so it renders as
+ * 'declared: X (informational)' and names the classification that governed.
+ * Exported pure for the node test-suite.
+ */
+export function dimensionsLine(
+  ind: Pick<PtmIndicationResult, "morphology" | "lengthMm" | "widthMm">,
+): string {
+  const dims = `L ${ind.lengthMm.toFixed(1)} × W ${ind.widthMm.toFixed(1)} mm`;
+  const derived: "linear" | "rounded" =
+    ind.lengthMm > 3 * ind.widthMm ? "linear" : "rounded"; // strict > (P7a boundary)
+  if (ind.morphology === derived) {
+    const morphology = derived === "linear" ? "Linear" : "Rounded";
+    return `${morphology} indication ${dims}`;
+  }
+  return `declared: ${ind.morphology} (informational) — ${dims} classifies ${derived} per ASME B31.3 (L > 3W governs the verdict)`;
 }
 
 export function PtmtTriageList({ indications }: { indications: EvaluationResults["indications"] }) {
