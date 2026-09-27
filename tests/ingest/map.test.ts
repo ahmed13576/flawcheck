@@ -98,6 +98,22 @@ describe("map — CR-02 nominal-scantling detection (explicit mappings are honor
   });
 });
 
+describe("map — IN-04: a header is never claimed by two fields", () => {
+  it("'CML' binds to Reading ID only (first-alias wins); Tank stays null", () => {
+    // Pre-fix both readingId and tank mapped 'CML' — the parsed-row table
+    // rendered two identical editable columns.
+    const mapping = autoGuess(["CML"]);
+    expect(mapping.readingId).toBe("CML");
+    expect(mapping.tank).toBeNull();
+  });
+
+  it("distinct headers still bind distinct fields ('CML' + 'Tank' both map)", () => {
+    const mapping = autoGuess(["CML", "Tank"]);
+    expect(mapping.readingId).toBe("CML");
+    expect(mapping.tank).toBe("Tank");
+  });
+});
+
 describe("map — CSV thickness unit auto-guess from header suffix", () => {
   it("_mm -> mm, _in -> in, _mils -> mils", () => {
     expect(csvThicknessUnitFromHeader("Measured_Thickness_mm")).toBe("mm");

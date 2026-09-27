@@ -380,6 +380,16 @@ describe("wizard reducer — set-mapping revalidates (UI-07)", () => {
     });
     expect(remapped.units.csvThickness).toBe("mils");
   });
+
+  it("IN-04: explicitly mapping a header that another field holds clears it there", () => {
+    const CSV = "CML,Tank,Measured_Thickness_mm,Measurement_Date\nR1,T1,9.5,2025-01-15\n";
+    const parsed = parse(CSV);
+    // auto-guess: readingId -> CML (alias order), tank -> Tank.
+    expect(parsed.mapping.readingId).toBe("CML");
+    const retarget = wizardReducer(parsed, { type: "set-mapping", field: "tank", header: "CML" });
+    expect(retarget.mapping.tank).toBe("CML");
+    expect(retarget.mapping.readingId).toBeNull(); // one header, one column
+  });
 });
 
 describe("wizard reducer — WR-03 regression: metadata edits re-gate row validation (UI-07 never stale)", () => {

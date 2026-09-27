@@ -645,6 +645,16 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
 
     case "set-mapping": {
       const mapping = { ...state.mapping, [action.field]: action.header };
+      // IN-04: one header maps to one column — claiming it here clears it
+      // from any other field, so the parsed-row table never renders two
+      // identical editable columns for the same header.
+      if (action.header !== null) {
+        for (const field of Object.keys(mapping) as TargetField[]) {
+          if (field !== action.field && mapping[field] === action.header) {
+            mapping[field] = null;
+          }
+        }
+      }
       const units = { ...state.units };
       if (!state.ui.csvThicknessUnitManual) {
         units.csvThickness = csvThicknessUnitFromHeader(mapping.measuredThickness);

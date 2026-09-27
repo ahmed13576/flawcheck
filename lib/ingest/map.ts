@@ -99,17 +99,23 @@ const EMPTY_MAPPING: Record<TargetField, string | null> = {
  * Auto-guess a mapping from raw headers. Each field scans its aliases in
  * order and takes the first header whose normalized form matches; fields
  * with no match map to null (every dropdown stays overridable — UI-07).
+ *
+ * IN-04: a claimed header is removed from the pool — 'CML' is an alias of
+ * both Reading ID and Tank/Location, and without the exclusion both fields
+ * bound it, rendering two identical editable columns downstream.
  */
 export function autoGuess(
   headers: string[],
 ): Record<TargetField, string | null> {
   const normalized = headers.map((h) => ({ raw: h, norm: normalizeHeader(h) }));
+  const claimed = new Set<string>();
   const mapping: Record<TargetField, string | null> = { ...EMPTY_MAPPING };
   for (const { field, aliases } of ALIASES) {
     for (const alias of aliases) {
-      const hit = normalized.find((h) => h.norm === alias);
+      const hit = normalized.find((h) => h.norm === alias && !claimed.has(h.raw));
       if (hit) {
         mapping[field] = hit.raw;
+        claimed.add(hit.raw);
         break;
       }
     }
