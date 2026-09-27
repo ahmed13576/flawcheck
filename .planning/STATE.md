@@ -2,17 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: ingestion-calc-engine
+current_plan: 4
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-09-27T09:57:05.182Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-09-27T10:51:13.573Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 1 verified (15/15 must-haves) and merged; criteria review actions queued
-state_head: 6a3db512708aff96625fa28342cb5f071139160e
+state_head: 98b744be27fa2c5debf99027927b906a24e6e35d
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 20
 ---
 
@@ -27,10 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 
 ## Current Position
 
-Phase: 2 (ingestion-calc-engine) — READY TO EXECUTE
-Plan: 0 of TBD in current phase
-Status: Ready to execute
-Last activity: 2026-09-27 — Phase 1 verified + merged to master; adversarial_review_v2 C2 REFUTED against API 570 Table 1 (Class 2 thickness = 10 yr correct)
+Phase: 2 (ingestion-calc-engine) — EXECUTING
+Current Plan: 4
+Total Plans in Phase: 5
+Status: Executing
+Last activity: 2026-09-27 — 02-03 complete (ingest library + Zenodo fixture + units gate); resuming wave-2 executor to continue with 02-04
 
 Progress: [██░░░░░░░░] 20%
 
@@ -61,6 +63,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 1 P01-04 | 43min | 11 tasks | 37 files |
 | Phase 02 P01 | 18m | 2 tasks | 20 files |
 | Phase 02 P02 | 25m | 3 tasks | 17 files |
+| Phase 2 P03 | 40min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -79,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase 1]: win32/Node 24.14 libuv teardown workaround: 500ms socket settle before exit in catalog script
 - [Phase 2]: Tracer slice: calc spine + tokenizer + wizard shell golden-tested (G1/G2/G4/G8/G9b/G13); inline grouping until 02-02/02-03 land
 - [Phase 2]: Full calc engine golden-tested (G1-G13, P1-P7) with purity gates; boundary guard matches module specifiers after negative-proof gap; deferred: Phase 1 live-LLM test flake
+- [Phase 2]: 02-03: fixture assertions pin OBSERVED numbers (thickness 18.88-20.0, DD/MM/YYYY source normalized to ISO in transform) — research table rows were pre-download guesses; all hard counts held (4912/12/11/six columns/scantling 20)
+- [Phase 2]: 02-03: demo mapping leaves tInitial/tPrevious null so R6 derived campaign history governs (constant-20 design scantling is not a measured t-initial); demo smoke pins 301 accept / 538 re_check / 4073 fail
 
 ### Pending Todos
 
@@ -101,6 +106,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T09:57:05.104Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-09-27T10:50:37.694Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None

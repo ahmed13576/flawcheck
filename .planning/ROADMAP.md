@@ -61,7 +61,7 @@ Plans:
   4. Golden tests built from the builder's hand calculations pass on curated fixtures (verified Zenodo record 16780668 UT subset + honestly-labeled PT/MT samples): t-required, short/long-term corrosion rate, remaining life, re-inspection interval with cited rule, and outlier/re-shoot flags all match hand-worked values exactly
   5. Every CML and indication receives a pass / re-check / fail verdict including the gauge-uncertainty band, computed in pure TypeScript with a forbidden-import lint proving the calc module never references LLM code
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 
 Plans:
 **Wave 1**
@@ -71,7 +71,7 @@ Plans:
 **Wave 2** *(parallel)*
 
 - [x] 02-02-PLAN.md — Calc engine completion: golden catalog G1–G13 + P1–P7, evaluate orchestration, forbidden-import lint + purity gates
-- [ ] 02-03-PLAN.md — Ingestion completion: alias mapping, validation catalog, long-format grouping, units gate; Zenodo demo fixture + attribution + sample CSV
+- [x] 02-03-PLAN.md — Ingestion completion: alias mapping, validation catalog, long-format grouping, units gate; Zenodo demo fixture + attribution + sample CSV
 
 **Wave 3**
 
@@ -135,7 +135,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
-| 2. Ingestion & Deterministic Calc Engine | 2/5 | In Progress|  |
+| 2. Ingestion & Deterministic Calc Engine | 3/5 | In Progress|  |
 | 3. LLM Reasoning & Citation Layer | 0/TBD | Not started | - |
 | 4. Report Rendering | 0/TBD | Not started | - |
 | 5. Demo Hardening, Deployment & Submission | 0/TBD | Not started | - |
