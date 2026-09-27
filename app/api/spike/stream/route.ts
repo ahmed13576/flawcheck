@@ -22,35 +22,68 @@ export async function POST(req: Request) {
   const model = getReasoningModel();
   let stream: Awaited<ReturnType<ReturnType<typeof getClient>["chat"]["completions"]["create"]>>;
   try {
-    stream = await getClient().chat.completions.create({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      stream: true,
-      max_completion_tokens: 2000,
-      reasoning_effort: "low", // 3-value enum ONLY (verified 2026-09-26)
-    });
+    stream = await getClient().chat.completions.create(
+      {
+        model,
+        messages: [{ role: "user", content: prompt }],
+        stream: true,
+        max_completion_tokens: 2000,
+        reasoning_effort: "low", // 3-value enum ONLY (verified 2026-09-26)
+      },
+      // Propagate the client's disconnect upstream: aborts the paid Token
+      // Factory call when the browser goes away instead of streaming to
+      // completion for nobody (credit-burn guard).
+      { signal: req.signal },
+    );
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return Response.json({ error: `upstream model call failed: ${message}` }, { status: 502 });
   }
 
   const encoder = new TextEncoder();
+  // Flipped by cancel() or by a rejected enqueue/close — once set, no further
+  // frames are emitted. Enqueueing on a cancelled controller throws TypeError,
+  // so every frame (including the error path below) goes through the guards.
+  let closed = false;
   const sse = new ReadableStream({
     async pull(controller) {
+      const safeEnqueue = (frame: string) => {
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(frame));
+        } catch {
+          closed = true;
+        }
+      };
+      const safeClose = () => {
+        if (closed) return;
+        closed = true;
+        try {
+          controller.close();
+        } catch {
+          // already closed by cancel — nothing left to do
+        }
+      };
       try {
         for await (const chunk of stream) {
           const delta = chunk.choices[0]?.delta?.content ?? "";
-          if (delta) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: delta })}\n\n`));
+          if (delta) safeEnqueue(`data: ${JSON.stringify({ text: delta })}\n\n`);
         }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
+        safeEnqueue("data: [DONE]\n\n");
+        safeClose();
       } catch (e) {
         // Mid-stream failure: surface an error frame, then close. No resume/replay (FA-06).
         const message = e instanceof Error ? e.message : String(e);
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`));
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
+        safeEnqueue(`data: ${JSON.stringify({ error: message })}\n\n`);
+        safeEnqueue("data: [DONE]\n\n");
+        safeClose();
       }
+    },
+    // Client disconnect: Next cancels this stream. Mark closed so the in-flight
+    // pull stops enqueueing; req.signal (wired to the create call above) aborts
+    // the upstream request.
+    cancel() {
+      closed = true;
     },
   });
   return new Response(sse, {
