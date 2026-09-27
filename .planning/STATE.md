@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: ingestion-calc-engine
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-09-27T09:25:02.715Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-09-27T09:57:05.182Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 1 verified (15/15 must-haves) and merged; criteria review actions queued
-state_head: 6646b79aab76bbe6216cead3b868b96c5f9e4b07
+state_head: 6a3db512708aff96625fa28342cb5f071139160e
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 9
-  completed_plans: 5
+  completed_plans: 6
   percent: 20
 ---
 
@@ -60,6 +60,7 @@ Progress: [██░░░░░░░░] 20%
 |------|----------|-------|-------|
 | Phase 1 P01-04 | 43min | 11 tasks | 37 files |
 | Phase 02 P01 | 18m | 2 tasks | 20 files |
+| Phase 02 P02 | 25m | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,7 @@ Recent decisions affecting current work:
 - [Phase 1]: Production LLM calls use documented json_object + Zod + exactly-one-retry; json_schema verified live-working on both routed models but kept as optional tightening
 - [Phase 1]: win32/Node 24.14 libuv teardown workaround: 500ms socket settle before exit in catalog script
 - [Phase 2]: Tracer slice: calc spine + tokenizer + wizard shell golden-tested (G1/G2/G4/G8/G9b/G13); inline grouping until 02-02/02-03 land
+- [Phase 2]: Full calc engine golden-tested (G1-G13, P1-P7) with purity gates; boundary guard matches module specifiers after negative-proof gap; deferred: Phase 1 live-LLM test flake
 
 ### Pending Todos
 
@@ -99,6 +101,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T09:25:02.641Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-09-27T09:57:05.104Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
