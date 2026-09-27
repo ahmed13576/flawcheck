@@ -165,3 +165,36 @@ export interface EvaluationInput {
   dtLtYears: number | null;
   dtStYears: number | null;
 }
+
+/**
+ * Named refusal for engine-side precondition failures (ING-05): undeclared
+ * units must never reach the calc engine. Callers surface `message` verbatim
+ * in the error panel — never freeze, never silently default a unit.
+ */
+export class EvaluationInputError extends Error {}
+
+/** Verbatim UI-SPEC mixed/undeclared-units error copy (line 160). */
+const UNITS_DECLARED_COPY =
+  "Units are not declared for every input. Choose one unit — mm, in, or mils — " +
+  "for the CSV thickness column and for the metadata form.";
+
+/**
+ * ING-05 engine-side gate (Plan 02-03 Task 3): both unit inputs must be
+ * declared before evaluation. Declared-but-different units are legal (UI-12) —
+ * conversion to canonical mm happens downstream in lib/calc/units. The reducer
+ * path (Plan 02-04) calls this before evaluate(); here the function contract
+ * is pinned. Pure — throws instead of mutating, message is plain text.
+ */
+export function assertUnitsDeclared(units: {
+  csvThickness: Unit | null;
+  metadata: Unit | null;
+}): void {
+  const missing: string[] = [];
+  if (units.csvThickness == null) missing.push("CSV thickness column");
+  if (units.metadata == null) missing.push("metadata form");
+  if (missing.length > 0) {
+    throw new EvaluationInputError(
+      `${UNITS_DECLARED_COPY} Undeclared: ${missing.join(" and ")}.`,
+    );
+  }
+}
