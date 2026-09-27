@@ -95,6 +95,8 @@ export interface WizardUiState {
   csvThicknessUnitManual: boolean;
   evaluating: boolean;
   evaluationError: string | null;
+  /** Captured by run-evaluation for the results data-source footnote. */
+  evaluatedAt: string | null;
 }
 
 /**
@@ -259,6 +261,7 @@ const INITIAL_UI: WizardUiState = {
   csvThicknessUnitManual: false,
   evaluating: false,
   evaluationError: null,
+  evaluatedAt: null,
 };
 
 export function createInitialState(): WizardState {
@@ -759,6 +762,9 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
             ...state.ui,
             evaluating: false,
             evaluationError: null,
+            // Data-source footnote timestamp — captured by the UI layer at
+            // run time, never Date.now inside lib/calc (purity).
+            evaluatedAt: new Date().toISOString(),
             screen: 3,
             page: 1,
           },

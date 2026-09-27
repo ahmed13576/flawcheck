@@ -1,4 +1,4 @@
-import type { Verdict } from "@/lib/ingest/session";
+import type { ReadingFlag, Verdict } from "@/lib/ingest/session";
 
 /**
  * Verdict chip — UI-SPEC Verdict & Flag Chip Contract. The engine band name
@@ -26,4 +26,36 @@ const VERDICT_CHIP_CLASSES: Record<Verdict, { label: string; classes: string }> 
 export function VerdictChip({ verdict }: { verdict: Verdict }) {
   const { label, classes } = VERDICT_CHIP_CLASSES[verdict];
   return <span className={`${VERDICT_CHIP_BASE_CLASS} ${classes}`}>{label}</span>;
+}
+
+/**
+ * Data-quality flag chip — rounded-rect base (distinct from the verdict pill,
+ * Flag Chip Contract): OUTLIER and MEASUREMENT INCONSISTENCY amber,
+ * INSUFFICIENT HISTORY gray. immediate_inspection has no chip — its locked
+ * treatment is the fail-tone 'Immediate inspection required' cell text.
+ */
+const FLAG_CHIP_BASE_CLASS =
+  "inline-flex h-6 items-center rounded border px-2 text-xs font-semibold uppercase tracking-wide";
+
+const FLAG_CHIP_CLASSES: Partial<Record<ReadingFlag, { label: string; classes: string }>> = {
+  outlier: { label: "OUTLIER", classes: "border-amber-500/40 text-amber-400" },
+  measurement_inconsistency: {
+    label: "MEASUREMENT INCONSISTENCY",
+    classes: "border-amber-500/40 text-amber-400",
+  },
+  insufficient_history: {
+    label: "INSUFFICIENT HISTORY",
+    classes: "border-gray-600 text-gray-400",
+  },
+};
+
+/** Pure chip-mapping (node-testable): null = the flag renders no chip. */
+export function flagChipFor(flag: ReadingFlag): { label: string; classes: string } | null {
+  return FLAG_CHIP_CLASSES[flag] ?? null;
+}
+
+export function FlagChip({ flag }: { flag: ReadingFlag }) {
+  const mapped = flagChipFor(flag);
+  if (!mapped) return null;
+  return <span className={`${FLAG_CHIP_BASE_CLASS} ${mapped.classes}`}>{mapped.label}</span>;
 }
