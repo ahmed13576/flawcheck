@@ -265,3 +265,124 @@ describe("wizard reducer — navigation", () => {
     expect(session.results).toBeNull();
   });
 });
+
+// -- Plan 02-04 Task 2: mapping + row editing + blocking selector ----------------
+
+const INVALID_CSV = [
+  "Reading_ID,Tank,Measured_Thickness_mm,Measurement_Date",
+  "R1,T1,10.5,2024-01-15",
+  "R2,T1,abc,2024-02-20",
+  "R3,T1,-2,2024-03-25",
+].join("\n");
+
+describe("wizard reducer — set-mapping revalidates (UI-07)", () => {
+  it("overriding a mapping to not-mapped re-runs row validation immediately", () => {
+    const parsed = parse(INVALID_CSV);
+    const before = parsed.ui.rowIssues.filter((i) => i.severity === "error").length;
+    expect(before).toBeGreaterThan(0); // 'abc' + negative thickness errors
+
+    const unmapped = wizardReducer(parsed, {
+      type: "set-mapping",
+      field: "measuredThickness",
+      header: null,
+    });
+    // Revalidation ran: with the column unmapped, every cell becomes a blank
+    // required cell — 'not a number' errors flip to 'missing value' errors —
+    // and the required-field blocker flips on.
+    const missingValue = unmapped.ui.rowIssues.filter(
+      (i) => i.severity === "error" && i.message.endsWith("missing value."),
+    );
+    expect(missingValue.length).toBeGreaterThan(0);
+    expect(
+      unmapped.ui.rowIssues.some((i) => i.message.includes("not a number ('abc')")),
+    ).toBe(false);
+    expect(blockingChecks(unmapped).unmappedRequired).toContain("measuredThickness");
+  });
+
+  it("mapping a header with a unit suffix re-guesses the CSV thickness unit", () => {
+    const parsed = parse(SAMPLE_CSV);
+    expect(parsed.units.csvThickness).toBe("mm");
+    // 'Thickness_in' misses the thickness alias table (exact match), so the
+    // user maps it manually — the unit then re-guesses from the suffix.
+    const remapped = wizardReducer(parsed, {
+      type: "set-mapping",
+      field: "measuredThickness",
+      header: "Thickness_in",
+    });
+    expect(remapped.mapping.measuredThickness).toBe("Thickness_in");
+    expect(remapped.units.csvThickness).toBe("in");
+  });
+
+  it("a manual unit override survives mapping changes", () => {
+    const parsed = parse(SAMPLE_CSV);
+    const manual = wizardReducer(parsed, { type: "set-csv-thickness-unit", unit: "mils" });
+    expect(manual.units.csvThickness).toBe("mils");
+    const remapped = wizardReducer(manual, {
+      type: "set-mapping",
+      field: "tank",
+      header: "Grid_Position",
+    });
+    expect(remapped.units.csvThickness).toBe("mils");
+  });
+});
+
+describe("wizard reducer — set-row-cell (UI-09)", () => {
+  it("editing a cell to a valid value clears its error badge", () => {
+    const parsed = parse(INVALID_CSV);
+    const row2Errors = parsed.ui.rowIssues.filter((i) => i.row === 2);
+    expect(row2Errors.some((i) => i.message.includes("not a number ('abc')"))).toBe(true);
+
+    const fixed = wizardReducer(parsed, {
+      type: "set-row-cell",
+      row: 2,
+      header: "Measured_Thickness_mm",
+      value: "10.1",
+    });
+    const row2After = fixed.ui.rowIssues.filter((i) => i.row === 2);
+    expect(row2After).toHaveLength(0);
+    expect(fixed.rows[1].cells["Measured_Thickness_mm"]).toBe("10.1");
+  });
+
+  it("editing keeps other rows' errors and stays JSON-serializable", () => {
+    const parsed = parse(INVALID_CSV);
+    const fixed = wizardReducer(parsed, {
+      type: "set-row-cell",
+      row: 2,
+      header: "Measured_Thickness_mm",
+      value: "10.1",
+    });
+    // row 3 still carries its impossible-value error
+    expect(
+      fixed.ui.rowIssues.some((i) => i.row === 3 && i.message.includes("must be greater than 0")),
+    ).toBe(true);
+    const roundTripped = JSON.parse(JSON.stringify(fixed)) as WizardState;
+    expect(roundTripped).toEqual(fixed);
+  });
+});
+
+describe("wizard reducer — blocking selector flips (UI-08)", () => {
+  it("unmapping a required field adds the blocker; remapping clears it", () => {
+    const parsed = parse(SAMPLE_CSV);
+    expect(blockingChecks(parsed).unmappedRequired).toHaveLength(0);
+
+    const unmapped = wizardReducer(parsed, { type: "set-mapping", field: "readingId", header: null });
+    const blockers = blockingChecks(unmapped);
+    expect(blockers.unmappedRequired).toEqual(["readingId"]);
+
+    const remapped = wizardReducer(unmapped, {
+      type: "set-mapping",
+      field: "readingId",
+      header: "Reading_ID",
+    });
+    expect(blockingChecks(remapped).unmappedRequired).toHaveLength(0);
+  });
+
+  it("4,912-row validation + selector runs fast (Pitfall 8 budget)", () => {
+    const started = performance.now();
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const blockers = blockingChecks(demo);
+    expect(blockers.rowErrors).toBe(0);
+    const elapsed = performance.now() - started;
+    expect(elapsed).toBeLessThan(1000);
+  });
+});
