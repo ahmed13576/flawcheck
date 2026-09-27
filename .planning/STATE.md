@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: ingestion-calc-engine
 current_plan: 5
-status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-09-27T11:35:04.657Z"
+status: verifying
+stopped_at: Completed 02-05-PLAN.md (Phase 2 plans complete)
+last_updated: "2026-09-27T12:04:00.427Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 1 verified (15/15 must-haves) and merged; criteria review actions queued
-state_head: 2592e6d88bff15d1c9ba9e9ef264b61a50569f84
+state_head: 3fa3cf9fcce0d0d7d559bfede71ef1d143bced5f
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 20
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 Phase: 2 (ingestion-calc-engine) — EXECUTING
 Current Plan: 5
 Total Plans in Phase: 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-27 — 02-03 complete (ingest library + Zenodo fixture + units gate); resuming wave-2 executor to continue with 02-04
 
 Progress: [██░░░░░░░░] 20%
@@ -65,6 +65,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02 P02 | 25m | 3 tasks | 17 files |
 | Phase 2 P03 | 40min | 3 tasks | 14 files |
 | Phase 2 P04 | 55min | 3 tasks | 16 files |
+| Phase 2 P05 | 35min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,7 @@ Recent decisions affecting current work:
 - [Phase 2]: 02-03: demo mapping leaves tInitial/tPrevious null so R6 derived campaign history governs (constant-20 design scantling is not a measured t-initial); demo smoke pins 301 accept / 538 re_check / 4073 fail
 - [Phase 2]: 02-04: wizard state = EvaluationSession + additive ui field; locked metadata copies single-sourced in reducer metadataProblems (rendered via FieldError); run-evaluation gate chain blockers -> assertUnitsDeclared -> groupByCml/evaluate
 - [Phase 2]: 02-04: tracer mapping tInitial null (constant-20 scantling is not a measured t-initial) — golden tracer values pass through the groupByCml seam unchanged; browser GUI human-check approximated by SSR markup checks (browser MCP unavailable), full pass at end-of-phase UI gate
+- [Phase 2]: 02-05: observed demo semantics pinned — 480 CMLs/first-campaign rows (not ~447), 2,030 insufficient-history (480 no-history + 1,550 negative-CR clamped with raw rates surfaced); G14 fires for re_check equality band (RL rounds to 0); format.ts is the pure render path with Infinity/NaN render-scan
 
 ### Pending Todos
 
@@ -109,6 +111,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T11:34:47.014Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-09-27T12:03:32.170Z
+Stopped at: Completed 02-05-PLAN.md (Phase 2 plans complete)
 Resume file: None
