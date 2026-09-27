@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: ingestion-calc-engine
-current_plan: 4
+current_plan: 5
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-09-27T10:51:13.573Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-09-27T11:35:04.657Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 1 verified (15/15 must-haves) and merged; criteria review actions queued
-state_head: 98b744be27fa2c5debf99027927b906a24e6e35d
+state_head: 2592e6d88bff15d1c9ba9e9ef264b61a50569f84
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 20
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 ## Current Position
 
 Phase: 2 (ingestion-calc-engine) — EXECUTING
-Current Plan: 4
+Current Plan: 5
 Total Plans in Phase: 5
-Status: Executing
+Status: Ready to execute
 Last activity: 2026-09-27 — 02-03 complete (ingest library + Zenodo fixture + units gate); resuming wave-2 executor to continue with 02-04
 
 Progress: [██░░░░░░░░] 20%
@@ -64,6 +64,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02 P01 | 18m | 2 tasks | 20 files |
 | Phase 02 P02 | 25m | 3 tasks | 17 files |
 | Phase 2 P03 | 40min | 3 tasks | 14 files |
+| Phase 2 P04 | 55min | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 2]: Full calc engine golden-tested (G1-G13, P1-P7) with purity gates; boundary guard matches module specifiers after negative-proof gap; deferred: Phase 1 live-LLM test flake
 - [Phase 2]: 02-03: fixture assertions pin OBSERVED numbers (thickness 18.88-20.0, DD/MM/YYYY source normalized to ISO in transform) — research table rows were pre-download guesses; all hard counts held (4912/12/11/six columns/scantling 20)
 - [Phase 2]: 02-03: demo mapping leaves tInitial/tPrevious null so R6 derived campaign history governs (constant-20 design scantling is not a measured t-initial); demo smoke pins 301 accept / 538 re_check / 4073 fail
+- [Phase 2]: 02-04: wizard state = EvaluationSession + additive ui field; locked metadata copies single-sourced in reducer metadataProblems (rendered via FieldError); run-evaluation gate chain blockers -> assertUnitsDeclared -> groupByCml/evaluate
+- [Phase 2]: 02-04: tracer mapping tInitial null (constant-20 scantling is not a measured t-initial) — golden tracer values pass through the groupByCml seam unchanged; browser GUI human-check approximated by SSR markup checks (browser MCP unavailable), full pass at end-of-phase UI gate
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T10:50:37.694Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-09-27T11:34:47.014Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None

@@ -11,8 +11,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ING-01**: User can upload a UT thickness CSV and see a column-mapping preview they can confirm or correct
 - [x] **ING-02**: System validates uploads (malformed CSV, missing fields, impossible values) with specific error messages
-- [ ] **ING-03**: User can enter component metadata (t-nominal, material, service, corrosion allowance, code + edition) that drives criteria selection
-- [ ] **ING-04**: User can enter PT/MT indication notes with component context
+- [x] **ING-03**: User can enter component metadata (t-nominal, material, service, corrosion allowance, code + edition) that drives criteria selection
+- [x] **ING-04**: User can enter PT/MT indication notes with component context
 - [x] **ING-05**: Units (mm/in/mils) are explicit at input, canonical mm internally, unit assumption surfaced on the report
 
 ### Calculation
@@ -90,8 +90,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-02 | Phase 1 | Complete |
 | ING-01 | Phase 2 | Complete |
 | ING-02 | Phase 2 | Complete |
-| ING-03 | Phase 2 | Pending |
-| ING-04 | Phase 2 | Pending |
+| ING-03 | Phase 2 | Complete |
+| ING-04 | Phase 2 | Complete |
 | ING-05 | Phase 2 | Complete |
 | CALC-01 | Phase 2 | Complete |
 | CALC-02 | Phase 2 | Complete |
