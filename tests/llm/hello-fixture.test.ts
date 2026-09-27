@@ -6,7 +6,18 @@ import { getClient } from "@/lib/llm/client";
 import { getExtractionModel, getReasoningModel } from "@/lib/llm/config";
 import { HelloSchema } from "@/lib/llm/schemas";
 
+/**
+ * WR-08 hermeticity: these are LIVE provider tests (real network, real
+ * models). They used to run whenever NEBIUS_API_KEY resolved — including from
+ * .env.local — which made `npm test` non-hermetic: non-reproducible off-line
+ * and flaky on model drift (the 241/242 prose-not-JSON failure). They are now
+ * separated behind the FLAWCHECK_LIVE_LLM gate marker: the default suite
+ * skips them cleanly (green AND key-independent); opt in explicitly with
+ *   FLAWCHECK_LIVE_LLM=1 npm test   (requires NEBIUS_API_KEY)
+ */
 const HAS_KEY = !!process.env.NEBIUS_API_KEY;
+const LIVE_GATE = ["1", "true"].includes(String(process.env.FLAWCHECK_LIVE_LLM ?? "").toLowerCase());
+const LIVE_READY = HAS_KEY && LIVE_GATE;
 
 type CreateBody = Parameters<OpenAI["chat"]["completions"]["create"]>[0];
 const CALL = {
@@ -18,7 +29,7 @@ const CALL = {
   reasoningEffort: "low" as const,
 };
 
-describe.skipIf(!HAS_KEY)("hello fixture against routed models", () => {
+describe.skipIf(!LIVE_READY)("hello fixture against routed models", () => {
   it("reasoning model returns Zod-valid JSON", async () => {
     const out = await runValidatedCompletion({ ...CALL, client: getClient(), model: getReasoningModel() });
     expect(out.ok).toBe(true);
@@ -72,7 +83,7 @@ function withRecorder(inner: OpenAI) {
   return { client, calls };
 }
 
-describe.skipIf(!HAS_KEY)("forced retry against routed models", () => {
+describe.skipIf(!LIVE_READY)("forced retry against routed models", () => {
   const TRAP = {
     system: "You are a test fixture.",
     user: 'Reply with {"ok": true, "model_note": "hello", "retry_nonce": "any string"}',
