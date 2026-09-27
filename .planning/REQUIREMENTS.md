@@ -38,8 +38,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Platform
 
-- [ ] **PLAT-01**: All model calls via Token Factory OpenAI-compatible API; env-configured IDs validated against live `/v1/models` at startup
-- [ ] **PLAT-02**: LLM responses stream (SSE); structured output enforced (`json_object` + Zod + one bounded retry)
+- [x] **PLAT-01**: All model calls via Token Factory OpenAI-compatible API; env-configured IDs validated against live `/v1/models` at startup
+- [x] **PLAT-02**: LLM responses stream (SSE); structured output enforced (`json_object` + Zod + one bounded retry)
 - [ ] **PLAT-03**: Tavily code-edition/errata lookup runs post-acceptance, cached, degrades gracefully — never blocks the acceptance flow
 - [ ] **PLAT-04**: Public demo is abuse-guarded (per-IP rate limit, token caps, unguessable demo path)
 - [ ] **PLAT-05**: Model badges show which Nemotron model handled each step
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | Phase 1 | Pending |
-| PLAT-02 | Phase 1 | Pending |
+| PLAT-01 | Phase 1 | Complete |
+| PLAT-02 | Phase 1 | Complete |
 | ING-01 | Phase 2 | Pending |
 | ING-02 | Phase 2 | Pending |
 | ING-03 | Phase 2 | Pending |
@@ -114,6 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEMO-04 | Phase 5 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 26 total
 - Mapped to phases: 26
 - Unmapped: 0 ✓

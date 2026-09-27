@@ -517,10 +517,9 @@ Also record in `docs/spike-record.md`: (a) a one-off live `json_schema` `respons
 
 ## Open Questions
 
-1. **Does `json_schema` response_format actually work on Super-120B/Lightning?**
-   - What we know: the spec enum includes it; the parameter description says only `json_object`/`text` are supported.
-   - What's unclear: whether the description is stale or authoritative.
-   - Recommendation: the Phase 1 spike record (success criterion 5) answers this with one live call per model; plan a 30-minute task.
+(RESOLVED — by phase execution)
+
+1. **Does `json_schema` response_format actually work on Super-120B/Lightning?** — ANSWERED by 01-04 Task 3 (spike record, 2026-09-27): yes — accepted live on BOTH routed models; the spec description is stale relative to its enum. See `docs/spike-record.md` "json_schema structured output result".
 2. **Which npm registry mirror/resolution the builder's network uses** (India-side npm latency) — non-blocking; `npm view` worked normally during research.
 
 ## Environment Availability
