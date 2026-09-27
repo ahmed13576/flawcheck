@@ -120,11 +120,16 @@ export function autoGuess(
 /**
  * CSV thickness unit from the measured-thickness header suffix: _mm -> mm,
  * _in -> in, _mils -> mils; default mm when no suffix (or nothing mapped).
+ *
+ * IN-02: the unit token is matched against the LAST separator-delimited token
+ * of the raw header — the old `endsWith("in")` over-matched (a column named
+ * T_Min or Origin would silently declare inches and convert every value).
  */
 export function csvThicknessUnitFromHeader(header: string | null): Unit {
   if (!header) return "mm";
-  const norm = normalizeHeader(header);
-  if (norm.endsWith("mils")) return "mils";
-  if (norm.endsWith("in")) return "in";
+  const tokens = header.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const last = tokens[tokens.length - 1] ?? "";
+  if (last === "mils") return "mils";
+  if (last === "in") return "in";
   return "mm";
 }

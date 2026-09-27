@@ -108,4 +108,12 @@ describe("map — CSV thickness unit auto-guess from header suffix", () => {
     expect(csvThicknessUnitFromHeader("Thickness")).toBe("mm");
     expect(csvThicknessUnitFromHeader(null)).toBe("mm");
   });
+  it("IN-02: matches the last separated token, not any suffix — 'T_Min'/'Origin' stay mm", () => {
+    // Pre-fix endsWith('in') silently declared inches for headers merely
+    // ENDING in 'in', converting every value by 25.4.
+    expect(csvThicknessUnitFromHeader("T_Min")).toBe("mm");
+    expect(csvThicknessUnitFromHeader("Origin")).toBe("mm");
+    expect(csvThicknessUnitFromHeader("Wall Thickness (in)")).toBe("in");
+    expect(csvThicknessUnitFromHeader("Thickness — mils")).toBe("mils");
+  });
 });
