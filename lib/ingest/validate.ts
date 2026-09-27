@@ -17,6 +17,7 @@
  */
 import { z } from "zod";
 import { buildCells } from "./csv";
+import { isNominalScantlingHeader } from "./map";
 import { parseIsoUtc } from "../calc/dates";
 import { toMm } from "../calc/units";
 import type { ParsedRow, RowIssue, TargetField, Unit } from "./session";
@@ -249,10 +250,25 @@ export function rowIssues(
 
     // Optional wide-format numeric columns — loud, never silently coerced.
     for (const field of ["tInitial", "tPrevious"] as const) {
+      const header = mapping[field];
       const raw = cellOf(row, mapping, field);
       if (raw.trim() === "") continue; // optional + absent is legal (CR degradation)
       if (parseNumericCell(raw) === null) {
         issues.push(issue(row.row, FIELD_LABELS[field], `not a number ('${raw}')`, "error"));
+      }
+      // CR-02: auto-guess never binds a nominal-scantling column (map.ts), so
+      // a scantling header mapped here is explicit. The user is honored
+      // (UI-07 overridability) but the CMLs are warned: the wide-format
+      // precedence in lib/ingest/group will derive CRs from this column.
+      if (header && isNominalScantlingHeader(header)) {
+        issues.push(
+          issue(
+            row.row,
+            FIELD_LABELS[field],
+            `nominal-scantling-as-${field === "tInitial" ? "t-initial" : "t-previous"} ('${header}') — the mapped column is treated as measured history; verify it holds measurements, not a constant design scantling`,
+            "warning",
+          ),
+        );
       }
     }
   }

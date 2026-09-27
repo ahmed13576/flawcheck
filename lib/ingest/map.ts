@@ -19,17 +19,28 @@ export function normalizeHeader(header: string): string {
 }
 
 /**
- * UI-SPEC column-mapping alias table, verbatim (order matters — the first
- * alias with a matching header wins):
+ * UI-SPEC column-mapping alias table (order matters — the first alias with a
+ * matching header wins):
  *
  * | Field            | Required | Aliases                                                            |
  * |------------------|----------|--------------------------------------------------------------------|
  * | Reading ID       | yes      | readingid, id, pointid, cml, gridposition                          |
  * | Measured Thickness | yes    | measuredthicknessmm, measuredthickness, thickness, wallthickness, tactual |
  * | Measurement Date | yes      | measurementdate, date, inspectiondate                              |
- * | t-initial        | no       | originalscantlingmm, originalscantling, initialthickness, tinitial |
+ * | t-initial        | no       | initialthickness, tinitial                                         |
  * | t-previous       | no       | previousthickness, tprevious, lastthickness                        |
  * | Tank / Location  | no       | tank, location, component, cml                                     |
+ *
+ * CR-02 recorded deviation from the literal UI-SPEC table: the t-initial
+ * aliases `originalscantlingmm` / `originalscantling` are EXCLUDED from
+ * auto-guess. Original_Scantling_mm is a constant nominal design scantling,
+ * not a measured t-initial — auto-mapping it makes the wide-format precedence
+ * in lib/ingest/group feed the constant into CR_LT/CR_ST (fabricated rates,
+ * false immediate-inspection flags on the app's own advertised upload format).
+ * The same builder decision already nulls this mapping in the demo/tracer
+ * sessions (lib/demo/demo-scenario.ts, lib/wizard/reducer.ts TRACER_MAPPING).
+ * The column stays selectable in the manual dropdown (UI-07); an explicit
+ * mapping is honored but surfaces a row WARNING (validate.ts).
  */
 const ALIASES: Array<{ field: TargetField; aliases: string[] }> = [
   {
@@ -52,7 +63,7 @@ const ALIASES: Array<{ field: TargetField; aliases: string[] }> = [
   },
   {
     field: "tInitial",
-    aliases: ["originalscantlingmm", "originalscantling", "initialthickness", "tinitial"],
+    aliases: ["initialthickness", "tinitial"],
   },
   {
     field: "tPrevious",
@@ -63,6 +74,17 @@ const ALIASES: Array<{ field: TargetField; aliases: string[] }> = [
     aliases: ["tank", "location", "component", "cml"],
   },
 ];
+
+/**
+ * CR-02: nominal-scantling header detection. A header naming a design
+ * scantling (Original_Scantling_mm, Design Scantling, ...) carries a constant
+ * nominal value — never a measured thickness history. Auto-guess excludes it;
+ * an explicit user mapping is honored but validated as a warning.
+ */
+export function isNominalScantlingHeader(header: string | null): boolean {
+  if (!header) return false;
+  return normalizeHeader(header).includes("scantling");
+}
 
 const EMPTY_MAPPING: Record<TargetField, string | null> = {
   readingId: null,

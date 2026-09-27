@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { autoGuess, csvThicknessUnitFromHeader, normalizeHeader } from "@/lib/ingest/map";
+import {
+  autoGuess,
+  csvThicknessUnitFromHeader,
+  isNominalScantlingHeader,
+  normalizeHeader,
+} from "@/lib/ingest/map";
 
 describe("map — normalizeHeader", () => {
   it("lowercases and strips non-alphanumerics", () => {
@@ -12,7 +17,7 @@ describe("map — normalizeHeader", () => {
 });
 
 describe("map — autoGuess against the UI-SPEC alias table", () => {
-  it("maps all five targets on the canonical six-column register", () => {
+  it("maps the measured targets on the canonical six-column register (CR-02: scantling is NOT t-initial)", () => {
     const mapping = autoGuess([
       "Reading_ID",
       "Tank",
@@ -23,7 +28,10 @@ describe("map — autoGuess against the UI-SPEC alias table", () => {
     ]);
     expect(mapping.readingId).toBe("Reading_ID");
     expect(mapping.tank).toBe("Tank");
-    expect(mapping.tInitial).toBe("Original_Scantling_mm");
+    // CR-02: Original_Scantling_mm is a constant nominal design scantling, not
+    // a measured t-initial — auto-guess must never bind it (the demo/tracer
+    // builders null this exact mapping; the upload path now mirrors them).
+    expect(mapping.tInitial).toBeNull();
     expect(mapping.measuredThickness).toBe("Measured_Thickness_mm");
     expect(mapping.measurementDate).toBe("Measurement_Date");
     expect(mapping.tPrevious).toBeNull();
@@ -46,10 +54,12 @@ describe("map — autoGuess against the UI-SPEC alias table", () => {
     expect(autoGuess(["TActual"]).measuredThickness).toBe("TActual");
   });
 
-  it("maps date and wide-format aliases", () => {
+  it("maps date and wide-format aliases (CR-02: never a scantling alias)", () => {
     expect(autoGuess(["Date"]).measurementDate).toBe("Date");
     expect(autoGuess(["InspectionDate"]).measurementDate).toBe("InspectionDate");
-    expect(autoGuess(["Original_Scantling"]).tInitial).toBe("Original_Scantling");
+    // CR-02: both scantling spellings are excluded from auto-guess.
+    expect(autoGuess(["Original_Scantling"]).tInitial).toBeNull();
+    expect(autoGuess(["Original Scantling (mm)"]).tInitial).toBeNull();
     expect(autoGuess(["InitialThickness"]).tInitial).toBe("InitialThickness");
     expect(autoGuess(["TInitial"]).tInitial).toBe("TInitial");
     expect(autoGuess(["PreviousThickness"]).tPrevious).toBe("PreviousThickness");
@@ -67,6 +77,24 @@ describe("map — autoGuess against the UI-SPEC alias table", () => {
       tPrevious: null,
       tank: null,
     });
+  });
+});
+
+describe("map — CR-02 nominal-scantling detection (explicit mappings are honored but warned)", () => {
+  it("isNominalScantlingHeader matches any scantling-named column", () => {
+    expect(isNominalScantlingHeader("Original_Scantling_mm")).toBe(true);
+    expect(isNominalScantlingHeader("original scantling")).toBe(true);
+    expect(isNominalScantlingHeader("Design Scantling (20)")).toBe(true);
+    expect(isNominalScantlingHeader("Measured_Thickness_mm")).toBe(false);
+    expect(isNominalScantlingHeader("InitialThickness")).toBe(false);
+    expect(isNominalScantlingHeader(null)).toBe(false);
+  });
+
+  it("auto-guess keeps genuinely measured t-initial aliases selectable by the user", () => {
+    // The user can still explicitly map a measured t-initial column — only the
+    // constant-nominal scantling aliases are excluded from the GUESS.
+    const mapping = autoGuess(["InitialThickness", "Measured_Thickness_mm", "Date"]);
+    expect(mapping.tInitial).toBe("InitialThickness");
   });
 });
 
