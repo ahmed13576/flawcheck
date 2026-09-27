@@ -9,6 +9,7 @@ import {
 } from "@/lib/wizard/format";
 import { flagChipFor } from "@/components/wizard/verdict-chip";
 import { APPARENT_GAIN_SENTENCE } from "@/components/wizard/flag-detail-row";
+import { resultRowKey } from "@/components/wizard/results-table";
 import type { ReadingResult } from "@/lib/ingest/session";
 
 /**
@@ -125,6 +126,25 @@ describe("next-inspection cell model — G14 immediate inspection", () => {
     expect(rlCell(leaked).kind === "years" ? (rlCell(leaked) as { text: string }).text : "—").toBe(
       "—",
     );
+  });
+});
+
+describe("WR-04 regression — duplicate reading IDs never collide as React keys or DOM ids", () => {
+  it("row keys namespace by position: two 'R1' results get distinct keys", () => {
+    // 'duplicate reading ID' is a WARNING that never blocks — identical IDs
+    // flow into results.readings and used to key <tr> and detail-* ids.
+    const keys = ["R1", "R1", "R1"].map((_, index) => resultRowKey("R1", index));
+    expect(new Set(keys).size).toBe(3);
+  });
+
+  it("distinct ids at distinct positions keep unique keys (no accidental overlap)", () => {
+    const keys = new Set([
+      resultRowKey("R1", 3),
+      resultRowKey("R1-3", 4), // would collide with a naive `${id}-${index}` split
+      resultRowKey("R1", 34),
+      resultRowKey("R1-3", 40),
+    ]);
+    expect(keys.size).toBe(4);
   });
 });
 

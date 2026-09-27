@@ -27,13 +27,23 @@ const TOGGLEABLE_FLAGS: ReadingFlag[] = ["measurement_inconsistency", "outlier"]
 
 const NUMERIC_CELL = "border border-[#262626] px-3 py-2 font-mono tabular-nums whitespace-nowrap";
 
+/**
+ * WR-04: 'duplicate reading ID' is a warning that never blocks, so identical
+ * IDs can co-locate in results.readings. Keys and detail-* DOM ids therefore
+ * namespace by the reading's absolute position — readingId alone would
+ * duplicate React keys and break the aria-expanded/aria-controls wiring.
+ */
+export function resultRowKey(readingId: string, index: number): string {
+  return `${readingId}-${index}`;
+}
+
 function FlagChipButton({
-  reading,
+  rowKey,
   flag,
   expanded,
   onToggle,
 }: {
-  reading: ReadingResult;
+  rowKey: string;
   flag: ReadingFlag;
   expanded: boolean;
   onToggle: () => void;
@@ -45,7 +55,7 @@ function FlagChipButton({
     <button
       type="button"
       aria-expanded={expanded}
-      aria-controls={`detail-${reading.readingId}-${flag}`}
+      aria-controls={`detail-${rowKey}-${flag}`}
       onClick={onToggle}
       className="rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2563eb]"
     >
@@ -101,12 +111,13 @@ export function ResultsTable({
             </tr>
           </thead>
           <tbody>
-            {pageSlice.map((reading) => {
+            {pageSlice.map((reading, i) => {
               const rl = rlCell(reading);
               const next = nextInspectionCell(reading);
+              const rowKey = resultRowKey(reading.readingId, start - 1 + i);
               return (
                 [
-                  <tr key={reading.readingId} className="bg-[#0a0a0a]">
+                  <tr key={rowKey} className="bg-[#0a0a0a]">
                     <td className="border border-[#262626] px-3 py-2">
                       <span
                         className="block max-w-[14rem] truncate"
@@ -157,10 +168,10 @@ export function ResultsTable({
                         {reading.flags.map((flag) => (
                           <FlagChipButton
                             key={flag}
-                            reading={reading}
+                            rowKey={rowKey}
                             flag={flag}
-                            expanded={Boolean(expanded[`${reading.readingId}-${flag}`])}
-                            onToggle={() => toggle(`${reading.readingId}-${flag}`)}
+                            expanded={Boolean(expanded[`${rowKey}-${flag}`])}
+                            onToggle={() => toggle(`${rowKey}-${flag}`)}
                           />
                         ))}
                       </div>
@@ -172,12 +183,12 @@ export function ResultsTable({
                   ...reading.flags
                     .filter(
                       (flag) =>
-                        TOGGLEABLE_FLAGS.includes(flag) &&
-                        expanded[`${reading.readingId}-${flag}`],
+                        TOGGLEABLE_FLAGS.includes(flag) && expanded[`${rowKey}-${flag}`],
                     )
                     .map((flag) => (
                       <FlagDetailRow
-                        key={`${reading.readingId}-${flag}`}
+                        key={`${rowKey}-${flag}`}
+                        rowKey={rowKey}
                         reading={reading}
                         flag={flag}
                         colSpan={colCount}
