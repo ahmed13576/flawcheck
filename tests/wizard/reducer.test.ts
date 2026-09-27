@@ -475,6 +475,20 @@ describe("wizard reducer — metadata draft gates the blocking selector (UI-10/1
     expect(messages).toContain("Gauge uncertainty cannot be negative.");
   });
 
+  it("WR-02: a non-1|2|3 pipeClass value is a metadata problem and blocks metadataFromDraft", () => {
+    const parsed = parse(SAMPLE_CSV);
+    const bad = ["4", "abc", "1.5", "-1"].map((value) =>
+      wizardReducer(parsed, { type: "set-metadata-field", field: "pipeClass", value }),
+    );
+    for (const state of bad) {
+      const problems = blockingChecks(state).metadataProblems;
+      expect(problems.some((p) => p.field === "pipeClass")).toBe(true);
+    }
+    // blank still fires the same locked copy
+    const blank = blockingChecks(parsed).metadataProblems;
+    expect(blank.map((p) => p.message)).toContain("Select a piping class.");
+  });
+
   it("a session with metadata problems cannot reach evaluate (gate order)", () => {
     const demo = wizardReducer(createInitialState(), { type: "load-demo" });
     const broke = wizardReducer(demo, {

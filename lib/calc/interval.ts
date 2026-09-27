@@ -39,9 +39,20 @@ export function nextInterval(rlYears: number, pipeClass: 1 | 2 | 3): IntervalRes
     return { intervalYears: 0, state: "immediate-inspection", citationIds: CITATION_IDS };
   }
   const classMax = maxIntervalByClass(pipeClass);
+  // WR-02: an unknown class must never silently uncap the interval — the old
+  // `classMax ?? Number.POSITIVE_INFINITY` dropped the API 570 Table 1 cap
+  // (probed: nextInterval(30, NaN) returned 15.00). Fail loudly instead; the
+  // reducer surfaces the message in the evaluationError banner.
+  if (classMax === null) {
+    throw new Error(
+      `nextInterval: no maximum interval is defined for piping class ${String(pipeClass)} ` +
+        "(ut-criteria.json inspection_interval_rules.max_interval_by_class) — refusing to " +
+        "compute an uncapped inspection interval. The class must be 1, 2, or 3.",
+    );
+  }
   const intervalYears =
     rlYears < RL_FULL_LIFE_THRESHOLD_YR
       ? Math.min(rlYears, SHORT_RL_MAX_INTERVAL_YR)
-      : Math.min(rlYears / 2, classMax ?? Number.POSITIVE_INFINITY);
+      : Math.min(rlYears / 2, classMax);
   return { intervalYears: roundTo(intervalYears, 2), state: "ok", citationIds: CITATION_IDS };
 }

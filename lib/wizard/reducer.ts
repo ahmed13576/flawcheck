@@ -322,7 +322,11 @@ export function metadataProblems(draft: MetadataDraft): MetadataProblem[] {
   if (tStructural === null || tStructural < 0) {
     problems.push({ field: "tStructural", message: "Structural min thickness cannot be negative." });
   }
-  if (draft.pipeClass.trim() === "") {
+  // WR-02: the select constrains the UI, but the reducer is the documented
+  // gate — a draft pipeClass outside 1|2|3 must never reach the engine as a
+  // validated-looking ComponentMetadata (an unknown class would uncap the
+  // API 570 Table 1 interval maximum). Blank and invalid share the locked copy.
+  if (!["1", "2", "3"].includes(draft.pipeClass.trim())) {
     problems.push({ field: "pipeClass", message: "Select a piping class." });
   }
   const gauge = draftNumber(draft.gaugeUncertainty);
