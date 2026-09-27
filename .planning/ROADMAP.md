@@ -94,8 +94,26 @@ Plans:
   4. PT/MT indications are evaluated against the builder's structured criteria config (L2 ground truth) with per-indication verdicts the narrative references
   5. A status line with model badges shows which Nemotron model (plus tokens/cost) handled each pipeline step
 
-**Plans**: TBD
+**Plans**: 5 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Tracer: fallback-first cited reasoning slice end-to-end (tokenizer + fallback + narrative route frame protocol + CitationChip/ReasoningPane + 11-column sticky table)
+
+**Wave 2** *(parallel)*
+
+- [ ] 03-02-PLAN.md — LLM server layer: Lightning extraction route + Super-120B streamed narrative with sentence-guard + four lints + usage capture + live-gated fixture proof
+- [ ] 03-03-PLAN.md — Client streaming layer: narrative store (evaluatedAt-keyed cache, abort, FIFO cap) + store-backed pane UX
+
+**Wave 3**
+
+- [ ] 03-04-PLAN.md — Screen 3 integration: ReasoningProvider + Pipeline status bar + extraction-failure banner + PT/MT panes + 4-step indicator + re-evaluation reset
+
+**Wave 4**
+
+- [ ] 03-05-PLAN.md — Phase verification wrap: offline e2e fallback-mode gates, purity/grep/zero-install invariants, UNINSTALL note, UI-25..48 + SC1-5 coverage summary
 
 ### Phase 4: Report Rendering
 
@@ -136,6 +154,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
 | 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) |
-| 3. LLM Reasoning & Citation Layer | 0/TBD | Not started | - |
+| 3. LLM Reasoning & Citation Layer | 0/5 | Not started | - |
 | 4. Report Rendering | 0/TBD | Not started | - |
 | 5. Demo Hardening, Deployment & Submission | 0/TBD | Not started | - |
