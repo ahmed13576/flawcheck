@@ -174,7 +174,7 @@ export interface EvaluationInput {
 export class EvaluationInputError extends Error {}
 
 /** Verbatim UI-SPEC mixed/undeclared-units error copy (line 160). */
-const UNITS_DECLARED_COPY =
+export const UNITS_DECLARED_COPY =
   "Units are not declared for every input. Choose one unit — mm, in, or mils — " +
   "for the CSV thickness column and for the metadata form.";
 

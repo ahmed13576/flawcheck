@@ -6,13 +6,16 @@
  * three screens. Focus moves to the new screen's <h1> after transitions
  * (UI-22, a11y floor 8).
  */
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { StepIndicator } from "@/components/wizard/step-indicator";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { WizardProvider, useWizard } from "@/components/wizard/wizard-context";
 import { ScreenIngest } from "@/components/wizard/screen-ingest";
 import { ScreenReview } from "@/components/wizard/screen-review";
+import { MetadataForm } from "@/components/wizard/metadata-form";
+import { PtmtEntry } from "@/components/wizard/ptmt-entry";
 import { ConfirmDialog } from "@/components/wizard/confirm-dialog";
+import { metadataProblems, type MetadataDraftField } from "@/lib/wizard/reducer";
 
 function DemoBanner() {
   return (
@@ -110,6 +113,16 @@ function WizardRoot() {
   const { state, dispatch } = useWizard();
   const { ui } = state;
 
+  const metadataProblemsMemo = useMemo(
+    () => metadataProblems(ui.metadataDraft),
+    [ui.metadataDraft],
+  );
+  const handleMetadataField = useCallback(
+    (field: MetadataDraftField, value: string) =>
+      dispatch({ type: "set-metadata-field", field, value }),
+    [dispatch],
+  );
+
   // UI-22 / a11y floor 8: after a step transition, focus lands on the
   // new screen's heading.
   useEffect(() => {
@@ -136,7 +149,22 @@ function WizardRoot() {
       <div className="mt-6">
         {ui.screen !== 1 && state.source.isDemo && <DemoBanner />}
         {ui.screen === 1 && <ScreenIngest />}
-        {ui.screen === 2 && <ScreenReview />}
+        {ui.screen === 2 && (
+          <ScreenReview>
+            <MetadataForm
+              draft={ui.metadataDraft}
+              metadataUnit={state.units.metadata}
+              problems={metadataProblemsMemo}
+              onField={handleMetadataField}
+              onMetadataUnit={(unit) => dispatch({ type: "set-metadata-unit", unit })}
+            />
+            <PtmtEntry
+              notes={state.ptmt.notes}
+              indications={state.ptmt.indications}
+              onNotes={(notes) => dispatch({ type: "set-ptmt-notes", notes })}
+            />
+          </ScreenReview>
+        )}
         {ui.screen === 3 && <ScreenResults />}
       </div>
       <ConfirmDialog

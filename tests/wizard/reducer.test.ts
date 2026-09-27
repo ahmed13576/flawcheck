@@ -4,6 +4,7 @@ import {
   createInitialSession,
   wizardReducer,
   blockingChecks,
+  type EvaluateFn,
   type WizardState,
 } from "@/lib/wizard/reducer";
 import type { EvaluationSession } from "@/lib/ingest/session";
@@ -384,5 +385,157 @@ describe("wizard reducer — blocking selector flips (UI-08)", () => {
     expect(blockers.rowErrors).toBe(0);
     const elapsed = performance.now() - started;
     expect(elapsed).toBeLessThan(1000);
+  });
+});
+
+// -- Plan 02-04 Task 3: metadata form, PT/MT, evaluation gating (ING-03/04/05) --
+
+describe("wizard reducer — metadata draft gates the blocking selector (UI-10/11)", () => {
+  it("blank required fields produce the locked error copies", () => {
+    const blank = createInitialState();
+    const blockers = blockingChecks(blank);
+    const messages = blockers.metadataProblems.map((p) => p.message);
+    expect(messages).toContain("Outer diameter must be a number greater than 0.");
+    expect(messages).toContain("Nominal thickness must be smaller than the outer diameter.");
+    expect(messages).toContain("Select a piping class.");
+    expect(messages).toContain("Design pressure must be a number greater than 0.");
+    expect(messages).toContain("Allowable stress must be a number greater than 0.");
+  });
+
+  it("t-nominal >= OD, negative FCA, and negative gauge each fire their copy", () => {
+    const parsed = parse(SAMPLE_CSV);
+    const bad = [
+      { type: "set-metadata-field", field: "od", value: "100" },
+      { type: "set-metadata-field", field: "tNominal", value: "100" },
+      { type: "set-metadata-field", field: "fca", value: "-1" },
+      { type: "set-metadata-field", field: "gaugeUncertainty", value: "-0.5" },
+      { type: "set-metadata-field", field: "designPressure", value: "4" },
+      { type: "set-metadata-field", field: "allowableStress", value: "138" },
+      { type: "set-metadata-field", field: "pipeClass", value: "1" },
+    ] as const;
+    const state = bad.reduce((acc, action) => wizardReducer(acc, action), parsed);
+    const messages = blockingChecks(state).metadataProblems.map((p) => p.message);
+    expect(messages).toContain("Nominal thickness must be smaller than the outer diameter.");
+    expect(messages).toContain("FCA cannot be negative.");
+    expect(messages).toContain("Gauge uncertainty cannot be negative.");
+  });
+
+  it("a session with metadata problems cannot reach evaluate (gate order)", () => {
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const broke = wizardReducer(demo, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "-5",
+    });
+    let engineCalls = 0;
+    const recording: EvaluateFn = () => {
+      engineCalls += 1;
+      throw new Error("engine must not run");
+    };
+    const result = wizardReducer(
+      { ...broke, ui: { ...broke.ui, evaluating: true } },
+      { type: "run-evaluation", evaluateFn: recording },
+    );
+    expect(engineCalls).toBe(0);
+    expect(result.ui.screen).toBe(2);
+  });
+});
+
+describe("wizard reducer — PT/MT indications round-trip (ING-04)", () => {
+  it("add / update / remove works and stays JSON-serializable", () => {
+    let state = parse(SAMPLE_CSV);
+    expect(state.ptmt.indications).toHaveLength(0);
+    state = wizardReducer(state, { type: "add-indication" });
+    expect(state.ptmt.indications).toHaveLength(1);
+    const id = state.ptmt.indications[0].id;
+
+    state = wizardReducer(state, {
+      type: "update-indication",
+      id,
+      patch: { method: "MT", morphology: "linear", lengthMm: 4.2, widthMm: 0.8 },
+    });
+    expect(state.ptmt.indications[0]).toMatchObject({
+      method: "MT",
+      morphology: "linear",
+      lengthMm: 4.2,
+      widthMm: 0.8,
+      count: 1,
+    });
+
+    state = wizardReducer(state, { type: "set-ptmt-notes", notes: "Surface exam 2025." });
+    expect(state.ptmt.notes).toBe("Surface exam 2025.");
+
+    const roundTripped = JSON.parse(JSON.stringify(state)) as WizardState;
+    expect(roundTripped).toEqual(state);
+
+    state = wizardReducer(state, { type: "remove-indication", id });
+    expect(state.ptmt.indications).toHaveLength(0);
+  });
+
+  it("incomplete indication rows (dimension 0) are not triaged", () => {
+    // the demo carries 2 complete sample indications; a just-added empty row
+    // (dimension still 0) must not reach the triage
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    expect(demo.ptmt.indications).toHaveLength(2);
+    const withRow = wizardReducer(demo, { type: "add-indication" });
+    const result = wizardReducer(withRow, { type: "run-evaluation" });
+    expect(result.results!.indications).toHaveLength(2);
+  });
+});
+
+describe("wizard reducer — run-evaluation (UI-23)", () => {
+  it("on a valid demo session populates results and flips to Screen 3", () => {
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const result = wizardReducer(demo, { type: "run-evaluation" });
+    expect(result.ui.screen).toBe(3);
+    expect(result.results).not.toBeNull();
+    expect(result.results!.summary.total).toBe(4912);
+    expect(result.results!.summary.accept).toBeGreaterThan(0);
+    expect(result.results!.summary.fail).toBeGreaterThan(0);
+    // demo PT/MT indications triage: linear MT reject + rounded PT accept
+    expect(result.results!.indications).toHaveLength(2);
+  });
+
+  it("a forced engine error sets the failure banner state and re-enables", () => {
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const failing: EvaluateFn = () => {
+      throw new Error("engine exploded");
+    };
+    const result = wizardReducer(
+      { ...demo, ui: { ...demo.ui, evaluating: true } },
+      { type: "run-evaluation", evaluateFn: failing },
+    );
+    expect(result.ui.evaluationError).toBe("engine exploded");
+    expect(result.ui.evaluating).toBe(false);
+    expect(result.ui.screen).toBe(2);
+    expect(result.results).toBeNull();
+  });
+
+  it("a session with undeclared units cannot reach evaluate (ING-05 gate order)", () => {
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const undeclared: WizardState = {
+      ...demo,
+      units: { csvThickness: null, metadata: "mm" } as unknown as WizardState["units"],
+    };
+    let engineCalls = 0;
+    const recording: EvaluateFn = () => {
+      engineCalls += 1;
+      throw new Error("engine must not run");
+    };
+    const result = wizardReducer(undeclared, {
+      type: "run-evaluation",
+      evaluateFn: recording,
+    });
+    expect(engineCalls).toBe(0);
+    expect(result.ui.screen).toBe(2);
+    expect(result.ui.evaluationError).toBeNull();
+    expect(blockingChecks(undeclared).unitsUndeclared).toBe(true);
+  });
+
+  it("evaluation-start raises the evaluating flag (Evaluating… label state)", () => {
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const started = wizardReducer(demo, { type: "evaluation-start" });
+    expect(started.ui.evaluating).toBe(true);
+    expect(started.ui.evaluationError).toBeNull();
   });
 });
