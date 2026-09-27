@@ -27,6 +27,8 @@ export default function SpikePage() {
 
   // Poll /api/health on mount, then every 30s — the red banner must be current.
   useEffect(() => {
+    // Deliberate mount-poll; state updates resolve asynchronously after the fetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkHealth();
     const id = setInterval(checkHealth, 30000);
     return () => clearInterval(id);
