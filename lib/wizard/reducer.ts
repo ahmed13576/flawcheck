@@ -653,20 +653,31 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...session, ui: { ...state.ui, rowIssues: validateSession(session) } };
     }
 
-    case "set-csv-thickness-unit":
+    case "set-csv-thickness-unit": {
+      // WR-03: the CSV cells' meaning changed — re-gate the row issues now
+      // (the thickness-vs-OD check converts with the declared CSV unit).
+      const units = { ...state.units, csvThickness: action.unit };
+      const session: EvaluationSession = { ...state, units, results: null };
       return {
-        ...state,
-        units: { ...state.units, csvThickness: action.unit },
-        results: null,
-        ui: { ...state.ui, csvThicknessUnitManual: true },
+        ...session,
+        ui: {
+          ...state.ui,
+          csvThicknessUnitManual: true,
+          rowIssues: validateSession(session, state.ui.metadataDraft),
+        },
       };
+    }
 
-    case "set-metadata-unit":
+    case "set-metadata-unit": {
+      // WR-03: the metadata od converts in the NEW unit — row issues recompute
+      // so the OD gate never runs against a stale conversion (UI-07).
+      const units = { ...state.units, metadata: action.unit };
+      const session: EvaluationSession = { ...state, units, results: null };
       return {
-        ...state,
-        units: { ...state.units, metadata: action.unit },
-        results: null,
+        ...session,
+        ui: { ...state.ui, rowIssues: validateSession(session, state.ui.metadataDraft) },
       };
+    }
 
     case "set-row-cell": {
       const rows = state.rows.map((row) =>
@@ -679,15 +690,17 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
     case "set-page":
       return { ...state, ui: { ...state.ui, page: Math.max(1, action.page) } };
 
-    case "set-metadata-field":
+    case "set-metadata-field": {
+      // WR-03: the draft (not session.metadata) is authoritative while the
+      // user fills the form — OD edits must re-gate the thickness-vs-OD check
+      // immediately, exactly as set-mapping does (UI-07: never stale).
+      const metadataDraft = { ...state.ui.metadataDraft, [action.field]: action.value };
+      const session: EvaluationSession = { ...state, results: null };
       return {
-        ...state,
-        results: null,
-        ui: {
-          ...state.ui,
-          metadataDraft: { ...state.ui.metadataDraft, [action.field]: action.value },
-        },
+        ...session,
+        ui: { ...state.ui, metadataDraft, rowIssues: validateSession(session, metadataDraft) },
       };
+    }
 
     case "set-ptmt-notes":
       return {

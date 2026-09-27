@@ -382,6 +382,76 @@ describe("wizard reducer — set-mapping revalidates (UI-07)", () => {
   });
 });
 
+describe("wizard reducer — WR-03 regression: metadata edits re-gate row validation (UI-07 never stale)", () => {
+  it("set-metadata-field (OD) recomputes the thickness-vs-OD check immediately", () => {
+    const parsed = parse(SAMPLE_CSV); // thickness 10.5 / 10.2 mm, OD blank -> check disabled
+    expect(parsed.ui.rowIssues).toHaveLength(0);
+
+    const tooTight = wizardReducer(parsed, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "10.0",
+    });
+    expect(
+      tooTight.ui.rowIssues.some(
+        (i) => i.severity === "error" && i.message.includes("exceeds outer diameter"),
+      ),
+    ).toBe(true);
+
+    const roomy = wizardReducer(tooTight, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "20",
+    });
+    expect(
+      roomy.ui.rowIssues.some((i) => i.message.includes("exceeds outer diameter")),
+    ).toBe(false);
+  });
+
+  it("set-metadata-unit recomputes in the converted unit (mm od 114.3 vs mils od 114.3 differ)", () => {
+    const MILS_CSV = [
+      "Reading_ID,Tank,Measured_Thickness_mils,Measurement_Date",
+      "R1,T1,748,2025-01-15",
+    ].join("\n");
+    const state = wizardReducer(
+      wizardReducer(parse(MILS_CSV), {
+        type: "set-mapping",
+        field: "measuredThickness",
+        header: "Measured_Thickness_mils",
+      }),
+      { type: "set-metadata-field", field: "od", value: "114.3" },
+    );
+    // metadata unit mm: 114.3 mm OD vs 19.005 mm wall — clean.
+    expect(state.ui.rowIssues.filter((i) => i.severity === "error")).toHaveLength(0);
+
+    // Switch the metadata unit to mils: the SAME draft od digits now mean
+    // 2.90 mm — the recomputed issues must appear, not a stale badge set.
+    const asMils = wizardReducer(state, { type: "set-metadata-unit", unit: "mils" });
+    expect(
+      asMils.ui.rowIssues.some(
+        (i) => i.severity === "error" && i.message.includes("exceeds outer diameter"),
+      ),
+    ).toBe(true);
+  });
+
+  it("set-csv-thickness-unit recomputes (the cells' meaning changed)", () => {
+    const state = wizardReducer(parse(SAMPLE_CSV), {
+      type: "set-metadata-field",
+      field: "od",
+      value: "20",
+    });
+    // CSV read as mm: 10.5 mm < 20 mm OD — clean.
+    expect(state.ui.rowIssues.filter((i) => i.severity === "error")).toHaveLength(0);
+    // Re-declare the CSV cells as inches: 10.5 in = 266.7 mm — must re-flag.
+    const asInches = wizardReducer(state, { type: "set-csv-thickness-unit", unit: "in" });
+    expect(
+      asInches.ui.rowIssues.some(
+        (i) => i.severity === "error" && i.message.includes("exceeds outer diameter"),
+      ),
+    ).toBe(true);
+  });
+});
+
 describe("wizard reducer — set-row-cell (UI-09)", () => {
   it("editing a cell to a valid value clears its error badge", () => {
     const parsed = parse(INVALID_CSV);
