@@ -39,3 +39,5 @@ export { flagOutliers, modifiedZScores, median, OUTLIER_Z_THRESHOLD } from "./ou
 export type { OutlierFlag, OutlierHistoryReading, ModifiedZResult } from "./outliers";
 export { evaluateIndication } from "./ptmt";
 export type { IndicationResult } from "./ptmt";
+export { evaluate } from "./evaluate";
+export type { EvaluateOptions } from "./evaluate";
