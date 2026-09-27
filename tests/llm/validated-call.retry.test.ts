@@ -59,6 +59,12 @@ describe("runValidatedCompletion retry contract (offline)", () => {
     expect(fake.callCount()).toBe(2); // exactly one bounded retry
 
     const second = fake.calls[1];
+    // WR-02: the retry payload must be [system, user, assistant(bad), user(correction)] —
+    // the model sees its own bad reply before being asked to correct it.
+    expect(second.messages.map((m) => m.role)).toEqual(["system", "user", "assistant", "user"]);
+    const priorAssistant = second.messages[second.messages.length - 2];
+    expect(priorAssistant.role).toBe("assistant");
+    expect(priorAssistant.content).toBe("this is not json at all"); // the model's actual first reply, verbatim
     const correction = second.messages[second.messages.length - 1];
     expect(correction.role).toBe("user");
     expect(correction.content).toContain("failed validation"); // cites the first attempt's validation error
