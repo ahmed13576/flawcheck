@@ -28,6 +28,14 @@ Every computed verdict gains a streamed, clause-cited acceptance narrative — L
 - **Mapping preview (H2):** deferred to v1.x — recorded as a deferred idea, not Phase 3 scope.
 - **Progressive population (H4):** reasoning panes stream lazily per expanded row with session cache (03-UI-SPEC decision) — no eager narration of 4,912 rows.
 
+### Flowstep GUI integration (user-directed 2026-09-27 — BINDING, supersedes the Phase-2 visual baseline)
+The user redesigned the GUI in flowstep.ai (`flowstep-gui/` — 4 screen mockups + 4 reference Vite projects, shadcn-style oklch tokens, ORANGE primary `oklch(0.705 0.213 47.604)`, dark chrome, lucide icons). All 4 screens are restyled to this design WITHOUT breaking functionality:
+- **Packages approved (user-directed design adoption):** `class-variance-authority`, `clsx`, `lucide-react`, `tailwind-merge`, `tw-animate-css` — the reference projects' own import set; logged in UNINSTALL.md. NO radix, NO react-router (Next.js App Router).
+- **Functional preservation:** our 6 mapping targets stay (Flowstep's mock drops t-initial/t-previous — that would break R6 wide-format grouping). All 280 hermetic tests, reducer contracts, data-* hooks, aria patterns, resultRowKey, verdict chip TEXT (ACCEPT/RE-CHECK/FAIL) must remain green/identical.
+- **Upload cap:** adopt the design's 25 MB (client-side only; the 50k-row cap remains the parse-loop bound); Screen 1 copy matches the design.
+- **New affordances from the design (in scope):** 4-step indicator (Step 4 Report locked), Screen 3 KPI stat cards + hero card + "All findings / Needs attention" tabs + CML search box + footer nav ("Back to metadata" / "Save review" stores nothing beyond session / "Open report preview" disabled until Phase 4), Screen 4 report preview rendered per mock with Download PDF/Print gated (Phase 4 owns generation), reassurance row + footer nav on Screen 1.
+- **Sequencing:** restyle lands FIRST (before reasoning-pane UI tasks) so the pane is built on the new design. Mock numbers (3,812/876/224/42 locations) are placeholder data — live values come from the real evaluation.
+
 ### Claude's Discretion
 Prompt templates' exact wording, gateway module structure, cache key design, fallback narrative prose (code-cited), lint implementation details — within the invariants above.
 
