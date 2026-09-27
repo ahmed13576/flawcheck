@@ -35,7 +35,7 @@ Every incoming agent **MUST strictly honor these rules without deviation**:
 3. **Citation Allowlist Enforcement at Renderer**:
    * LLMs cannot invent clause citations or output unvetted references. The PDF/HTML report generator rejects any citation ID not present in `citations.json`.
 4. **Cite-Don't-Quote Legal Posture**:
-   * Due to ASME/API copyright protections (17 U.S.C. § 102(b)), reports cite clause identifiers and summarize scopes, but **never reproduce verbatim standard paragraphs**.
+   * Due to ASME/API copyright protections (17 U.S.C. § 102(b)), reports cite clause identifiers and summarize scopes, but **never reproduce verbatim standard paragraphs**. *Enforcement mechanism*: `lib/criteria/citations.json` is the only citation source (renderer rejects unknown IDs), the criteria configs hold numbers/rules not prose, and Phase 3's renderer must reject any narrative chunk matching verbatim standard text patterns before it reaches a report.
 5. **Fixed Pipeline (No Autonomous Agent Loops)**:
    * Architecture is a deterministic 4-step pipeline: `Parse -> Calculate -> Narrate -> Render`.
    * Eliminates infinite loops, API token drain, and latency unpredictability.
@@ -135,4 +135,6 @@ Or initiate Phase 1 directly:
 ```bash
 /gsd-discuss-phase 1
 ```
-*(Reference machine handoff state at [`.planning/HANDOFF.json`](file:///c:/Users/moham/Documents/Nebuis/.planning/HANDOFF.json) and human handoff at [`.planning/.continue-here.md`](file:///c:/Users/moham/Documents/Nebuis/.planning/.continue-here.md)).*
+*(Reference human handoff state at [`.planning/.continue-here.md`](file:///c:/Users/moham/Documents/Nebuis/.planning/.continue-here.md). The former `.planning/HANDOFF.json` was consumed deliberately during the 2026-09-26 session resume per the one-shot handoff protocol — `.continue-here.md` and this document are the durable sources.)*
+
+**UT scope note (stated explicitly for NDT reviewers):** FlawCheck v1 covers UT *wall-thinning* thickness evaluation (t-min, corrosion rate, remaining life, inspection intervals) and PT/MT *surface* indication acceptance (ASME B31.3 §344.3.2 / §344.4.2). UT examination of weld discontinuities (ASME B31.3 §344.6.2 volumetric acceptance) is **out of scope for v1** — recorded as a scope exclusion in `lib/criteria/ut-criteria.json`.

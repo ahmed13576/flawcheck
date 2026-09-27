@@ -4,12 +4,12 @@
 - **Standards Hierarchy**:
   - In-service piping inspection, corrosion rate calculation, remaining life, and inspection intervals are governed by **API 570 (5th Edition)**.
   - Required thickness determination, Barlow formula, and structural minimum thickness are governed by **API 574 (5th Edition, 2024) Section 10 & Annex D**.
-  - Straight pipe internal pressure design formulas ($t = \frac{PD}{2(SEW + PY)}$) and weld NDE acceptance criteria (MT §344.3.2, PT §344.4.2) are governed by **ASME B31.3-2024**.
+  - Straight pipe internal pressure design formulas ($t = \frac{P \cdot D}{2(S \cdot E \cdot W + P \cdot Y)}$, i.e. each of $S$, $E$, $W$ multiplies separately in the denominator) and weld NDE acceptance criteria (MT §344.3.2, PT §344.4.2) are governed by **ASME B31.3-2024**.
 - **Deterministic Single Source of Truth**:
   - All formulas, material coefficients, and flaw acceptance rules MUST be loaded from `lib/criteria/`:
     - `lib/criteria/citations.json` (verified allowlist)
     - `lib/criteria/ptmt-criteria.json` (ASME B31.3 morphology & threshold rules)
-    - `lib/criteria/ut-criteria.json` (Barlow/B31.3 formulas & verdict banding)
+    - `lib/criteria/ut-criteria.json` (ALL UT wall-thickness evaluation: Barlow/B31.3 t-min, governing `t_required = max(t_pressure, t_structural)` rule, API 570 corrosion rates, remaining life, inspection interval rules, verdict banding + boundary conventions)
   - **Forbidden**: LLMs must never perform arithmetic, invent clause citations, or alter acceptance limits. All arithmetic is executed in pure TypeScript under `lib/calc/`.
 
 ## 2. Working with PDF Standards in this Workspace

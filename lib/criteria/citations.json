@@ -5,7 +5,7 @@
     "edition": "2024 Edition",
     "clause": "304.1.2 (eq. 3a) & 304.1.1 (eq. 2)",
     "title": "Straight Pipe Under Internal Pressure — Pressure Design Thickness",
-    "scope_note": "tm = t + c, where pressure design thickness t = (P*D) / [2*(S*E*W + P*Y)] for t < D/6. W is weld strength reduction factor (=1.0 for normal temp); Y is material/temp coefficient from Table 304.1.1-1 (0.4 for ferritic steels <= 900°F); c is mechanical + corrosion allowance (FCA).",
+    "scope_note": "tm = t + c, where pressure design thickness t = (P*D) / [2*(S*E*W + P*Y)] for t < D/6. D is the pipe outside diameter (referred to as OD in ut-criteria.json — same quantity, one symbol pair). W is weld strength reduction factor (=1.0 for normal temp); Y is material/temp coefficient from Table 304.1.1-1 (0.4 for ferritic steels <= 900°F); c is mechanical + corrosion allowance (FCA).",
     "verified": "2026-09-26",
     "source_file": "ASME-B31.3-2024.pdf",
     "page": 56
@@ -31,6 +31,28 @@
     "verified": "2026-09-26",
     "source_file": "API 574 Inspection Practices for Piping System Components.pdf",
     "page": 113
+  },
+  {
+    "id": "api574_10_5_1_4",
+    "code": "API 574",
+    "edition": "5th Edition (2024)",
+    "clause": "10.5.1.4",
+    "title": "Minimum Required Thickness — Governing Selection Rule",
+    "scope_note": "The minimum required thickness is the greater value of the pressure design thickness or the structural minimum thickness. Step 1: calculate pressure design thickness per rating code; Step 2: determine structural minimum thickness per owner-operator table or engineering calculation. This is the direct normative source for t_required = max(t_pressure, t_structural).",
+    "verified": "2026-09-27",
+    "source_file": "API 574 Inspection Practices for Piping System Components.pdf",
+    "page": 114
+  },
+  {
+    "id": "api574_annex_d",
+    "code": "API 574",
+    "edition": "5th Edition (2024)",
+    "clause": "Annex D, Tables D.2a-D.2d",
+    "title": "Carbon Steel Minimum Structural Thickness Tables",
+    "scope_note": "D.2a (in.) / D.2b (mm) at 400°F (205°C); D.2c (in.) / D.2d (mm) at 750°F (400°F-corrected: 400°C). Normative lookup tables for t_structural by NPS and span condition. Consulted whenever the governing_t_required max() selects the structural branch.",
+    "verified": "2026-09-27",
+    "source_file": "API 574 Inspection Practices for Piping System Components.pdf",
+    "page": 141
   },
   {
     "id": "api570_7_6",
