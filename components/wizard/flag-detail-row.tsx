@@ -9,7 +9,6 @@
  * computed from the clamped rate by the engine — Infinity can never render.
  */
 import type { ReadingResult, ReadingFlag } from "@/lib/ingest/session";
-import { formatFixed } from "@/lib/wizard/format";
 
 /** Locked apparent-gain sentence (UI-SPEC negative_cr_policy detail). */
 export const APPARENT_GAIN_SENTENCE =

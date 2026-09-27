@@ -489,7 +489,7 @@ function ingestCsv(state: WizardState, filename: string, content: string): Wizar
   };
 }
 
-function loadSample(state: WizardState): WizardState {
+function loadSample(): WizardState {
   const { records, errors, delimiter } = tokenize(tracerSampleCsv, ",");
   if (errors.length > 0 || records.length < 2) {
     // The committed fixture is known-good; a parse failure here is a build bug.
@@ -518,7 +518,7 @@ function loadSample(state: WizardState): WizardState {
   };
 }
 
-function loadDemo(state: WizardState): WizardState {
+function loadDemo(): WizardState {
   const session = createDemoSession();
   return {
     ...session,
@@ -553,10 +553,10 @@ function nextIndicationId(indications: PtmIndication[]): string {
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   switch (action.type) {
     case "load-sample":
-      return loadSample(state);
+      return loadSample();
 
     case "load-demo":
-      return loadDemo(state);
+      return loadDemo();
 
     case "start-parse":
       return {
