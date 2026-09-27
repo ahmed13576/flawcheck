@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { evaluate } from "@/lib/calc/evaluate";
 import { toMm } from "@/lib/calc/units";
+import { EvaluationInputError } from "@/lib/ingest/session";
 import type { ComponentMetadata, EvaluationInput } from "@/lib/ingest/session";
 
 const BASE_METADATA: ComponentMetadata = {
@@ -279,6 +280,59 @@ describe("evaluate — summary + citationsUsed rollup", () => {
     expect(withPtmt.indications[0].verdict).toBe("reject");
     expect(withPtmt.indications[0].citationId).toBe("asme_b31_3_344_3_2");
     expect(withPtmt.citationsUsed).toContain("asme_b31_3_344_3_2");
+  });
+});
+
+describe("evaluate — WR-01 fail-closed: non-finite input never becomes a silent accept", () => {
+  it("NaN tActualMm is refused with a typed error — never verdict 'accept' with NaN rlYears", () => {
+    // Pre-fix probe: every NaN comparison is false, so reject/re_check fall
+    // through to accept and rlYears came back NaN — a silent accept on the
+    // Phase 3/4 public API.
+    expect(() =>
+      evaluate([input({ readingId: "WR01", tActualMm: Number.NaN })], BASE_METADATA, MM_UNITS),
+    ).toThrow(EvaluationInputError);
+  });
+
+  it("non-finite tInitialMm / tPreviousMm / dtLtYears / dtStYears are each refused", () => {
+    const cases: Array<Partial<EvaluationInput>> = [
+      { tInitialMm: Number.NaN },
+      { tPreviousMm: Number.NaN },
+      { tInitialMm: 10.0, dtLtYears: Number.NaN },
+      { tPreviousMm: 9.5, dtStYears: Number.POSITIVE_INFINITY },
+    ];
+    for (const overrides of cases) {
+      expect(() =>
+        evaluate([input({ readingId: "WR01", ...overrides })], BASE_METADATA, MM_UNITS),
+      ).toThrow(EvaluationInputError);
+    }
+  });
+
+  it("the refusal names the reading and the offending field (loud, actionable)", () => {
+    try {
+      evaluate([input({ readingId: "BAD-7", tActualMm: Number.NaN })], BASE_METADATA, MM_UNITS);
+      expect.unreachable("evaluate must throw on non-finite input");
+    } catch (error) {
+      expect(error).toBeInstanceOf(EvaluationInputError);
+      expect((error as Error).message).toContain("BAD-7");
+      expect((error as Error).message).toContain("tActualMm");
+    }
+  });
+
+  it("non-finite metadata numerics are refused before any reading is evaluated", () => {
+    const badMetadata: ComponentMetadata = { ...BASE_METADATA, gaugeUncertainty: Number.NaN };
+    expect(() =>
+      evaluate([input({ readingId: "WR01" })], badMetadata, MM_UNITS),
+    ).toThrow(EvaluationInputError);
+    const badOd: ComponentMetadata = { ...BASE_METADATA, od: Number.POSITIVE_INFINITY };
+    expect(() =>
+      evaluate([input({ readingId: "WR01" })], badOd, MM_UNITS),
+    ).toThrow(EvaluationInputError);
+  });
+
+  it("null history fields stay legal (insufficient-history path is untouched)", () => {
+    const results = evaluate([input({ readingId: "G10" })], BASE_METADATA, MM_UNITS);
+    expect(results.readings[0].verdict).toBe("accept");
+    expect(results.readings[0].rlYears).toBeNull();
   });
 });
 
