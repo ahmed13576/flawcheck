@@ -5,6 +5,24 @@
     "API_574": "5th Edition (2024)",
     "ASME_B31_3": "2024 Edition"
   },
+  "unit_system": {
+    "canonical": "mm (millimeters) for all thickness quantities; years for all time quantities",
+    "pressure": "MPa or psi — must be consistent with S (allowable stress) units; record the chosen system in the evaluation",
+    "note": "User inputs in any unit (mm/in/mils) are converted to canonical before calc entry; the unit assumption is surfaced on the report"
+  },
+  "scope_exclusions": {
+    "ut_weld_volumetric_asme_b31_3_344_6_2": "Out of scope for FlawCheck v1 — this file covers UT WALL-THINNING thickness evaluation only, not UT examination of weld discontinuities",
+    "note": "File evaluates thickness measurements (t-min, corrosion rate, remaining life, intervals); surface flaw acceptance lives in ptmt-criteria.json"
+  },
+  "governing_t_required": {
+    "clause": "API 574 para. 10.5.1.4 (verified 2026-09-27: 'the minimum required thickness is the greater value of the pressure design thickness or the structural minimum thickness'); supported by API 570 para. 7.6",
+    "rule": "t_required = max(t_pressure, t_structural)",
+    "definitions": {
+      "t_pressure": "From asme_b31_3_straight_pipe or barlow_in_service (per component context), before FCA addition per API 570 7.2 note",
+      "t_structural": "From API 574 Annex D Tables D.2a-D.2d (carbon steel minimum structural thickness at temperature) or owner-operator table"
+    },
+    "note": "A Phase 2 implementation MUST apply this max() — computing only the pressure formula silently overstates remaining life"
+  },
   "t_min_formulas": {
     "asme_b31_3_straight_pipe": {
       "clause": "ASME B31.3 para. 304.1.2 eq. (3a) & 304.1.1 eq. (2)",
@@ -41,7 +59,13 @@
   },
   "remaining_life_formula": {
     "clause": "API 570 para. 7.2",
-    "formula": "RL_years = (t_actual - t_required) / CR_governing"
+    "formula": "RL_years = (t_actual - t_required) / CR_governing",
+    "precondition": "CR_governing per negative_cr_policy below; division by zero CR must surface 'insufficient corrosion history' instead of Infinity"
+  },
+  "negative_cr_policy": {
+    "rule": "If CR_LT or CR_ST computes negative (apparent thickness gain), clamp CR_governing to 0 for the RL calculation and surface a 'measurement inconsistency' warning flag on the affected CML",
+    "rationale": "API 570 para. 7.1.2 does not define behavior for apparent thickness gain; causes include measurement-point drift, re-coating, gauge noise",
+    "reporting": "Both raw (possibly negative) and clamped values displayed; never silently discard"
   },
   "inspection_interval_rules": {
     "half_life_rule": {
@@ -62,6 +86,11 @@
       "accept": "t_actual >= (t_required + gauge_uncertainty)",
       "re_check": "t_required <= t_actual < (t_required + gauge_uncertainty)",
       "reject": "t_actual < t_required"
+    },
+    "boundary_convention": {
+      "at_t_actual_equals_t_required": "re_check (exact equality falls in re_check, NOT reject — reject is strictly less-than)",
+      "at_t_actual_equals_t_required_plus_uncertainty": "accept (the accept floor equals the re_check ceiling; no gap, no overlap)",
+      "implementation_note": "Implement as: if (t_actual < t_required) reject; else if (t_actual < t_required + gauge_uncertainty) re_check; else accept — evaluated in exactly this order"
     }
   }
 }

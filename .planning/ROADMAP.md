@@ -11,7 +11,7 @@ FlawCheck ships as a five-phase vertical build for the Nebius x NVIDIA hackathon
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Platform Spike & App Skeleton** - Prove Nebius Token Factory connectivity, startup-validated model routing, and the validated-call pattern before any feature depends on them
+- [x] **Phase 1: Platform Spike & App Skeleton** - Prove Nebius Token Factory connectivity, startup-validated model routing, and the validated-call pattern before any feature depends on them
 - [ ] **Phase 2: Ingestion & Deterministic Calc Engine** - Raw data in, deterministic verdicts out: CSV preview, metadata, PT/MT notes, and a pure unit-tested calc engine with golden fixtures
 - [ ] **Phase 3: LLM Reasoning & Citation Layer** - Streamed, clause-cited acceptance narratives around precomputed verdicts; the LLM never computes and can only cite the vetted allowlist
 - [ ] **Phase 4: Report Rendering** - Evaluations become a defensible PDF report with sign-off and disclaimer baked in, plus a guaranteed print-CSS fallback
@@ -117,7 +117,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Spike & App Skeleton | 4/4 | In Progress|  |
+| 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
 | 2. Ingestion & Deterministic Calc Engine | 0/TBD | Not started | - |
 | 3. LLM Reasoning & Citation Layer | 0/TBD | Not started | - |
 | 4. Report Rendering | 0/TBD | Not started | - |
