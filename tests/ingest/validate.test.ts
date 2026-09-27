@@ -198,6 +198,49 @@ describe("validate — ragged rows (never silent truncation)", () => {
   });
 });
 
+describe("validate — CR-01 regression: thickness-vs-OD compares in canonical mm", () => {
+  it("a 748-mil row (19.005 mm) validates clean against a 114.3 mm OD when csvThicknessUnit is mils", () => {
+    const rows = rowsFrom([["R1", "T", "G", "20", "748", "2025-01-15"]]);
+    const issues = rowIssues(rows, FULL_MAPPING, {
+      ...BASE_OPTS,
+      odMm: 114.3,
+      csvThicknessUnit: "mils",
+    });
+    expect(issues).toEqual([]);
+  });
+
+  it("an in-unit row (5.5 in = 139.7 mm) validates clean against a 2000 mm OD", () => {
+    const rows = rowsFrom([["R1", "T", "G", "20", "5.5", "2025-01-15"]]);
+    const issues = rowIssues(rows, FULL_MAPPING, {
+      ...BASE_OPTS,
+      odMm: 2000,
+      csvThicknessUnit: "in",
+    });
+    expect(issues).toEqual([]);
+  });
+
+  it("a genuinely-too-thick mils value still fires the OD error (guard is not disabled)", () => {
+    // 6000 mils = 152.4 mm > 114.3 mm OD — must still be rejected after conversion.
+    const rows = rowsFrom([["R1", "T", "G", "20", "6000", "2025-01-15"]]);
+    const issues = rowIssues(rows, FULL_MAPPING, {
+      ...BASE_OPTS,
+      odMm: 114.3,
+      csvThicknessUnit: "mils",
+    });
+    expect(issues.map((i) => i.message)).toContain(
+      "Row 1: Measured thickness — impossible value, exceeds outer diameter (114.3 mm).",
+    );
+  });
+
+  it("defaults to mm when csvThicknessUnit is omitted (back-compat)", () => {
+    const rows = rowsFrom([["R1", "T", "G", "20", "120", "2025-01-15"]]);
+    const issues = rowIssues(rows, FULL_MAPPING, { ...BASE_OPTS, odMm: 114.3 });
+    expect(issues.map((i) => i.message)).toContain(
+      "Row 1: Measured thickness — impossible value, exceeds outer diameter (114.3 mm).",
+    );
+  });
+});
+
 describe("validate — row cap (T-02-06 loud over-limit)", () => {
   it("MAX_ROWS is 50,000 and exceeding it throws a loud over-limit error", () => {
     expect(MAX_ROWS).toBe(50_000);

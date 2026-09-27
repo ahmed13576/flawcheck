@@ -4,6 +4,7 @@ import {
   createInitialSession,
   wizardReducer,
   blockingChecks,
+  validateSession,
   type EvaluateFn,
   type WizardState,
 } from "@/lib/wizard/reducer";
@@ -177,6 +178,60 @@ describe("wizard reducer — parse-file (Screen 1 ingest)", () => {
     const dismissed = wizardReducer(errored, { type: "dismiss-ingest-error" });
     expect(dismissed.ui.ingestError).toBeNull();
     expect(dismissed.ui.screen).toBe(1);
+  });
+});
+
+describe("wizard reducer — CR-01 regression: in/mils upload rows validate clean against the mm OD", () => {
+  const MILS_CSV = [
+    "Reading_ID,Tank,Measured_Thickness_mils,Measurement_Date",
+    "R1,T1,465,2025-01-15",
+    "R2,T1,748,2025-01-15",
+  ].join("\n");
+
+  it("a healthy 748-mil wall is NOT flagged against a 114.3 mm OD", () => {
+    const parsed = parse(MILS_CSV, "mils-register.csv");
+    // 'Measured_Thickness_mils' misses the exact thickness alias table — the
+    // user maps it manually and the suffix re-guesses the unit (UI-07/12).
+    const mapped = wizardReducer(parsed, {
+      type: "set-mapping",
+      field: "measuredThickness",
+      header: "Measured_Thickness_mils",
+    });
+    expect(mapped.units.csvThickness).toBe("mils");
+    // OD check disabled while the draft OD is blank — fill it (mm metadata unit).
+    const withOd = wizardReducer(mapped, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "114.3",
+    });
+    const odErrors = withOd.ui.rowIssues.filter((i) =>
+      i.message.includes("exceeds outer diameter"),
+    );
+    expect(odErrors).toEqual([]);
+    expect(withOd.ui.rowIssues.filter((i) => i.severity === "error")).toHaveLength(0);
+  });
+
+  it("an over-thickness mils row still fires the OD error after conversion", () => {
+    const THICK_MILS_CSV = MILS_CSV.replace("748", "6000"); // 6000 mils = 152.4 mm
+    const parsed = parse(THICK_MILS_CSV, "mils-register.csv");
+    const mapped = wizardReducer(parsed, {
+      type: "set-mapping",
+      field: "measuredThickness",
+      header: "Measured_Thickness_mils",
+    });
+    const withOd = wizardReducer(mapped, {
+      type: "set-metadata-field",
+      field: "od",
+      value: "114.3",
+    });
+    // Direct validateSession pin (the CR-01 seam): unit pass-through keeps the
+    // guard live — the UI-state recompute itself is WR-03's regression.
+    const fresh = validateSession(withOd, withOd.ui.metadataDraft);
+    expect(
+      fresh.some((i) =>
+        i.message.includes("Row 2: Measured thickness — impossible value, exceeds outer diameter"),
+      ),
+    ).toBe(true);
   });
 });
 

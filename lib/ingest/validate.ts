@@ -18,7 +18,8 @@
 import { z } from "zod";
 import { buildCells } from "./csv";
 import { parseIsoUtc } from "../calc/dates";
-import type { ParsedRow, RowIssue, TargetField } from "./session";
+import { toMm } from "../calc/units";
+import type { ParsedRow, RowIssue, TargetField, Unit } from "./session";
 
 export const MAX_ROWS = 50_000; // T-02-06: hard row cap before any heavy work
 export const MAX_FILE_BYTES = 5 * 1024 * 1024; // T-02-06: 5 MB hard cap
@@ -117,6 +118,12 @@ function issue(row: number, field: string, problem: string, severity: "error" | 
 export interface ValidateOptions {
   /** Metadata outer diameter in canonical mm; 0 disables the thickness-vs-OD check. */
   odMm?: number;
+  /**
+   * CR-01: declared unit of the parsed thickness cell (session.units.csvThickness).
+   * The OD is canonical mm, so the cell MUST be converted before comparing —
+   * a 748-mil wall is 19.005 mm, never "748 mm". Defaults to mm (back-compat).
+   */
+  csvThicknessUnit?: Unit;
   /** Today as YYYY-MM-DD (UTC) for the future-date WARNING; defaults to the real clock. */
   todayIso?: string;
 }
@@ -184,7 +191,11 @@ export function rowIssues(
           issue(row.row, FIELD_LABELS.measuredThickness, `not a number ('${thicknessRaw}')`, "error"),
         );
       } else {
-        thicknessMm = parsed;
+        // CR-01: canonicalize to mm with the row's declared CSV unit BEFORE any
+        // comparison — the OD is canonical mm (toMm at validateSession). The
+        // sign check is unit-invariant (toMm is positive scaling); both
+        // messages render the true mm value, never the raw unit value.
+        thicknessMm = toMm(parsed, options.csvThicknessUnit ?? "mm");
         if (thicknessMm <= 0) {
           issues.push(
             issue(

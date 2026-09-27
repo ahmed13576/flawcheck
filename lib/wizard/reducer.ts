@@ -270,10 +270,23 @@ export function createInitialState(): WizardState {
 
 // --- validation selectors (one path shared by ingest, mapping, and edits) ------
 
-/** Re-run lib/ingest rowIssues over the session (UI-07: never stale). */
-export function validateSession(session: EvaluationSession): RowIssue[] {
-  const od = toMm(session.metadata.od, session.units.metadata);
-  return rowIssues(session.rows, session.mapping, { odMm: od > 0 ? od : 0 });
+/**
+ * Re-run lib/ingest rowIssues over the session (UI-07: never stale).
+ *
+ * - CR-01: the CSV thickness unit rides along so the OD comparison happens in
+ *   canonical mm (a mils CSV is never compared as `748 >= 114.3`).
+ * - WR-03: metadata edits re-gate the OD check through the DRAFT — the draft
+ *   od is authoritative while the user fills the form (session.metadata only
+ *   updates at run-evaluation). Callers without a draft (ingest/demo/sample)
+ *   fall back to the session metadata value.
+ */
+export function validateSession(session: EvaluationSession, draft?: MetadataDraft): RowIssue[] {
+  const odRaw = draft ? draftNumber(draft.od) : session.metadata.od;
+  const od = odRaw !== null ? toMm(odRaw, session.units.metadata) : 0;
+  return rowIssues(session.rows, session.mapping, {
+    odMm: od > 0 ? od : 0,
+    csvThicknessUnit: session.units.csvThickness,
+  });
 }
 
 export interface MetadataProblem {
