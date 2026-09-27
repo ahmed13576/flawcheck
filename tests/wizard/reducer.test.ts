@@ -1,13 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { createInitialSession, wizardReducer } from "@/lib/wizard/reducer";
+import {
+  createInitialState,
+  createInitialSession,
+  wizardReducer,
+  blockingChecks,
+  type WizardState,
+} from "@/lib/wizard/reducer";
 import type { EvaluationSession } from "@/lib/ingest/session";
 
-const loaded: EvaluationSession = wizardReducer(createInitialSession(), {
+// -- helpers -------------------------------------------------------------------
+
+const loaded: WizardState = wizardReducer(createInitialState(), {
   type: "load-sample",
 });
-const evaluated: EvaluationSession = wizardReducer(loaded, {
+const evaluated: WizardState = wizardReducer(loaded, {
   type: "run-evaluation",
 });
+
+const SAMPLE_CSV = [
+  "Reading_ID,Tank,Grid_Position,Original_Scantling_mm,Measured_Thickness_mm,Measurement_Date",
+  "R1,T1,G1,20,10.5,2024-01-15",
+  "R2,T1,G1,20,10.2,2025-01-15",
+].join("\n");
+
+function parse(csv: string, filename = "register.csv"): WizardState {
+  return wizardReducer(createInitialState(), { type: "parse-file", filename, content: csv });
+}
+
+// -- Plan 02-01 tracer slice (carried forward) ----------------------------------
 
 describe("wizard reducer — load-sample", () => {
   it("fills 6 parsed rows from the committed tracer fixture", () => {
@@ -39,7 +59,9 @@ describe("wizard reducer — load-sample", () => {
   it("presets the tracer mapping and mm units on both sides", () => {
     expect(loaded.mapping.readingId).toBe("Reading_ID");
     expect(loaded.mapping.tank).toBe("Tank");
-    expect(loaded.mapping.tInitial).toBe("Original_Scantling_mm");
+    // 02-04: Original_Scantling_mm is a constant design scantling, not a
+    // measured t-initial — the demo decision applies to the tracer too.
+    expect(loaded.mapping.tInitial).toBeNull();
     expect(loaded.mapping.measuredThickness).toBe("Measured_Thickness_mm");
     expect(loaded.mapping.measurementDate).toBe("Measurement_Date");
     expect(loaded.mapping.tPrevious).toBeNull();
@@ -48,7 +70,7 @@ describe("wizard reducer — load-sample", () => {
   });
 });
 
-describe("wizard reducer — run-evaluation", () => {
+describe("wizard reducer — run-evaluation (tracer golden values)", () => {
   it("produces results with summary total 6 and verdict counts accept 2 / re_check 2 / fail 2", () => {
     expect(evaluated.results).not.toBeNull();
     expect(evaluated.results!.summary).toEqual({
@@ -76,7 +98,7 @@ describe("wizard reducer — run-evaluation", () => {
     )!;
     expect(first.flags).toContain("insufficient_history");
     expect(first.rlYears).toBeNull();
-    expect(first.nextInspection).toBeNull(); // nextInterval lands in Plan 02-02
+    expect(first.nextInspection).toBeNull();
     expect(["accept", "re_check", "reject"]).toContain(first.verdict);
   });
   it("state stays JSON-serializable (Phase 3/4 contract)", () => {
@@ -85,8 +107,161 @@ describe("wizard reducer — run-evaluation", () => {
   });
 });
 
-describe("wizard reducer — reset placeholder", () => {
-  it("reset is a no-op placeholder until Plan 02-04 expands the actions", () => {
-    expect(wizardReducer(evaluated, { type: "reset" })).toBe(evaluated);
+// -- Plan 02-04 Task 1: ingest pipeline ------------------------------------------
+
+describe("wizard reducer — parse-file (Screen 1 ingest)", () => {
+  it("parses a valid CSV string into rows + headers with auto-guessed mapping", () => {
+    const state = parse(SAMPLE_CSV);
+    expect(state.csv.rowCount).toBe(2);
+    expect(state.rows).toHaveLength(2);
+    expect(state.csv.headers).toHaveLength(6);
+    expect(state.source.filename).toBe("register.csv");
+    expect(state.source.isDemo).toBe(false);
+    expect(state.mapping.readingId).toBe("Reading_ID");
+    expect(state.mapping.measuredThickness).toBe("Measured_Thickness_mm");
+    expect(state.mapping.measurementDate).toBe("Measurement_Date");
+    expect(state.mapping.tank).toBe("Tank");
+    // _mm suffix auto-guesses the CSV thickness unit.
+    expect(state.units.csvThickness).toBe("mm");
+    expect(state.ui.screen).toBe(2);
+    expect(state.ui.parsing).toBeNull();
+  });
+
+  it("stores the CsvParseError list on an unparseable CSV (UI-05)", () => {
+    const state = parse('Reading_ID,Measured_Thickness_mm\n"R1,10.5', "bad.csv");
+    expect(state.ui.ingestError).not.toBeNull();
+    expect(state.ui.ingestError!.kind).toBe("parse-failure");
+    if (state.ui.ingestError!.kind === "parse-failure") {
+      expect(state.ui.ingestError!.filename).toBe("bad.csv");
+      expect(state.ui.ingestError!.errors.length).toBeGreaterThan(0);
+      expect(state.ui.ingestError!.errors[0].line).toBe(2);
+      expect(state.ui.ingestError!.errors[0].problem).toContain("unclosed quoted field");
+    }
+    expect(state.csv.rowCount).toBe(0);
+    expect(state.ui.screen).toBe(1);
+  });
+
+  it("renders the zero-rows error for a headers-only CSV (UI-06)", () => {
+    const state = parse("Reading_ID,Measured_Thickness_mm\n", "empty.csv");
+    expect(state.ui.ingestError).not.toBeNull();
+    expect(state.ui.ingestError!.kind).toBe("zero-rows");
+    expect(state.ui.screen).toBe(1);
+  });
+
+  it("a 6 MB payload fails the size gate loudly BEFORE tokenize (T-02-06)", () => {
+    const sixMb = "a".repeat(6 * 1024 * 1024);
+    const state = parse(sixMb, "huge.csv");
+    expect(state.ui.ingestError).not.toBeNull();
+    expect(state.ui.ingestError!.kind).toBe("too-large");
+    if (state.ui.ingestError!.kind === "too-large") {
+      expect(state.ui.ingestError!.message).toContain("6.0 MB");
+      expect(state.ui.ingestError!.message).toContain("5 MB");
+    }
+  });
+
+  it("parse-invalid only sets the inline error — loaded rows unchanged (UI-02)", () => {
+    const state = wizardReducer(loaded, { type: "parse-invalid", filename: "notes.txt" });
+    expect(state.ui.ingestError).not.toBeNull();
+    expect(state.ui.ingestError!.kind).toBe("invalid-file");
+    expect(state.csv.rowCount).toBe(6);
+    expect(state.rows).toBe(loaded.rows);
+    expect(state.ui.screen).toBe(2);
+  });
+
+  it("dismiss-ingest-error returns to the idle state", () => {
+    const errored = wizardReducer(createInitialState(), {
+      type: "parse-invalid",
+      filename: "x.txt",
+    });
+    const dismissed = wizardReducer(errored, { type: "dismiss-ingest-error" });
+    expect(dismissed.ui.ingestError).toBeNull();
+    expect(dismissed.ui.screen).toBe(1);
+  });
+});
+
+describe("wizard reducer — load-demo (zero-network Zenodo fixture)", () => {
+  const demo: WizardState = wizardReducer(createInitialState(), { type: "load-demo" });
+
+  it("loads the 4,912-row session with isDemo true", () => {
+    expect(demo.csv.rowCount).toBe(4912);
+    expect(demo.rows).toHaveLength(4912);
+    expect(demo.source.isDemo).toBe(true);
+    expect(demo.ui.screen).toBe(2);
+  });
+
+  it("leaves t-initial/t-previous unmapped (derived R6 history governs)", () => {
+    expect(demo.mapping.tInitial).toBeNull();
+    expect(demo.mapping.tPrevious).toBeNull();
+  });
+
+  it("carries zero blocking row errors and a valid metadata draft", () => {
+    const blockers = blockingChecks(demo);
+    expect(blockers.rowErrors).toBe(0);
+    expect(blockers.unmappedRequired).toHaveLength(0);
+    expect(blockers.metadataProblems).toHaveLength(0);
+    expect(blockers.unitsUndeclared).toBe(false);
+  });
+
+  it("metadata draft round-trips the demo preset values", () => {
+    expect(demo.ui.metadataDraft.tStructural).toBe("19.85");
+    expect(demo.ui.metadataDraft.gaugeUncertainty).toBe("0.1");
+    expect(demo.ui.metadataDraft.pipeClass).toBe("2");
+    expect(demo.ui.metadataDraft.od).toBe("2000");
+  });
+});
+
+describe("wizard reducer — replace-confirm flow (UI-03)", () => {
+  it("staging keeps existing rows until Replace is confirmed", () => {
+    const staged = wizardReducer(loaded, {
+      type: "stage-replace",
+      pending: { filename: "new.csv", content: SAMPLE_CSV },
+    });
+    expect(staged.ui.replaceConfirm).not.toBeNull();
+    expect(staged.csv.rowCount).toBe(6);
+    expect(staged.rows).toBe(loaded.rows);
+
+    const cancelled = wizardReducer(staged, { type: "cancel-replace" });
+    expect(cancelled.ui.replaceConfirm).toBeNull();
+    expect(cancelled.csv.rowCount).toBe(6);
+    expect(cancelled.rows).toBe(loaded.rows);
+  });
+
+  it("Replace swaps data and re-enters mapping", () => {
+    const staged = wizardReducer(loaded, {
+      type: "stage-replace",
+      pending: { filename: "new.csv", content: SAMPLE_CSV },
+    });
+    const replaced = wizardReducer(staged, { type: "confirm-replace" });
+    expect(replaced.ui.replaceConfirm).toBeNull();
+    expect(replaced.csv.rowCount).toBe(2);
+    expect(replaced.source.filename).toBe("new.csv");
+    expect(replaced.rows).not.toBe(loaded.rows);
+    expect(replaced.ui.screen).toBe(2);
+  });
+});
+
+describe("wizard reducer — navigation", () => {
+  it("set-screen allows back-navigation only", () => {
+    const back = wizardReducer(evaluated, { type: "set-screen", screen: 2 });
+    expect(back.ui.screen).toBe(2);
+    const backAgain = wizardReducer(back, { type: "set-screen", screen: 1 });
+    expect(backAgain.ui.screen).toBe(1);
+    // forward via set-screen is refused (CTAs own forward navigation)
+    const forward = wizardReducer(back, { type: "set-screen", screen: 3 });
+    expect(forward.ui.screen).toBe(2);
+  });
+
+  it("reset returns a fresh initial state", () => {
+    const reset = wizardReducer(evaluated, { type: "reset" });
+    expect(reset.ui.screen).toBe(1);
+    expect(reset.csv.rowCount).toBe(0);
+    expect(reset.results).toBeNull();
+    expect(reset.ui.rowIssues).toHaveLength(0);
+  });
+
+  it("createInitialSession (session-only factory) stays available", () => {
+    const session = createInitialSession();
+    expect(session.csv.rowCount).toBe(0);
+    expect(session.results).toBeNull();
   });
 });

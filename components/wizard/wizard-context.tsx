@@ -9,21 +9,21 @@ import {
   type ReactNode,
 } from "react";
 import {
-  createInitialSession,
+  createInitialState,
   wizardReducer,
   type WizardAction,
+  type WizardState,
 } from "@/lib/wizard/reducer";
-import type { EvaluationSession } from "@/lib/ingest/session";
 
 interface WizardContextValue {
-  state: EvaluationSession;
+  state: WizardState;
   dispatch: Dispatch<WizardAction>;
 }
 
 const WizardContext = createContext<WizardContextValue | null>(null);
 
 export function WizardProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(wizardReducer, undefined, createInitialSession);
+  const [state, dispatch] = useReducer(wizardReducer, undefined, createInitialState);
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;
 }
