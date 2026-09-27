@@ -531,10 +531,31 @@ describe("wizard reducer — metadata draft gates the blocking selector (UI-10/1
     const blockers = blockingChecks(blank);
     const messages = blockers.metadataProblems.map((p) => p.message);
     expect(messages).toContain("Outer diameter must be a number greater than 0.");
-    expect(messages).toContain("Nominal thickness must be smaller than the outer diameter.");
+    // IN-06: a blank/zero/negative t-nominal is a non-positive-number problem,
+    // not a smaller-than-OD problem — the copy is split accordingly.
+    expect(messages).toContain("Nominal thickness must be a number greater than 0.");
     expect(messages).toContain("Select a piping class.");
     expect(messages).toContain("Design pressure must be a number greater than 0.");
     expect(messages).toContain("Allowable stress must be a number greater than 0.");
+  });
+
+  it("IN-06: t-nominal copy splits — non-positive vs >= OD each get the honest message", () => {
+    const parsed = parse(SAMPLE_CSV);
+    const zero = wizardReducer(parsed, { type: "set-metadata-field", field: "tNominal", value: "0" });
+    expect(blockingChecks(zero).metadataProblems.map((p) => p.message)).toContain(
+      "Nominal thickness must be a number greater than 0.",
+    );
+    const negative = wizardReducer(parsed, { type: "set-metadata-field", field: "tNominal", value: "-3" });
+    expect(blockingChecks(negative).metadataProblems.map((p) => p.message)).toContain(
+      "Nominal thickness must be a number greater than 0.",
+    );
+    const tooThick = [
+      { type: "set-metadata-field" as const, field: "od" as const, value: "10" },
+      { type: "set-metadata-field" as const, field: "tNominal" as const, value: "12" },
+    ].reduce((acc, action) => wizardReducer(acc, action), parsed);
+    expect(blockingChecks(tooThick).metadataProblems.map((p) => p.message)).toContain(
+      "Nominal thickness must be smaller than the outer diameter.",
+    );
   });
 
   it("t-nominal >= OD, negative FCA, and negative gauge each fire their copy", () => {

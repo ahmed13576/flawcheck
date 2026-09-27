@@ -308,7 +308,14 @@ export function metadataProblems(draft: MetadataDraft): MetadataProblem[] {
     problems.push({ field: "od", message: "Outer diameter must be a number greater than 0." });
   }
   const tNominal = draftNumber(draft.tNominal);
-  if (tNominal === null || tNominal <= 0 || (od !== null && od > 0 && tNominal >= od)) {
+  // IN-06: the copy is split — a non-positive value is a number problem, not
+  // a smaller-than-OD problem ("0 must be smaller than the OD" is false copy).
+  if (tNominal === null || tNominal <= 0) {
+    problems.push({
+      field: "tNominal",
+      message: "Nominal thickness must be a number greater than 0.",
+    });
+  } else if (od !== null && od > 0 && tNominal >= od) {
     problems.push({
       field: "tNominal",
       message: "Nominal thickness must be smaller than the outer diameter.",
