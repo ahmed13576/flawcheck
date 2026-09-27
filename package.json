@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "catalog": "node --env-file=.env.local scripts/dump-model-catalog.mjs"
   },
   "dependencies": {
