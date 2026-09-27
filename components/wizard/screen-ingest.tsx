@@ -63,7 +63,7 @@ export function ScreenIngest() {
 
   return (
     <section aria-label="Screen 1 — Ingestion">
-      <h1 tabIndex={-1} className="text-xl font-semibold">
+      <h1 tabIndex={-1} data-screen-heading className="text-xl font-semibold">
         Ingest inspection data
       </h1>
       <p className="mt-1 text-sm text-[#a3a3a3]">
