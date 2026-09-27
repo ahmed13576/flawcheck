@@ -43,6 +43,20 @@ export function ScreenIngest() {
   };
 
   const handleFileChosen = (file: File) => {
+    // WR-06: the type/size gates run BEFORE any read on BOTH paths. The
+    // replace flow used to read the entire file into memory (and stage its
+    // contents in the reducer) before assertFileBytes fired at confirm-replace
+    // — a multi-hundred-MB non-CSV drop was fully read and held. The
+    // documented budget ("caps gate BEFORE any read") applies here too: the
+    // same parse-invalid / parse-too-large dispatches fire pre-read.
+    if (!isCsvFile(file)) {
+      dispatch({ type: "parse-invalid", filename: file.name });
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      dispatch({ type: "parse-too-large", filename: file.name, sizeBytes: file.size });
+      return;
+    }
     // UI-03: dropping/browsing while rows are loaded asks before replacing.
     if (rowsLoaded) {
       file
