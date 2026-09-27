@@ -94,30 +94,34 @@ Plans:
   4. PT/MT indications are evaluated against the builder's structured criteria config (L2 ground truth) with per-indication verdicts the narrative references
   5. A status line with model badges shows which Nemotron model (plus tokens/cost) handled each pipeline step
 
-**Plans**: 6 plans
+**Plans**: 7 plans
 **UI hint**: yes
 
 Plans:
 **Wave 1**
 
-- [ ] 03-00-PLAN.md — Flowstep GUI integration: oklch token system + 5-package install checkpoint, Screens 1-3 restyle with functional parity (six mapping targets kept), locked /report preview (Screen 4), 25 MB cap, UNINSTALL Phase 3 ledger
+- [ ] 03-00-PLAN.md — Flowstep GUI integration wave 1: 5-package install checkpoint + phase-start ref, oklch token system + ui primitives, Screen 1-2 restyle with functional parity (six mapping targets kept), 25 MB cap, UNINSTALL Phase 3 ledger, FS-01..FS-08 pins
 
 **Wave 2**
 
+- [ ] 03-00b-PLAN.md — Flowstep GUI integration wave 2: Screen 3 restyle (real-data KPI cards, tabs/search/legend, sticky CML+Verdict columns), locked /report preview (Screen 4), FS-01..FS-12 test pins
+
+**Wave 3**
+
 - [ ] 03-01-PLAN.md — Tracer: fallback-first cited reasoning slice end-to-end (tokenizer + fallback + narrative route frame protocol + CitationChip/ReasoningPane + 11-column sticky table) on the Flowstep-restyled screens
 
-**Wave 3** *(parallel)*
+**Wave 4** *(parallel)*
 
 - [ ] 03-02-PLAN.md — LLM server layer: Lightning extraction route + Super-120B streamed narrative with sentence-guard + four lints + usage capture + live-gated fixture proof
 - [ ] 03-03-PLAN.md — Client streaming layer: narrative store (evaluatedAt-keyed cache, abort, FIFO cap) + store-backed pane UX
 
-**Wave 4**
-
-- [ ] 03-04-PLAN.md — Screen 3 integration: ReasoningProvider + Pipeline status bar + extraction-failure banner + PT/MT panes + re-evaluation reset (integrated into the 03-00-restyled components)
-
 **Wave 5**
 
-- [ ] 03-05-PLAN.md — Phase verification wrap: offline e2e fallback-mode gates, purity/grep/dependency-ledger invariants, UNINSTALL verification, UI-25..48 + FS-01..FS-12 + SC1-5 coverage summary
+- [ ] 03-04-PLAN.md — Screen 3 integration: ReasoningProvider + Pipeline status bar + extraction-failure banner + PT/MT panes + re-evaluation reset (integrated into the 03-00/03-00b-restyled components)
+
+**Wave 6**
+
+- [ ] 03-05-PLAN.md — Phase verification wrap: offline e2e fallback-mode gates, purity/grep/dependency-ledger invariants (phase-start-ref byte-identity), UNINSTALL verification, UI-25..48 + FS-01..FS-12 + SC1-5 coverage summary
 
 ### Phase 4: Report Rendering
 

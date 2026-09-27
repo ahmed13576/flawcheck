@@ -512,7 +512,9 @@ export function fallbackNarrative(r: ReadingResult, m: ComponentMetadata): strin
 | A10 | zod 4.6.5 exposes `z.toJSONSchema()` for auto-generating schemaHint | Pattern (extraction) | If absent, keep the Phase 1 hand-written hint + key-coverage test (planned regardless) |
 | A11 | Prompt-design specifics (wording, 120–180 words, final-line contract) produce lint-passing narratives from Super-120B at `low` effort | Patterns R2/R6 | Behavioral — must be proven by the skipIf-gated live fixture test before the demo; lints + fallback bound the damage if not |
 
-## Open Questions
+## Open Questions (RESOLVED — see plans' open-question resolution 1..4)
+
+All four questions were resolved during planning and are implemented as numbered resolutions in the phase plans: **1** streaming with the sentence-level mid-stream guard + swap-to-fallback (03-02 server, 03-03 client), **2** cost renders the unavailable-pricing em-dash always (03-01 pane, 03-04 status bar, restated in 03-05's wrap summary), **3** disabled-mode Extraction row renders `—` + a `fallback mode` note (03-04), **4** history values (t-initial/t-previous/Δt) ARE injected into the narrative prompt with the schema field defined in 03-01 (03-02 consumes). The original questions are retained below for provenance only.
 
 1. **UI-29 vs UI-42 reconciliation (streaming vs never-partially-render).**
    - What we know: lints fully decidable only at stream end; both UI items are locked/inferred-locked.
