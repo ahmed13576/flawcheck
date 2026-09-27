@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
-current_phase_name: platform-spike
-status: planning
-stopped_at: "Completed Phase 1 (01-01..01-04): platform spike executed, 11 commits on build/phase-1"
-last_updated: "2026-09-27T06:32:04.876Z"
-last_activity: 2026-09-24
-last_activity_desc: ROADMAP.md created (5 phases, 26/26 v1 requirements mapped)
-state_head: d38899a337005b8ce9db474155ff134a86919b68
+current_phase: 2
+current_phase_name: ingestion-calc-engine
+status: phase_complete_p1
+stopped_at: "Phase 1 COMPLETE: verified 15/15, review fixed+dispositioned, merged to master"
+last_updated: "2026-09-27T07:05:00.000Z"
+last_activity: 2026-09-27
+last_activity_desc: Phase 1 verified (15/15 must-haves) and merged; criteria review actions queued
+state_head: bc9a5d1
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
   completed_plans: 4
-  percent: 0
+  percent: 20
 ---
 
 # Project State
@@ -27,12 +27,12 @@ See: .planning/PROJECT.md (updated 2026-09-24)
 
 ## Current Position
 
-Phase: 1 (platform-spike) — READY TO EXECUTE
+Phase: 2 (ingestion-calc-engine) — NEXT
 Plan: 0 of TBD in current phase
-Status: Roadmap created — awaiting approval; Phase 1 ready to plan
-Last activity: 2026-09-24 — ROADMAP.md created (5 phases, 26/26 v1 requirements mapped)
+Status: Phase 1 complete (verification passed 15/15, review clean); criteria-review fix branch in flight
+Last activity: 2026-09-27 — Phase 1 verified + merged to master; adversarial_review_v2 C2 REFUTED against API 570 Table 1 (Class 2 thickness = 10 yr correct)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
