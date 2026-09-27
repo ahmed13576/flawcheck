@@ -74,7 +74,7 @@ export function addYearsUtc(dateIso: string, years: number): string {
   if (!parsed) throw new Error(`invalid ISO date: ${dateIso}`);
   const whole = Math.trunc(years);
   const fraction = years - whole;
-  let year = parsed.getUTCFullYear() + whole;
+  const year = parsed.getUTCFullYear() + whole;
   let day = parsed.getUTCDate();
   // Feb 29 clamps to Feb 28 when the target year is not a leap year.
   if (parsed.getUTCMonth() === 1 && day === 29 && !isLeapYear(year)) day = 28;
