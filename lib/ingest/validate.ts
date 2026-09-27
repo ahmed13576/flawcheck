@@ -22,8 +22,11 @@ import { parseIsoUtc } from "../calc/dates";
 import { toMm } from "../calc/units";
 import type { ParsedRow, RowIssue, TargetField, Unit } from "./session";
 
-export const MAX_ROWS = 50_000; // T-02-06: hard row cap before any heavy work
-export const MAX_FILE_BYTES = 5 * 1024 * 1024; // T-02-06: 5 MB hard cap
+export const MAX_ROWS = 50_000; // T-02-06/T-03-19: hard row cap before any heavy work
+// T-02-06 hard cap raised 5 MB → 25 MB (user-directed Flowstep design adoption,
+// 03-00 "Upload cap"). MAX_ROWS = 50_000 remains the parse-loop bound, so the
+// larger upload budget does not enlarge parse work.
+export const MAX_FILE_BYTES = 25 * 1024 * 1024;
 
 export class InputLimitError extends Error {}
 
@@ -31,14 +34,14 @@ export class InputLimitError extends Error {}
  * Loud over-limit error — callers surface it in the error panel, never freeze.
  * IN-03 (documented approximation): the in-reducer call measures
  * `content.length` — UTF-16 code units, not bytes — so multibyte content can
- * under-count up to ~3x vs UTF-8 (the reducer cap admits ~15 MB of CJK text
- * as "5 MB"). The dropzone's `file.size` check (WR-06 makes it cover the
+ * under-count up to ~3x vs UTF-8 (the reducer cap admits ~75 MB of CJK text
+ * as "25 MB"). The dropzone's `file.size` check (WR-06 makes it cover the
  * replace path too) is the real byte gate; this check is belt-and-braces.
  */
 export function assertFileBytes(bytes: number): void {
   if (bytes > MAX_FILE_BYTES) {
     throw new InputLimitError(
-      `File is too large (${(bytes / 1024 / 1024).toFixed(1)} MB). The limit is 5 MB.`,
+      `File is too large (${(bytes / 1024 / 1024).toFixed(1)} MB). The limit is 25 MB.`,
     );
   }
 }

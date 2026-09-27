@@ -150,14 +150,14 @@ describe("wizard reducer — parse-file (Screen 1 ingest)", () => {
     expect(state.ui.screen).toBe(1);
   });
 
-  it("a 6 MB payload fails the size gate loudly BEFORE tokenize (T-02-06)", () => {
-    const sixMb = "a".repeat(6 * 1024 * 1024);
-    const state = parse(sixMb, "huge.csv");
+  it("a 26 MB payload fails the size gate loudly BEFORE tokenize (T-02-06, cap raised to 25 MB in 03-00)", () => {
+    const twentySixMb = "a".repeat(26 * 1024 * 1024);
+    const state = parse(twentySixMb, "huge.csv");
     expect(state.ui.ingestError).not.toBeNull();
     expect(state.ui.ingestError!.kind).toBe("too-large");
     if (state.ui.ingestError!.kind === "too-large") {
-      expect(state.ui.ingestError!.message).toContain("6.0 MB");
-      expect(state.ui.ingestError!.message).toContain("5 MB");
+      expect(state.ui.ingestError!.message).toContain("26.0 MB");
+      expect(state.ui.ingestError!.message).toContain("25 MB");
     }
   });
 

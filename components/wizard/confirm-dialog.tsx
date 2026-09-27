@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * Confirm dialog — hand-rolled focus trap (UI-03, a11y floor 9): focus moves
- * to the safe action (Cancel) on open, Tab cycles inside the dialog, Esc
- * cancels. Copy is the Copywriting Contract verbatim. No packages.
+ * Confirm dialog — hand-rolled focus trap (UI-03, a11y floor 9), tokenized per
+ * the Flowstep system in 03-00: focus moves to the safe action (Cancel) on
+ * open, Tab cycles inside the dialog, Esc cancels. Copy is the Copywriting
+ * Contract verbatim. No packages.
  */
 import { useEffect, useRef, type KeyboardEvent } from "react";
 
@@ -63,12 +64,12 @@ export function ConfirmDialog({
         aria-modal="true"
         aria-labelledby="replace-confirm-title"
         onKeyDown={handleKeyDown}
-        className="w-full max-w-md rounded-lg border border-[#262626] bg-[#171717] p-6"
+        className="w-full max-w-md rounded-xl border border-border bg-card p-6"
       >
         <h2 id="replace-confirm-title" className="text-xl font-semibold">
           Replace loaded data?
         </h2>
-        <p className="mt-2 text-sm text-[#a3a3a3]">
+        <p className="mt-2 text-sm text-muted-foreground">
           Dropping a new CSV replaces the current rows and any edits. This cannot be undone.
         </p>
         {filename && <p className="mt-2 text-sm">{filename}</p>}
@@ -77,14 +78,14 @@ export function ConfirmDialog({
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="rounded border border-[#262626] px-4 py-2 text-sm font-semibold hover:border-gray-500"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-secondary"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onReplace}
-            className="rounded bg-[#dc2626] px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+            className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white hover:bg-destructive/90"
           >
             Replace data
           </button>
