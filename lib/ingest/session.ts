@@ -107,6 +107,12 @@ export type ReadingFlag =
 export interface ReadingResult {
   readingId: string;
   location: string;
+  /**
+   * 02-03 additive: the tank + grid CML identity when a grid column exists —
+   * the Screen 3 "CML / Location" cell renders it with `title` (UI-14),
+   * falling back to location. Optional keeps the R7 shape verbatim otherwise.
+   */
+  cml?: string;
   date: string; // ISO
   tActualMm: number;
   tPressureMm: number;
@@ -140,10 +146,18 @@ export interface PtmIndicationResult extends PtmIndication {
  * group->evaluate type. lib/ingest/group.ts emits it (deriving t-initial /
  * t-previous and Δt years from campaign history) and lib/calc/evaluate.ts
  * consumes it.
+ *
+ * 02-03 extension (what the grouping genuinely needs, per the R6 demo
+ * geometry): `cml` is the tank + grid-position identity — the fixed
+ * measurement point (campaign-history group and per-CML outlier population).
+ * `location` is the mapped Tank, matching the UI-SPEC summary line
+ * "4,912 readings · 12 locations". Optional so constructed inputs without a
+ * grid column degrade to location identity.
  */
 export interface EvaluationInput {
   readingId: string;
   location: string;
+  cml?: string;
   date: string; // ISO
   tActualMm: number;
   tInitialMm: number | null;

@@ -65,15 +65,17 @@ export function evaluate(
   const thickness = requiredThickness(formulaInputs);
   const gaugeUncertaintyMm = toMm(metadata.gaugeUncertainty, units.metadata);
 
-  // Outliers per CML population: group by CML identity (location), n >= 4.
-  const byLocation = new Map<string, EvaluationInput[]>();
+  // Outliers per CML population: group by the CML identity (tank + grid when
+  // the seam provides it, location otherwise), n >= 4.
+  const byCml = new Map<string, EvaluationInput[]>();
   for (const input of inputs) {
-    const list = byLocation.get(input.location) ?? [];
+    const key = input.cml ?? input.location;
+    const list = byCml.get(key) ?? [];
     list.push(input);
-    byLocation.set(input.location, list);
+    byCml.set(key, list);
   }
   const outlierByReadingId = new Map<string, ReturnType<typeof flagOutliers>[number]>();
-  for (const population of byLocation.values()) {
+  for (const population of byCml.values()) {
     const history: OutlierHistoryReading[] = population.map((r) => ({
       id: r.readingId,
       value: r.tActualMm,
@@ -133,6 +135,7 @@ export function evaluate(
     return {
       readingId: input.readingId,
       location: input.location,
+      ...(input.cml !== undefined ? { cml: input.cml } : {}),
       date: input.date,
       tActualMm: input.tActualMm,
       tPressureMm: thickness.tPressureMm,
@@ -163,7 +166,9 @@ export function evaluate(
     readings,
     summary: {
       total: readings.length,
-      locations: byLocation.size,
+      // Distinct mapped-Tank locations (UI-SPEC: "4,912 readings · 12 locations");
+      // CML identities are finer-grained (tank + grid) and are not summed here.
+      locations: new Set(inputs.map((i) => i.location)).size,
       accept: readings.filter((r) => r.verdict === "accept").length,
       reCheck: readings.filter((r) => r.verdict === "re_check").length,
       fail: readings.filter((r) => r.verdict === "reject").length,
