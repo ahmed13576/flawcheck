@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
+/* Forced-dark theme (UI-SPEC theme baseline) — the palette is unconditional;
+   the Phase 1 scaffold's OS color-scheme media flip is removed and new
+   components use these tokens or the literal hex, never dark: variants. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a; /* page */
+  --foreground: #ededed; /* primary text */
+  --surface: #171717; /* cards, table header, panels */
+  --border: #262626; /* hairlines, input borders */
+  --muted: #a3a3a3; /* captions, secondary text */
+  --accent: #2563eb; /* primary actions only */
+  --accept: #4ade80; /* verdict text: ACCEPT */
+  --recheck: #fbbf24; /* verdict text: RE-CHECK */
+  --fail: #f87171; /* verdict text: FAIL */
+  --destructive: #dc2626; /* destructive button only */
 }
 
 @theme inline {
@@ -12,15 +23,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
