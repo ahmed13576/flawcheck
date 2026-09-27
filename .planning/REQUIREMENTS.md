@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Ingestion
 
-- [ ] **ING-01**: User can upload a UT thickness CSV and see a column-mapping preview they can confirm or correct
+- [x] **ING-01**: User can upload a UT thickness CSV and see a column-mapping preview they can confirm or correct
 - [ ] **ING-02**: System validates uploads (malformed CSV, missing fields, impossible values) with specific error messages
 - [ ] **ING-03**: User can enter component metadata (t-nominal, material, service, corrosion allowance, code + edition) that drives criteria selection
 - [ ] **ING-04**: User can enter PT/MT indication notes with component context
@@ -17,8 +17,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Calculation
 
-- [ ] **CALC-01**: System computes t-required, short/long-term corrosion rate, and remaining life in pure unit-tested code (never the LLM)
-- [ ] **CALC-02**: System assigns pass / re-check / fail verdicts per CML and indication, including gauge-uncertainty band
+- [x] **CALC-01**: System computes t-required, short/long-term corrosion rate, and remaining life in pure unit-tested code (never the LLM)
+- [x] **CALC-02**: System assigns pass / re-check / fail verdicts per CML and indication, including gauge-uncertainty band
 - [ ] **CALC-03**: System suggests re-inspection interval from remaining life, citing the rule used
 - [ ] **CALC-04**: System flags statistical outliers and re-shoot candidates before acceptance
 
@@ -88,13 +88,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 1 | Complete |
-| ING-01 | Phase 2 | Pending |
+| ING-01 | Phase 2 | Complete |
 | ING-02 | Phase 2 | Pending |
 | ING-03 | Phase 2 | Pending |
 | ING-04 | Phase 2 | Pending |
 | ING-05 | Phase 2 | Pending |
-| CALC-01 | Phase 2 | Pending |
-| CALC-02 | Phase 2 | Pending |
+| CALC-01 | Phase 2 | Complete |
+| CALC-02 | Phase 2 | Complete |
 | CALC-03 | Phase 2 | Pending |
 | CALC-04 | Phase 2 | Pending |
 | REAS-01 | Phase 3 | Pending |
