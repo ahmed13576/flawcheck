@@ -41,32 +41,61 @@ Navigation rules:
 ### Forced Dark Theme (no light mode)
 
 ```css
---background: #0a0a0a;   /* page background */
---surface:    #171717;   /* cards, table headers, panels */
---border:     #262626;   /* hairlines, input/table borders */
---foreground: #ededed;   /* primary text */
---muted:      #a3a3a3;   /* captions, secondary text, footnotes */
---accent:     #2563eb;   /* primary CTAs only — see reserved list */
+--background:       #0a0a0a;              /* page background */
+--surface:          #171717;              /* cards, table headers, panels */
+--surface-header:   #0f1011;             /* table <thead> — 1 level darker than surface */
+--border:           rgba(255,255,255,0.08); /* table cell hairlines — softer than flat #262626 */
+--border-input:     #262626;              /* input/select borders — stronger than table hairlines */
+--foreground:       #ededed;              /* primary text */
+--muted:            #a3a3a3;             /* captions, secondary text, footnotes */
+--accent:           #2563eb;             /* primary CTAs only — see reserved list */
 
-/* Verdict colors */
---accept:     #4ade80;   /* green-400 */
---recheck:    #fbbf24;   /* amber-400 */
---fail:       #f87171;   /* red-400 */
---destructive:#dc2626;   /* red-600 */
+/* Verdict colors — text values (Raycast accent-green/yellow/red validated) */
+--accept:           #4ade80;             /* green-400 */
+--recheck:          #fbbf24;             /* amber-400 */
+--fail:             #f87171;             /* red-400 */
+--destructive:      #dc2626;             /* red-600 */
+
+/* Verdict chip soft backgrounds (Raycast accent-*-soft pattern: 15% opacity) */
+--accept-bg:        rgba(89,212,153,0.15);
+--recheck-bg:       rgba(255,197,51,0.15);
+--fail-bg:          rgba(255,97,97,0.15);
+
+/* Row interaction */
+--row-hover:        rgba(255,255,255,0.04); /* table row hover — Raycast pattern */
+
+/* Dragover elevated surface */
+--surface-elevated: #242424;             /* dropzone dragover bg — ClickHouse surface-elevated */
 ```
 
 No `dark:` variants. No light mode. `:root` only.
 
 ### Typography — exactly 3 sizes, 2 weights
 
-| Role | Size | Weight | Notes |
-|---|---|---|---|
-| Heading (page + section) | 20px | 600 | `text-xl font-semibold` |
-| Body / table data | 14px | 400 | `text-sm`; numeric cells add `font-mono tabular-nums` |
-| Label / badge / chip / caption | 12px | 400 (chips: 600) | `text-xs` |
-| Buttons | 14px | 600 | `text-sm font-semibold` |
+| Role | Size | Weight | Letter-spacing | Notes |
+|---|---|---|---|---|
+| Heading (page + section) | 20px | 600 | `-0.6px` | `text-xl font-semibold tracking-[-0.6px]` — Vercel Geist calibration |
+| Body / table data | 14px | 400 | `-0.28px` | `text-sm tracking-[-0.28px]`; numeric cells add `font-mono tabular-nums` |
+| Label / badge / chip / caption | 12px | 400 | `0` | `text-xs` |
+| **Chip labels** (verdict + flag) | 12px | 600 | `+1.5px` | `text-xs font-semibold uppercase tracking-[1.5px]` — ClickHouse caption-uppercase |
+| Buttons | 14px | 500 | `-0.28px` | `text-sm font-medium tracking-[-0.28px]` — Vercel: weight 500, not 600 |
+| Footnotes / metadata captions | 12px | 400 | `0` | Geist Mono, `font-mono text-xs` — Vercel caption-mono |
+
+> Letter-spacing calibration is Vercel's published Geist values (the fonts are identical). The `-0.28px` at 14px tightens the table body copy — measurement data reads as more precise.
 
 Fonts already in codebase: **Geist Sans** (UI text) + **Geist Mono** (all numbers in tables). Do not add new fonts.
+
+### Form Section Headers — IBM Carbon eyebrow style
+
+Between form groups in Screen 2, use muted ALL CAPS dividers:
+
+```html
+<div class="mt-6 mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
+  Component Geometry
+</div>
+```
+
+Groups: `Component Geometry` / `Classification` / `Design Conditions`
 
 ### Spacing — 4px base unit only
 
@@ -84,7 +113,7 @@ The accent `#2563eb` is only for:
 1. `Load Demo Scenario` button (Screen 1 primary CTA)
 2. `Run Evaluation` button (Screen 2 primary CTA)
 3. Active step chip in the wizard step indicator
-4. Dropzone border + `bg-blue-500/5` background tint during file dragover
+4. Dropzone border + `var(--surface-elevated)` background during file dragover (replaces `bg-blue-500/5`)
 5. Text links: `Download sample CSV`, `View format guide`
 6. `:focus-visible` rings (2px, all interactive elements)
 
@@ -267,9 +296,16 @@ Triggers when a file is dropped while rows are already loaded.
    Total: ~1028px — fits in `max-w-6xl` at 1366px viewport with room.
    Table has horizontal scroll container as safety net (`overflow-x-auto`).
 
+   **Row anatomy (Linear changelog-row pattern):**
+   - `<thead>` background: `var(--surface-header)` (#0f1011) — 1 step darker than card surface
+   - `<tbody>` row border: `1px solid var(--border)` (rgba hairline) — bottom only, no left/right
+   - Row hover: `background: var(--row-hover)` (rgba(255,255,255,0.04)) — applied on `<tr>:hover`
+   - No border-radius on rows — table-layout: fixed
+
    **Row states:**
-   - Normal: no decoration
-   - Flag chip pressed: inline detail row `<tr>` expands below with the flag detail text (amber text, muted bg)
+   - Normal: no decoration except bottom hairline
+   - Hover: `var(--row-hover)` background
+   - Flag chip pressed: inline `<tr>` expands below — amber `text-amber-400` text on `rgba(255,197,51,0.05)` bg
    - Paginated: 50 rows/page, same pagination controls as Screen 2
 
 4. **PT/MT triage list** — one surface card per indication:
@@ -280,7 +316,7 @@ Triggers when a file is dropped while rows are already loaded.
    ```
    Empty state: `No PT/MT indications recorded` / `Add structured indications or notes in the metadata form to triage surface flaws.`
 
-5. **Footnotes** (12px muted, bottom of page):
+5. **Footnotes** (12px Geist Mono, muted, bottom of page):
    - `Units: CSV thickness in {unit}, metadata in {unit}. All values converted to mm (canonical).`
    - `Source: {filename} · {n} rows · evaluated {YYYY-MM-DD HH:mm} UTC`
 
@@ -294,7 +330,8 @@ Design this screen as locked/greyed-out in the step indicator for Phase 2, but i
 
 ### Report sections (top → bottom)
 
-1. **Report header**: `FlawCheck Inspection Report` + generated date + `PENDING INSPECTOR SIGN-OFF` watermark/badge
+1. **Report header card**: `FlawCheck Inspection Report` + generated date + `PENDING INSPECTOR SIGN-OFF` watermark/badge
+   > **NVIDIA corner square**: Place one 12px × 12px `#76b900` (NVIDIA Green) square in the **top-right corner** of this card with `border-radius: 0`. This is a single deliberate hackathon nod to the Nebius × NVIDIA sponsoring ecosystem — one card only, nowhere else.
 2. **Component context**: OD, t-nom, design code, piping class, FCA, evaluation date
 3. **CML measurement table**: same columns as Screen 3 but condensed for print (no flag-chip expansion; flag text inline)
 4. **PT/MT indication table**: method, morphology, dimensions, verdict, clause reference
@@ -313,13 +350,16 @@ Design this screen as locked/greyed-out in the step indicator for Phase 2, but i
 
 ### Verdict chips — pill shape
 
-Base Tailwind: `inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs font-semibold uppercase tracking-wide`
+Base Tailwind: `inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs font-semibold uppercase tracking-[1.5px]`
 
-| Verdict | Label | Classes |
+> `tracking-[1.5px]` replaces `tracking-wide` — ClickHouse caption-uppercase calibration. More legible at 12px on dark bg.
+> Background uses `var(--accept-bg)` / `var(--recheck-bg)` / `var(--fail-bg)` — Raycast accent-soft 15% opacity system.
+
+| Verdict | Label | Tailwind classes |
 |---|---|---|
-| Accept | `ACCEPT` | `bg-green-500/10 text-green-400 border-green-500/30` |
-| Re-check | `RE-CHECK` | `bg-amber-500/10 text-amber-400 border-amber-500/30` |
-| Fail | `FAIL` | `bg-red-500/10 text-red-400 border-red-500/30` |
+| Accept | `ACCEPT` | `bg-[rgba(89,212,153,0.15)] text-green-400 border-green-500/30` |
+| Re-check | `RE-CHECK` | `bg-[rgba(255,197,51,0.15)] text-amber-400 border-amber-500/30` |
+| Fail | `FAIL` | `bg-[rgba(255,97,97,0.15)] text-red-400 border-red-500/30` |
 
 **Boundary rule (hardcoded — do not change):**
 - `t_actual == t_required` → RE-CHECK (not FAIL)
