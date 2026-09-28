@@ -1,11 +1,13 @@
 /**
- * Flowstep visual contract pins — FS-01..FS-08 (03-00; 03-00b extends to
- * FS-09..FS-12; 03-05 sweeps the ids). SSR markup checks via
+ * Flowstep visual contract pins — FS-01..FS-11 (03-00 + 03-00b; 03-00b Task 2
+ * completes the sweep to FS-12; 03-05 sweeps the ids). SSR markup checks via
  * react-dom/server: the redesigned chrome (header, 4-step indicator with the
  * locked Report step), Screen 1's reassurance/provenance/25 MB copy and
- * preserved affordances, and Screen 2's hero chips, SIX mapping targets, the
- * three uppercase metadata section headers with the unit toggle, and the
- * footer error/unmapped summary. Text contracts (verdict chips, aria
+ * preserved affordances, Screen 2's hero chips, SIX mapping targets, the
+ * three uppercase metadata section headers with the unit toggle and the
+ * footer error/unmapped summary, and Screen 3's hero card + real-data KPI
+ * cards, tabs/search/legend, sticky summary strip, sticky CML/Verdict
+ * cluster, and the locked footer nav. Text contracts (verdict chips, aria
  * patterns, data-* hooks) are unchanged — these pins coexist with them.
  */
 import { describe, it, expect } from "vitest";
@@ -17,7 +19,21 @@ import { WizardProvider, useWizard } from "@/components/wizard/wizard-context";
 import { ScreenReview } from "@/components/wizard/screen-review";
 import { MetadataForm } from "@/components/wizard/metadata-form";
 import { PtmtEntry } from "@/components/wizard/ptmt-entry";
+import {
+  ScreenResultsContent,
+  needsAttention,
+  filterReadings,
+  FILTER_RESET_PAGE,
+  type ResultsTab,
+} from "@/components/wizard/screen-results";
+import { ResultsTable } from "@/components/wizard/results-table";
+import { SummaryStrip } from "@/components/wizard/summary-strip";
 import { metadataProblems } from "@/lib/wizard/reducer";
+import type {
+  EvaluationResults,
+  ReadingResult,
+  Verdict,
+} from "@/lib/ingest/session";
 
 /** Mirrors page.tsx's Screen 2 composition (metadata + PT/MT children). */
 function Screen2Harness() {
@@ -195,5 +211,206 @@ describe("tokenized chrome", () => {
     expect(css).toContain("--color-fail: var(--fail)");
     expect(css).toContain('oklch(0.646 0.222 41.116)'); // dark primary
     expect(css).not.toContain("scrollbar-width: none"); // sticky-column contract
+  });
+});
+
+/**
+ * 03-00b Task 1 Screen 3 fixture — hand-built EvaluationResults whose summary
+ * counts deliberately differ from BOTH the demo session's golden counts and
+ * the mock's placeholder numbers (3,812 / 876 / 224 / 42), so the FS-09 pin
+ * proves the KPI cards render whatever summary they are FED, never a mock.
+ */
+function fixtureReading(
+  readingId: string,
+  location: string,
+  cml: string,
+  verdict: Verdict,
+  flags: ReadingResult["flags"],
+): ReadingResult {
+  return {
+    readingId,
+    location,
+    cml,
+    date: "2025-01-15T00:00:00Z",
+    tActualMm: 9.2,
+    tPressureMm: 4.2,
+    tStructuralMm: 6.1,
+    tRequiredMm: 6.1,
+    crLtMmYr: 0.03,
+    crStMmYr: null,
+    rawCrLtMmYr: 0.03,
+    rawCrStMmYr: null,
+    crGoverningMmYr: 0.03,
+    rlYears: 35.4,
+    nextInspection: { date: "2030-01-15", intervalYears: 5 },
+    flags,
+    verdict,
+    citations: [],
+  };
+}
+
+const FIXTURE_READINGS: ReadingResult[] = [
+  fixtureReading("r-acc", "WBT-P1", "CML-01", "accept", []),
+  fixtureReading("r-rec", "WBT-P2", "CML-02", "re_check", ["outlier"]),
+  fixtureReading("r-rej", "WBT-S1", "CML-03", "reject", []),
+];
+
+const FIXTURE_RESULTS: EvaluationResults = {
+  summary: { total: 1312, locations: 37, accept: 1204, reCheck: 87, fail: 21 },
+  readings: FIXTURE_READINGS,
+  indications: [],
+  citationsUsed: [],
+};
+
+function renderResults(): string {
+  return renderToStaticMarkup(
+    createElement(ScreenResultsContent, {
+      results: FIXTURE_RESULTS,
+      units: { csvThickness: "mm", metadata: "mm" },
+      sourceFilename: "ut_register_demo.csv",
+      csvRowCount: 1312,
+      evaluatedAt: "2026-09-27T14:32:00Z",
+      page: 1,
+      onPageChange: () => {},
+      onBackToMetadata: () => {},
+      onSaveReview: () => {},
+    }),
+  );
+}
+
+describe("FS-09 Screen 3 hero card + 4 KPI stat cards fed by real summary counts", () => {
+  it("renders the hero copy with the fixture's REAL total in the sub-line", () => {
+    const markup = renderResults();
+    expect(markup).toContain("Evaluation complete");
+    expect(markup).toContain("Your findings are ready");
+    expect(markup).toContain(
+      "We&#x27;ve checked 1,312 readings and surfaced the items that deserve a closer look.",
+    );
+  });
+
+  it("renders the four KPI cards from results.summary — never the mock placeholder numbers", () => {
+    const markup = renderResults();
+    expect(markup).toContain("Accepted");
+    expect(markup).toContain("Re-check");
+    expect(markup).toContain("Fail");
+    expect(markup).toContain("Locations");
+    // Real fixture counts (toLocaleString("en-US")).
+    expect(markup).toContain("1,204"); // accept
+    expect(markup).toContain("87"); // reCheck
+    expect(markup).toContain("21"); // fail
+    expect(markup).toContain("37"); // locations
+    // The mock's placeholder numbers are data — they must never render.
+    for (const mockNumber of ["3,812", "876", "224", "4,912"]) {
+      expect(markup).not.toContain(mockNumber);
+    }
+  });
+});
+
+describe("FS-10 Screen 3 tabs + CML search + legend + sticky summary strip", () => {
+  it("renders the tab group, search input, and verdict legend", () => {
+    const markup = renderResults();
+    expect(markup).toContain("All findings");
+    expect(markup).toContain("Needs attention");
+    expect(markup).toContain('aria-label="Search CML or location"');
+    expect(markup).toContain('placeholder="Search CML or location"');
+    expect(markup).toContain("● Accepted");
+    expect(markup).toContain("● Re-check");
+    expect(markup).toContain("● Fail");
+  });
+
+  it("sticky summary strip renders REAL counts with the read-only note on an opaque background", () => {
+    const markup = renderToStaticMarkup(
+      createElement(SummaryStrip, { summary: FIXTURE_RESULTS.summary }),
+    );
+    expect(markup).toContain("1,312 readings · 37 locations");
+    expect(markup).toContain("1,204 ACCEPT");
+    expect(markup).toContain("87 RE-CHECK");
+    expect(markup).toContain("21 FAIL");
+    expect(markup).toContain("Read-only evaluation results");
+    expect(markup).toContain("sticky top-0");
+    expect(markup).toContain("bg-card"); // opaque token background
+  });
+
+  it("'Needs attention' filters to re_check/reject verdicts OR any flag", () => {
+    expect(FIXTURE_READINGS.filter(needsAttention).map((r) => r.readingId)).toEqual([
+      "r-rec",
+      "r-rej",
+    ]);
+  });
+
+  it("tab + search compose (CML id or location, case-insensitive) and every filter change resets the page", () => {
+    expect(filterReadings(FIXTURE_READINGS, "attention", "cml-02").map((r) => r.readingId)).toEqual([
+      "r-rec",
+    ]);
+    expect(filterReadings(FIXTURE_READINGS, "all", "WBT-S1").map((r) => r.readingId)).toEqual([
+      "r-rej",
+    ]);
+    expect(filterReadings(FIXTURE_READINGS, "all", "")).toHaveLength(3);
+    // Pagination reset contract — the tab/search handlers dispatch this page.
+    expect(FILTER_RESET_PAGE).toBe(1);
+  });
+});
+
+describe("FS-10b sticky CML + Verdict cluster (binding C1/C3) inside the overflow wrapper", () => {
+  it("first column pins left, last pins right, both with opaque token backgrounds", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ResultsTable, {
+        readings: FIXTURE_READINGS,
+        page: 1,
+        onPageChange: () => {},
+      }),
+    );
+    expect(markup).toContain("overflow-x-auto"); // 03-01's load-bearing wrapper
+    expect(markup).toContain("sticky left-0");
+    expect(markup).toContain("sticky right-0");
+    expect(markup).toContain("z-30 bg-card"); // thead sticky cells — opaque
+    expect(markup).toContain("z-10 bg-background"); // tbody sticky cells — opaque
+  });
+
+  it("keeps the locked 10-column order and the sticky cells in the first/last positions", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ResultsTable, {
+        readings: FIXTURE_READINGS,
+        page: 1,
+        onPageChange: () => {},
+      }),
+    );
+    const headers = [
+      "CML / Location",
+      "t-actual (mm)",
+      "t-required (mm)",
+      "CR_LT (mm/yr)",
+      "CR_ST (mm/yr)",
+      "CR governing (mm/yr)",
+      "RL (yr)",
+      "Next inspection",
+      "Flags",
+      "Verdict",
+    ];
+    let last = -1;
+    for (const header of headers) {
+      const idx = markup.indexOf(`>${header}<`);
+      expect(idx).toBeGreaterThan(last);
+      last = idx;
+    }
+    const firstTh = markup.indexOf('scope="col"');
+    expect(markup.slice(firstTh, firstTh + 300)).toContain("sticky left-0");
+    const lastTh = markup.lastIndexOf('scope="col"');
+    expect(markup.slice(lastTh, lastTh + 300)).toContain("sticky right-0");
+  });
+});
+
+describe("FS-11 Screen 3 footer: back nav / Save review / Open report preview disabled", () => {
+  it("renders all three actions with Open report preview carrying aria-disabled='true' (locked decision)", () => {
+    const markup = renderResults();
+    expect(markup).toContain("Back to metadata");
+    expect(markup).toContain("Save review");
+    const previewIdx = markup.indexOf("Open report preview");
+    expect(previewIdx).toBeGreaterThan(-1);
+    const buttonTag = markup.slice(Math.max(0, previewIdx - 400), previewIdx);
+    expect(buttonTag).toContain("disabled");
+    expect(buttonTag).toContain('aria-disabled="true"');
+    // Accessible hint for the gated affordance.
+    expect(markup).toContain("Report generation unlocks in Phase 4");
   });
 });

@@ -9,6 +9,11 @@
  * Infinity/NaN can never render (lib/wizard/format degrades non-finite to
  * '—'). G14: immediate-inspection readings render the fail-tone 'Immediate
  * inspection required' text — never a date or negative interval.
+ *
+ * Flowstep restyle (03-00b Task 1): token classes throughout, plus the sticky
+ * CML/Location + Verdict cluster (binding C1/C3) inside the preserved
+ * overflow-x-auto wrapper — 03-01 extends these mechanics to the 11-column
+ * contract. resultRowKey namespacing and the locked column order untouched.
  */
 import { useMemo, useState } from "react";
 import type { ReadingResult, ReadingFlag } from "@/lib/ingest/session";
@@ -25,7 +30,21 @@ export const RESULTS_PAGE_SIZE = 50;
 
 const TOGGLEABLE_FLAGS: ReadingFlag[] = ["measurement_inconsistency", "outlier"];
 
-const NUMERIC_CELL = "border border-[#262626] px-3 py-2 font-mono tabular-nums whitespace-nowrap";
+const NUMERIC_CELL = "border border-border px-3 py-2 font-mono tabular-nums whitespace-nowrap";
+
+/**
+ * Sticky cluster (binding C1/C3, 03-00b): the first column (CML/Location)
+ * pins left and the last column (Verdict) pins right inside the preserved
+ * overflow-x-auto wrapper, so both stay visible while the middle columns
+ * scroll. Cells carry OPAQUE token backgrounds (bg-card thead / bg-background
+ * body) — a translucent sticky cell would show scrolled content underneath —
+ * and a z-index above plain cells. 03-01 adds the 11th Reasoning column
+ * between them on top of these mechanics.
+ */
+const STICKY_LEFT_TH = "sticky left-0 z-30 bg-card";
+const STICKY_RIGHT_TH = "sticky right-0 z-30 bg-card";
+const STICKY_LEFT_TD = "sticky left-0 z-10 bg-background";
+const STICKY_RIGHT_TD = "sticky right-0 z-10 bg-background";
 
 /**
  * WR-04: 'duplicate reading ID' is a warning that never blocks, so identical
@@ -57,7 +76,7 @@ function FlagChipButton({
       aria-expanded={expanded}
       aria-controls={`detail-${rowKey}-${flag}`}
       onClick={onToggle}
-      className="rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2563eb]"
+      className="rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
     >
       <FlagChip flag={flag} />
     </button>
@@ -90,24 +109,24 @@ export function ResultsTable({
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <section aria-label="CML results" className="rounded-lg border border-[#262626] bg-[#171717] p-4">
+    <section aria-label="CML results" className="rounded-lg border border-border bg-card p-4">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
-          <caption className="px-1 pb-2 text-left text-xs text-[#a3a3a3]">
+          <caption className="px-1 pb-2 text-left text-xs text-muted-foreground">
             {formatCaption(start, end, readings.length)}
           </caption>
           <thead>
-            <tr className="bg-[#171717] text-left">
-              <th scope="col" className="border border-[#262626] px-3 py-2">CML / Location</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">t-actual (mm)</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">t-required (mm)</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">CR_LT (mm/yr)</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">CR_ST (mm/yr)</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">CR governing (mm/yr)</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">RL (yr)</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">Next inspection</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">Flags</th>
-              <th scope="col" className="border border-[#262626] px-3 py-2">Verdict</th>
+            <tr className="bg-card text-left">
+              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_LEFT_TH}`}>CML / Location</th>
+              <th scope="col" className="border border-border px-3 py-2">t-actual (mm)</th>
+              <th scope="col" className="border border-border px-3 py-2">t-required (mm)</th>
+              <th scope="col" className="border border-border px-3 py-2">CR_LT (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2">CR_ST (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2">CR governing (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2">RL (yr)</th>
+              <th scope="col" className="border border-border px-3 py-2">Next inspection</th>
+              <th scope="col" className="border border-border px-3 py-2">Flags</th>
+              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_RIGHT_TH}`}>Verdict</th>
             </tr>
           </thead>
           <tbody>
@@ -117,8 +136,8 @@ export function ResultsTable({
               const rowKey = resultRowKey(reading.readingId, start - 1 + i);
               return (
                 [
-                  <tr key={rowKey} className="bg-[#0a0a0a]">
-                    <td className="border border-[#262626] px-3 py-2">
+                  <tr key={rowKey} className="bg-background">
+                    <td className={`border border-border px-3 py-2 ${STICKY_LEFT_TD}`}>
                       <span
                         className="block max-w-[14rem] truncate"
                         title={reading.cml ?? reading.location}
@@ -147,15 +166,15 @@ export function ResultsTable({
                         rl.text
                       )}
                     </td>
-                    <td className="border border-[#262626] px-3 py-2 whitespace-nowrap">
+                    <td className="border border-border px-3 py-2 whitespace-nowrap">
                       {next.kind === "immediate" ? (
-                        <span className="font-semibold text-[#f87171]">
+                        <span className="font-semibold text-fail">
                           Immediate inspection required
                         </span>
                       ) : next.kind === "date" ? (
                         <>
                           <span className="font-mono tabular-nums">{next.date}</span>
-                          <span className="ml-1 text-xs text-[#a3a3a3]">
+                          <span className="ml-1 text-xs text-muted-foreground">
                             {`(interval ${next.intervalYears.toFixed(1)} yr)`}
                           </span>
                         </>
@@ -163,7 +182,7 @@ export function ResultsTable({
                         <span>—</span>
                       )}
                     </td>
-                    <td className="border border-[#262626] px-3 py-2">
+                    <td className="border border-border px-3 py-2">
                       <div className="flex flex-wrap gap-1">
                         {reading.flags.map((flag) => (
                           <FlagChipButton
@@ -176,7 +195,7 @@ export function ResultsTable({
                         ))}
                       </div>
                     </td>
-                    <td className="border border-[#262626] px-3 py-2">
+                    <td className={`border border-border px-3 py-2 ${STICKY_RIGHT_TD}`}>
                       <VerdictChip verdict={reading.verdict} />
                     </td>
                   </tr>,
@@ -205,18 +224,18 @@ export function ResultsTable({
           type="button"
           disabled={safePage <= 1}
           onClick={() => onPageChange(safePage - 1)}
-          className="rounded border border-[#262626] px-3 py-1.5 font-semibold hover:border-gray-500 disabled:opacity-50"
+          className="rounded border border-border px-3 py-1.5 font-semibold hover:border-muted-foreground disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="text-xs text-[#a3a3a3]">
+        <span className="text-xs text-muted-foreground">
           Page {safePage.toLocaleString("en-US")} of {pageCount.toLocaleString("en-US")}
         </span>
         <button
           type="button"
           disabled={safePage >= pageCount}
           onClick={() => onPageChange(safePage + 1)}
-          className="rounded border border-[#262626] px-3 py-1.5 font-semibold hover:border-gray-500 disabled:opacity-50"
+          className="rounded border border-border px-3 py-1.5 font-semibold hover:border-muted-foreground disabled:opacity-50"
         >
           Next
         </button>

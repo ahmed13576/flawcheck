@@ -1,12 +1,15 @@
 "use client";
 
 /**
- * PT/MT triage list — Screen 3 region 4 (ING-04 carried into results): one
- * surface card per indication with the [PT]/[MT] method tag, morphology +
- * dimensions line, verdict chip, and the muted rule line with the engine
- * detail copy + the clause ref auto-selected by method (ASME B31.3 §344.3.2
- * MT / §344.4.2 PT). Empty state per the Copywriting Contract (UI-20).
+ * PT/MT triage list — Screen 3 region 4 (ING-04 carried into results), restyled
+ * per the Flowstep mock's "Recommended next step" pattern (03-00b Task 1,
+ * Screen 3.png): one card per indication with the arrow icon in an
+ * orange-tinted circle, the [PT]/[MT] method tag, morphology + dimensions
+ * line, verdict chip right, and the mono clause line from the existing engine
+ * data (ASME B31.3 §344.3.2 MT / §344.4.2 PT — auto-selected by method).
+ * Empty state per the Copywriting Contract (UI-20).
  */
+import { ArrowRight } from "lucide-react";
 import type { EvaluationResults, PtmIndicationResult } from "@/lib/ingest/session";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { FlagBadge } from "@/components/wizard/flag-badge";
@@ -40,9 +43,10 @@ export function dimensionsLine(
 export function PtmtTriageList({ indications }: { indications: EvaluationResults["indications"] }) {
   if (indications.length === 0) {
     return (
-      <section aria-label="PT/MT triage" className="rounded-lg border border-[#262626] bg-[#171717] p-6">
-        <p className="text-sm font-semibold">No PT/MT indications recorded</p>
-        <p className="mt-1 text-sm text-[#a3a3a3]">
+      <section aria-label="PT/MT triage" className="rounded-xl border border-border bg-card p-6">
+        <h2 className="text-xl font-semibold">PT/MT triage</h2>
+        <p className="mt-2 text-sm font-semibold">No PT/MT indications recorded</p>
+        <p className="mt-1 text-sm text-muted-foreground">
           Add structured indications or notes in the metadata form to triage surface flaws.
         </p>
       </section>
@@ -50,19 +54,29 @@ export function PtmtTriageList({ indications }: { indications: EvaluationResults
   }
 
   return (
-    <section aria-label="PT/MT triage" className="flex flex-col gap-3">
+    <section aria-label="PT/MT triage" className="flex flex-col gap-4">
+      <h2 className="text-xl font-semibold">PT/MT triage</h2>
       {indications.map((indication) => (
-        <div
+        <article
           key={indication.id}
-          className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-[#262626] bg-[#171717] p-4"
+          className="flex gap-4 rounded-xl border border-border bg-card p-6"
         >
-          <FlagBadge label={`[${indication.method}]`} tone="neutral" />
-          <span className="text-sm">{dimensionsLine(indication)}</span>
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-400">
+            <ArrowRight className="size-5" aria-hidden="true" />
+          </div>
+          <div className="flex flex-1 flex-col gap-3">
+            <h3 className="font-semibold">Recommended next step</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <FlagBadge label={`[${indication.method}]`} tone="neutral" />
+              <span className="text-sm text-muted-foreground">{dimensionsLine(indication)}</span>
+            </div>
+            <p className="text-sm text-muted-foreground">{indication.detail}</p>
+            <p className="font-mono text-xs text-muted-foreground">
+              {clauseRefForMethod(indication.method)}
+            </p>
+          </div>
           <VerdictChip verdict={indication.verdict} />
-          <p className="w-full text-xs text-[#a3a3a3]">
-            {indication.detail} — {clauseRefForMethod(indication.method)}
-          </p>
-        </div>
+        </article>
       ))}
     </section>
   );

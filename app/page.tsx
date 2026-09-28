@@ -4,7 +4,8 @@
  * Wizard root — header chrome (FlawCheck / NDT Inspection Copilot), step
  * indicator, demo provenance banner (UI-21: persists on Screens 2-3), and the
  * three screens. Focus moves to the new screen's <h1> after transitions
- * (UI-22, a11y floor 8).
+ * (UI-22, a11y floor 8). 03-00b: auto-writes the session-only report snapshot
+ * whenever results exist so /report (Task 2) is reviewable by direct URL.
  */
 import { useCallback, useEffect, useMemo } from "react";
 import { ShieldCheck } from "lucide-react";
@@ -17,6 +18,10 @@ import { MetadataForm } from "@/components/wizard/metadata-form";
 import { PtmtEntry } from "@/components/wizard/ptmt-entry";
 import { ConfirmDialog } from "@/components/wizard/confirm-dialog";
 import { metadataProblems, type MetadataDraftField } from "@/lib/wizard/reducer";
+import {
+  buildReportSnapshot,
+  writeReportSnapshot,
+} from "@/lib/report/session-snapshot";
 
 function DemoBanner() {
   return (
@@ -56,6 +61,20 @@ function WizardRoot() {
       dispatch({ type: "set-screen", screen: 1 });
     }
   }, [ui.screen, state.csv.rowCount, dispatch]);
+
+  // 03-00b Task 1: auto-write the report snapshot whenever evaluation results
+  // exist, so the locked /report route (Task 2) is reviewable by direct URL
+  // (Screen 4 mock: "You can review the full layout now"). Session-only —
+  // sessionStorage key flawcheck:report-snapshot:v1; nothing durable, nothing
+  // transmitted. The snapshot is rebuilt only when a new evaluation replaces
+  // the results object (metadata/notes are frozen by the time results exist).
+  const results = state.results;
+  useEffect(() => {
+    if (!results) return;
+    const snapshot = buildReportSnapshot(state, state.ui.evaluatedAt);
+    if (snapshot) writeReportSnapshot(snapshot);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results]);
 
   return (
     <div
