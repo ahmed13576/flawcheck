@@ -145,6 +145,56 @@ export const NarrativeRequestSchema = z.discriminatedUnion("kind", [
 ]);
 
 /* ------------------------------------------------------------------ */
+/* Extraction request/response (03-02 Task 2)                          */
+/* ------------------------------------------------------------------ */
+
+export const PopulationDigestSchema = z.object({
+  total: z.number().int(),
+  locations: z.number().int(),
+  accept: z.number().int(),
+  reCheck: z.number().int(),
+  fail: z.number().int(),
+  dateRange: z
+    .object({ from: z.string(), to: z.string() })
+    .nullable(),
+  units: z.object({ csvThickness: z.string(), metadata: z.string() }),
+});
+
+export const ExtractionRequestSchema = z
+  .object({
+    metadata: MetadataSliceSchema,
+    notes: z.string(),
+    indications: z.array(PtmIndicationResultSchema),
+    populationDigest: PopulationDigestSchema,
+  })
+  .strict();
+
+export type PopulationDigest = z.infer<typeof PopulationDigestSchema>;
+export type ExtractionRequest = z.infer<typeof ExtractionRequestSchema>;
+export interface ExtractionUsage {
+  promptTokens: number;
+  completionTokens: number;
+  latencyMs: number;
+  model: string;
+}
+export interface ExtractionResponse {
+  extraction: ExtractionResult | null;
+  usage: ExtractionUsage | null;
+  disabled?: true;
+}
+
+/**
+ * LLM availability gate — SINGLE definition (03-02; the narrative route
+ * re-exports it for its 03-01 tests): true when the explicit kill-switch is
+ * set OR no API key is configured. Naming per 03-RESEARCH assumption A4
+ * (FLAWCHECK_DISABLE_LLM).
+ */
+export function isLlmDisabled(): boolean {
+  const kill = process.env.FLAWCHECK_DISABLE_LLM;
+  return kill === "1" || kill === "true" || !process.env.NEBIUS_API_KEY;
+}
+
+/* ------------------------------------------------------------------ */
 /* SSE frame union — the full typed protocol                           */
 /* ------------------------------------------------------------------ */
 

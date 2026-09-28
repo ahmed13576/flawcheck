@@ -7,7 +7,7 @@
  * → the fallback cites the indication's citation id. No meta/delta/usage
  * frames are emitted in this plan.
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { POST } from "@/app/api/reasoning/narrative/route";
 import { parseNarrativeFrame } from "@/lib/reasoning/schemas";
 import { fallbackNarrative } from "@/lib/reasoning/fallback";
@@ -79,6 +79,18 @@ async function framesOf(res: Response): Promise<string[]> {
 }
 
 describe("POST /api/reasoning/narrative — fallback-first slice", () => {
+  // These pins own the DISABLED-branch contract (deterministic fallback).
+  // The vitest .env.local loader injects a real key into every test run, so
+  // the branch must be forced via the kill-switch — never left ambient
+  // (ambient presence would route these tests to the live path, breaking
+  // hermeticity and the no-fabricated-frames assertion).
+  beforeEach(() => {
+    process.env.FLAWCHECK_DISABLE_LLM = "1";
+  });
+  afterEach(() => {
+    delete process.env.FLAWCHECK_DISABLE_LLM;
+  });
+
   it("streams one fallback frame then [DONE] with text/event-stream content type", async () => {
     const res = await post(VALID_CML_BODY);
     expect(res.status).toBe(200);
