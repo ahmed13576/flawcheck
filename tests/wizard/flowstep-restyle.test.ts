@@ -28,12 +28,15 @@ import {
 } from "@/components/wizard/screen-results";
 import { ResultsTable } from "@/components/wizard/results-table";
 import { SummaryStrip } from "@/components/wizard/summary-strip";
+import { ReportDocument } from "@/components/report/report-document";
 import { metadataProblems } from "@/lib/wizard/reducer";
 import type {
+  ComponentMetadata,
   EvaluationResults,
   ReadingResult,
   Verdict,
 } from "@/lib/ingest/session";
+import type { ReportSnapshot } from "@/lib/report/session-snapshot";
 
 /** Mirrors page.tsx's Screen 2 composition (metadata + PT/MT children). */
 function Screen2Harness() {
@@ -278,6 +281,35 @@ function renderResults(): string {
   );
 }
 
+/** Minimal accept-only snapshot for the FS-01..FS-12 sweep's FS-12 anchor. */
+const SWEEP_METADATA: ComponentMetadata = {
+  od: 219.1,
+  tNominal: 10.31,
+  fca: 1.0,
+  tStructural: 6.35,
+  designCode: "ASME B31.3 — 2024 Edition",
+  pipeClass: 2,
+  gaugeUncertainty: 0.1,
+  pressureUnit: "MPa",
+  designPressure: 3.5,
+  allowableStress: 138,
+  e: 1,
+  w: 1,
+  y: 0.4,
+  formula: "asme_b31_3_straight_pipe",
+};
+
+const SWEEP_SNAPSHOT: ReportSnapshot = {
+  evaluatedAt: "2026-09-27T14:32:00Z",
+  sourceName: "ut_register_demo.csv",
+  units: { csvThickness: "mm", metadata: "mm" },
+  metadata: SWEEP_METADATA,
+  summary: { total: 1, locations: 1, accept: 1, reCheck: 0, fail: 0 },
+  readings: [FIXTURE_READINGS[0]],
+  indications: [],
+  notes: "",
+};
+
 describe("FS-09 Screen 3 hero card + 4 KPI stat cards fed by real summary counts", () => {
   it("renders the hero copy with the fixture's REAL total in the sub-line", () => {
     const markup = renderResults();
@@ -412,5 +444,57 @@ describe("FS-11 Screen 3 footer: back nav / Save review / Open report preview di
     expect(buttonTag).toContain('aria-disabled="true"');
     // Accessible hint for the gated affordance.
     expect(markup).toContain("Report generation unlocks in Phase 4");
+  });
+});
+
+/**
+ * FS-01..FS-12 full-contract sweep (03-00b Task 2) — the named test 03-05
+ * cites: one anchor assertion per visual-contract row across the finished
+ * surfaces (chrome, Screen 1-3, /report). Detailed pins live in the
+ * per-screen describes above; the report-preview suite pins FS-12 in depth.
+ */
+describe("FS-01..FS-12 full-contract sweep (03-05 cites this)", () => {
+  it("anchors all twelve visual-contract rows on the completed screens", () => {
+    const screen1 = renderScreen1();
+    // FS-01 header chrome
+    expect(screen1).toContain("FlawCheck");
+    expect(screen1).toContain("lucide-shield-check");
+    // FS-03 Screen 1 copy
+    expect(screen1).toContain("CSV up to 25 MB · Your file stays in this workspace");
+    // FS-04 Screen 1 footer affordances
+    expect(screen1).toContain("Explore a sample inspection");
+
+    const screen2 = renderScreen2();
+    // FS-05 Screen 2 hero + chips
+    expect(screen2).toContain("Review your inspection setup");
+    // FS-06 six mapping targets
+    expect(screen2).toContain('id="mapping-measuredThickness"');
+    // FS-07 metadata section headers + unit toggle
+    expect(screen2).toContain("COMPONENT GEOMETRY");
+    // FS-08 Screen 2 footer + run
+    expect(screen2).toContain("Run evaluation");
+
+    // FS-02 4-step indicator with the locked Report step
+    const step3 = renderToStaticMarkup(createElement(StepIndicator, { current: 3 }));
+    expect(step3).toContain("4 Report");
+    expect(step3.match(/aria-current="step"/g)?.length).toBe(1);
+
+    const screen3 = renderResults();
+    // FS-09 real-data KPI cards (fixture counts, never mock numbers)
+    expect(screen3).toContain("1,204");
+    expect(screen3).not.toContain("3,812");
+    // FS-10 tabs + search + legend + sticky strip
+    expect(screen3).toContain('aria-label="Search CML or location"');
+    // FS-11 footer with disabled Open report preview
+    expect(screen3).toContain('aria-disabled="true"');
+
+    // FS-12 locked /report preview (depth pins: tests/report/report-preview.test.ts)
+    const reportMarkup = renderToStaticMarkup(
+      createElement(ReportDocument, { snapshot: SWEEP_SNAPSHOT, generatedAt: "2026-09-27T09:00:00Z" }),
+    );
+    expect(reportMarkup).toContain("Pending inspector sign-off");
+    expect(reportMarkup).toContain("Download PDF");
+    expect(reportMarkup.slice(Math.max(0, reportMarkup.indexOf("Download PDF") - 300), reportMarkup.indexOf("Download PDF"))).toContain("disabled");
+    expect(reportMarkup).toContain('data-appearance="light"');
   });
 });
