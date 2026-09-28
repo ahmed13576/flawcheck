@@ -94,17 +94,17 @@ Plans:
   4. PT/MT indications are evaluated against the builder's structured criteria config (L2 ground truth) with per-indication verdicts the narrative references
   5. A status line with model badges shows which Nemotron model (plus tokens/cost) handled each pipeline step
 
-**Plans**: 7 plans
+**Plans**: 2/7 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
 
-- [ ] 03-00-PLAN.md — Flowstep GUI integration wave 1: 5-package install checkpoint + phase-start ref, oklch token system + ui primitives, Screen 1-2 restyle with functional parity (six mapping targets kept), 25 MB cap, UNINSTALL Phase 3 ledger, FS-01..FS-08 pins
+- [x] 03-00-PLAN.md — Flowstep GUI integration wave 1: 5-package install checkpoint + phase-start ref, oklch token system + ui primitives, Screen 1-2 restyle with functional parity (six mapping targets kept), 25 MB cap, UNINSTALL Phase 3 ledger, FS-01..FS-08 pins
 
 **Wave 2**
 
-- [ ] 03-00b-PLAN.md — Flowstep GUI integration wave 2: Screen 3 restyle (real-data KPI cards, tabs/search/legend, sticky CML+Verdict columns), locked /report preview (Screen 4), FS-01..FS-12 test pins
+- [x] 03-00b-PLAN.md — Flowstep GUI integration wave 2: Screen 3 restyle (real-data KPI cards, tabs/search/legend, sticky CML+Verdict columns), locked /report preview (Screen 4), FS-01..FS-12 test pins
 
 **Wave 3**
 
@@ -162,6 +162,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
 | 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) |
-| 3. LLM Reasoning & Citation Layer | 0/5 | Not started | - |
+| 3. LLM Reasoning & Citation Layer | 2/7 | In Progress|  |
 | 4. Report Rendering | 0/TBD | Not started | - |
 | 5. Demo Hardening, Deployment & Submission | 0/TBD | Not started | - |

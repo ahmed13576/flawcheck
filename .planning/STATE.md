@@ -1,19 +1,18 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 2
-current_phase_name: ingestion-calc-engine
-current_plan: 5
-status: verifying
-stopped_at: Completed 02-05-PLAN.md (Phase 2 plans complete)
-last_updated: "2026-09-27T12:04:00.427Z"
-last_activity: 2026-09-27
-last_activity_desc: Phase 1 verified (15/15 must-haves) and merged; criteria review actions queued
-state_head: 3fa3cf9fcce0d0d7d559bfede71ef1d143bced5f
+current_phase: 3
+current_plan: 1
+status: executing
+stopped_at: Completed 03-00b-PLAN.md (Flowstep wave 2 — Screen 3 + locked /report + FS-01..FS-12 pins)
+last_updated: "2026-09-28T06:01:07.984Z"
+last_activity: 2026-09-28
+last_activity_desc: Phase 3 execution started
+state_head: 7c7ec1810ecdb63735b59c82f401131c4ee21b25
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 16
+  completed_plans: 11
   percent: 20
 ---
 
@@ -24,15 +23,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-24)
 
 **Core value:** Raw inspection data in → a defensible, code-cited acceptance decision and report out. If the acceptance reasoning is wrong, nothing else matters.
-**Current focus:** Phase 1 — Platform Spike & App Skeleton
+**Current focus:** Phase 3
 
 ## Current Position
 
-Phase: 2 (ingestion-calc-engine) — EXECUTING
-Current Plan: 5
+Phase: 3 — EXECUTING
+Current Plan: 1
 Total Plans in Phase: 5
-Status: Phase complete — ready for verification
-Last activity: 2026-09-27 — 02-03 complete (ingest library + Zenodo fixture + units gate); resuming wave-2 executor to continue with 02-04
+Status: Ready to execute
+Last activity: 2026-09-28 — Phase 3 execution started
 
 Progress: [██░░░░░░░░] 20%
 
@@ -66,6 +65,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 2 P03 | 40min | 3 tasks | 14 files |
 | Phase 2 P04 | 55min | 3 tasks | 16 files |
 | Phase 2 P05 | 35min | 3 tasks | 12 files |
+| Phase 03 P00b | ~2 sessions (captcha-interrupted) | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -89,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 2]: 02-04: wizard state = EvaluationSession + additive ui field; locked metadata copies single-sourced in reducer metadataProblems (rendered via FieldError); run-evaluation gate chain blockers -> assertUnitsDeclared -> groupByCml/evaluate
 - [Phase 2]: 02-04: tracer mapping tInitial null (constant-20 scantling is not a measured t-initial) — golden tracer values pass through the groupByCml seam unchanged; browser GUI human-check approximated by SSR markup checks (browser MCP unavailable), full pass at end-of-phase UI gate
 - [Phase 2]: 02-05: observed demo semantics pinned — 480 CMLs/first-campaign rows (not ~447), 2,030 insufficient-history (480 no-history + 1,550 negative-CR clamped with raw rates surfaced); G14 fires for re_check equality band (RL rounds to 0); format.ts is the pure render path with Infinity/NaN render-scan
+- [Phase 3]: Screen 3 tab/search filters are local component state; reducer untouched — filter changes reset pagination via FILTER_RESET_PAGE (03-00b)
+- [Phase 3]: ReportDocument renders only serialized session slices + citations.json record fields; citationRef() renders zero glyphs for unknown ids (03-00b)
 
 ### Pending Todos
 
@@ -111,6 +113,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-27T12:03:32.170Z
-Stopped at: Completed 02-05-PLAN.md (Phase 2 plans complete)
+Last session: 2026-09-28T06:01:07.872Z
+Stopped at: Completed 03-00b-PLAN.md (Flowstep wave 2 — Screen 3 + locked /report + FS-01..FS-12 pins)
 Resume file: None
