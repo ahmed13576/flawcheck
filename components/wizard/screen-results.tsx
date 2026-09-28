@@ -32,6 +32,7 @@ import {
   writeReportSnapshot,
 } from "@/lib/report/session-snapshot";
 import type {
+  ComponentMetadata,
   EvaluationResults,
   ReadingResult,
   Unit,
@@ -109,6 +110,8 @@ export interface ScreenResultsContentProps {
   sourceFilename: string;
   csvRowCount: number;
   evaluatedAt: string | null;
+  /** Session metadata slice for the results table's narrative glue (03-01). */
+  metadata: ComponentMetadata;
   page: number;
   onPageChange: (page: number) => void;
   onBackToMetadata: () => void;
@@ -121,6 +124,7 @@ export function ScreenResultsContent({
   sourceFilename,
   csvRowCount,
   evaluatedAt,
+  metadata,
   page,
   onPageChange,
   onBackToMetadata,
@@ -245,6 +249,8 @@ export function ScreenResultsContent({
             readings={visibleReadings}
             page={page}
             onPageChange={onPageChange}
+            metadata={metadata}
+            evaluatedAt={evaluatedAt ?? undefined}
           />
         )}
 
@@ -337,6 +343,7 @@ export function ScreenResults() {
       sourceFilename={state.source.filename}
       csvRowCount={state.csv.rowCount}
       evaluatedAt={state.ui.evaluatedAt}
+      metadata={state.metadata}
       page={state.ui.page}
       onPageChange={(page) => dispatch({ type: "set-page", page })}
       onBackToMetadata={() => dispatch({ type: "set-screen", screen: 2 })}

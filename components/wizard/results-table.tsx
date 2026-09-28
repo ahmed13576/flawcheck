@@ -12,11 +12,16 @@
  *
  * Flowstep restyle (03-00b Task 1): token classes throughout, plus the sticky
  * CML/Location + Verdict cluster (binding C1/C3) inside the preserved
- * overflow-x-auto wrapper — 03-01 extends these mechanics to the 11-column
- * contract. resultRowKey namespacing and the locked column order untouched.
+ * overflow-x-auto wrapper. 03-01 Task 2 extends the cluster to the 11-column
+ * contract: trailing Reasoning column (sticky right-0), Verdict shifted to
+ * the Reasoning column's fixed-width right offset, per-row View/Hide
+ * reasoning toggles opening colSpan-11 ReasoningPane detail rows, and the
+ * one-shot narrative fetch (tracer glue; 03-03's hook supersedes it).
+ * resultRowKey namespacing and the locked order of the first ten columns
+ * untouched.
  */
-import { useMemo, useState } from "react";
-import type { ReadingResult, ReadingFlag } from "@/lib/ingest/session";
+import { useMemo, useRef, useState } from "react";
+import type { ComponentMetadata, ReadingResult, ReadingFlag } from "@/lib/ingest/session";
 import {
   formatFixed,
   formatCaption,
@@ -25,6 +30,8 @@ import {
 } from "@/lib/wizard/format";
 import { VerdictChip, FlagChip } from "@/components/wizard/verdict-chip";
 import { FlagDetailRow } from "@/components/wizard/flag-detail-row";
+import { ReasoningPane, type NarrativeEntryState } from "@/components/wizard/reasoning-pane";
+import { parseNarrativeFrame } from "@/lib/reasoning/schemas";
 
 export const RESULTS_PAGE_SIZE = 50;
 
@@ -33,18 +40,69 @@ const TOGGLEABLE_FLAGS: ReadingFlag[] = ["measurement_inconsistency", "outlier"]
 const NUMERIC_CELL = "border border-border px-3 py-2 font-mono tabular-nums whitespace-nowrap";
 
 /**
- * Sticky cluster (binding C1/C3, 03-00b): the first column (CML/Location)
- * pins left and the last column (Verdict) pins right inside the preserved
- * overflow-x-auto wrapper, so both stay visible while the middle columns
- * scroll. Cells carry OPAQUE token backgrounds (bg-card thead / bg-background
- * body) — a translucent sticky cell would show scrolled content underneath —
- * and a z-index above plain cells. 03-01 adds the 11th Reasoning column
- * between them on top of these mechanics.
+ * Sticky cluster (binding C1/C3, 03-00b → extended to the 11-column contract
+ * by 03-01): the first column (CML/Location) pins left; the Verdict and the
+ * trailing Reasoning column pin right — Verdict at the Reasoning column's
+ * fixed width offset so BOTH stay visible during horizontal scroll, and the
+ * Reasoning toggle stays reachable at 1366×768. Cells carry OPAQUE token
+ * backgrounds (bg-card thead / bg-background body) — a translucent sticky
+ * cell would show scrolled content underneath — and a z-index above plain
+ * cells. Module-level string constants keep the classes static for Tailwind's
+ * scanner. UI auditor note: the Verdict offset extension + Reasoning column
+ * are 03-01's additions on top of 03-00b's cluster.
  */
 const STICKY_LEFT_TH = "sticky left-0 z-30 bg-card";
-const STICKY_RIGHT_TH = "sticky right-0 z-30 bg-card";
 const STICKY_LEFT_TD = "sticky left-0 z-10 bg-background";
+const STICKY_RIGHT_TH = "sticky right-0 z-30 bg-card";
 const STICKY_RIGHT_TD = "sticky right-0 z-10 bg-background";
+/** Reasoning column width = the fixed right offset for the Verdict column. */
+const REASONING_COL_WIDTH = "w-[9.5rem]";
+const STICKY_VERDICT_TH = "sticky right-[9.5rem] z-30 bg-card";
+const STICKY_VERDICT_TD = "sticky right-[9.5rem] z-10 bg-background";
+
+const REASONING_TOGGLE =
+  "inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-xs font-semibold hover:border-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring";
+
+/**
+ * Tracer glue request body (superseded by Plan 03-03's hook). Exported pure
+ * for the node test-suite; `history: null` satisfies the strict schema's
+ * nullable-required key.
+ */
+export function narrativeRequestBody(
+  reading: ReadingResult,
+  metadata: ComponentMetadata,
+  evaluatedAt: string,
+): Record<string, unknown> {
+  return {
+    kind: "cml",
+    evaluatedAt,
+    reading,
+    metadata,
+    extraction: null,
+    history: null,
+  };
+}
+
+/** Read the full SSE frame stream to completion (one-shot tracer glue). */
+async function collectNarrativeFrames(res: Response) {
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error("response body is not readable");
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const frames: ReturnType<typeof parseNarrativeFrame>[] = [];
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
+    for (const part of parts) {
+      const frame = parseNarrativeFrame(part.replace(/^data: /, "").trim());
+      if (frame) frames.push(frame);
+    }
+  }
+  return frames;
+}
 
 /**
  * WR-04: 'duplicate reading ID' is a warning that never blocks, so identical
@@ -83,16 +141,66 @@ function FlagChipButton({
   );
 }
 
+/**
+ * Full-width (colSpan 11) reasoning detail row beneath a CML row — the
+ * FlagDetailRow pattern extended (UI-25). Exported pure so the node test-suite
+ * can SSR-render it directly (expansion is client state).
+ */
+export function ReasoningDetailRow({
+  rowKey,
+  reading,
+  metadata,
+  entry,
+}: {
+  rowKey: string;
+  reading: ReadingResult;
+  metadata?: ComponentMetadata;
+  entry?: NarrativeEntryState;
+}) {
+  const effectiveEntry: NarrativeEntryState =
+    entry ?? {
+      status: "error",
+      text: "",
+      errorReason: "narrative request unavailable in this render context",
+    };
+  return (
+    <tr className="bg-background">
+      <td id={`reasoning-${rowKey}`} colSpan={11} className="px-6 py-2">
+        {metadata ? (
+          <ReasoningPane
+            reading={reading}
+            metadata={metadata}
+            entry={effectiveEntry}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Reasoning pane requires the session metadata slice.
+          </p>
+        )}
+      </td>
+    </tr>
+  );
+}
+
 export function ResultsTable({
   readings,
   page,
   onPageChange,
+  metadata,
+  evaluatedAt,
 }: {
   readings: ReadingResult[];
   page: number;
   onPageChange: (page: number) => void;
+  /** Session slice for the narrative tracer glue (absent → panes render the
+   * error state; the demo path always supplies both via Screen 3). */
+  metadata?: ComponentMetadata;
+  evaluatedAt?: string;
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [reasoningOpen, setReasoningOpen] = useState<Record<string, boolean>>({});
+  const [entries, setEntries] = useState<Record<string, NarrativeEntryState>>({});
+  const requestedRef = useRef<Set<string>>(new Set());
 
   const pageCount = Math.max(1, Math.ceil(readings.length / RESULTS_PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), pageCount);
@@ -103,10 +211,68 @@ export function ResultsTable({
 
   const start = (safePage - 1) * RESULTS_PAGE_SIZE + 1;
   const end = Math.min(safePage * RESULTS_PAGE_SIZE, readings.length);
-  const colCount = 10;
+  const colCount = 11;
 
   const toggle = (key: string) =>
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const toggleReasoning = (rowKey: string, reading: ReadingResult) => {
+    setReasoningOpen((prev) => ({ ...prev, [rowKey]: !prev[rowKey] }));
+    // Tracer glue (superseded by Plan 03-03's hook): ONE one-shot fetch on
+    // first open — no cache, no abort, no incremental rendering here.
+    if (
+      !requestedRef.current.has(rowKey) &&
+      metadata !== undefined &&
+      evaluatedAt !== undefined
+    ) {
+      requestedRef.current.add(rowKey);
+      setEntries((prev) => ({ ...prev, [rowKey]: { status: "loading", text: "" } }));
+      fetch("/api/reasoning/narrative", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(narrativeRequestBody(reading, metadata, evaluatedAt)),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const frames = await collectNarrativeFrames(res);
+          const served = frames.find(
+            (f) => f?.type === "fallback" || f?.type === "rejected",
+          );
+          if (served && (served.type === "fallback" || served.type === "rejected")) {
+            setEntries((prev) => ({
+              ...prev,
+              [rowKey]: { status: "fallback", text: "", fallbackText: served.fallback },
+            }));
+          } else {
+            setEntries((prev) => ({
+              ...prev,
+              [rowKey]: {
+                status: "error",
+                text: "",
+                errorReason: "no narrative frame in response",
+              },
+            }));
+          }
+        })
+        .catch((e: unknown) => {
+          setEntries((prev) => ({
+            ...prev,
+            [rowKey]: {
+              status: "error",
+              text: "",
+              errorReason: e instanceof Error ? e.message : String(e),
+            },
+          }));
+        });
+    }
+  };
+
+  const entryFor = (rowKey: string): NarrativeEntryState =>
+    entries[rowKey] ?? {
+      status: "error",
+      text: "",
+      errorReason: "narrative request unavailable in this render context",
+    };
 
   return (
     <section aria-label="CML results" className="rounded-lg border border-border bg-card p-4">
@@ -126,7 +292,8 @@ export function ResultsTable({
               <th scope="col" className="border border-border px-3 py-2">RL (yr)</th>
               <th scope="col" className="border border-border px-3 py-2">Next inspection</th>
               <th scope="col" className="border border-border px-3 py-2">Flags</th>
-              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_RIGHT_TH}`}>Verdict</th>
+              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_VERDICT_TH}`}>Verdict</th>
+              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_RIGHT_TH} ${REASONING_COL_WIDTH}`}>Reasoning</th>
             </tr>
           </thead>
           <tbody>
@@ -195,8 +362,31 @@ export function ResultsTable({
                         ))}
                       </div>
                     </td>
-                    <td className={`border border-border px-3 py-2 ${STICKY_RIGHT_TD}`}>
+                    <td className={`border border-border px-3 py-2 ${STICKY_VERDICT_TD}`}>
                       <VerdictChip verdict={reading.verdict} />
+                    </td>
+                    <td className={`border border-border px-3 py-2 ${STICKY_RIGHT_TD} ${REASONING_COL_WIDTH}`}>
+                      <button
+                        type="button"
+                        className={REASONING_TOGGLE}
+                        aria-expanded={Boolean(reasoningOpen[rowKey])}
+                        aria-controls={`reasoning-${rowKey}`}
+                        onClick={() => toggleReasoning(rowKey, reading)}
+                      >
+                        <svg
+                          viewBox="0 0 16 16"
+                          width="16"
+                          height="16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          aria-hidden="true"
+                          className={`transition-transform motion-reduce:transition-none ${reasoningOpen[rowKey] ? "rotate-180" : ""}`}
+                        >
+                          <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        {reasoningOpen[rowKey] ? "Hide reasoning" : "View reasoning"}
+                      </button>
                     </td>
                   </tr>,
                   ...reading.flags
@@ -213,6 +403,17 @@ export function ResultsTable({
                         colSpan={colCount}
                       />
                     )),
+                  ...(reasoningOpen[rowKey]
+                    ? [
+                        <ReasoningDetailRow
+                          key={`${rowKey}-reasoning`}
+                          rowKey={rowKey}
+                          reading={reading}
+                          metadata={metadata}
+                          entry={entryFor(rowKey)}
+                        />,
+                      ]
+                    : []),
                 ]
               );
             })}

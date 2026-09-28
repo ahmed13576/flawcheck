@@ -273,6 +273,7 @@ function renderResults(): string {
       sourceFilename: "ut_register_demo.csv",
       csvRowCount: 1312,
       evaluatedAt: "2026-09-27T14:32:00Z",
+      metadata: SWEEP_METADATA,
       page: 1,
       onPageChange: () => {},
       onBackToMetadata: () => {},
