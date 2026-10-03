@@ -96,4 +96,50 @@ describe("runValidatedCompletion retry contract (offline)", () => {
     expect(out).toEqual({ ok: true, model_note: "first try" });
     expect(fake.callCount()).toBe(1); // no retry on success
   });
+
+  it("WR-02: forwards the abort signal as request options on EVERY attempt", async () => {
+    const optionCalls: unknown[] = [];
+    let n = 0;
+    const create = async (
+      _params: unknown,
+      options: { signal?: AbortSignal | undefined | null },
+    ) => {
+      n += 1;
+      optionCalls.push(options);
+      return {
+        choices: [{ message: { content: JSON.stringify({ ok: true, model_note: "fine" }) } }],
+      };
+    };
+    const client = { chat: { completions: { create } } } as unknown as OpenAI;
+
+    const controller = new AbortController();
+    await runValidatedCompletion({ ...BASE, client, model: MODEL_ID, signal: controller.signal });
+
+    expect(n).toBe(1);
+    expect(optionCalls[0]).toEqual({ signal: controller.signal });
+
+    // Retry path: a bad first attempt must carry the SAME signal on attempt 2.
+    const retryOptions: unknown[] = [];
+    let m = 0;
+    const retryCreate = async (
+      _params: unknown,
+      options: { signal?: AbortSignal | undefined | null },
+    ) => {
+      m += 1;
+      retryOptions.push(options);
+      return {
+        choices: [
+          {
+            message: {
+              content: m === 1 ? "not json" : JSON.stringify({ ok: true, model_note: "fixed" }),
+            },
+          },
+        ],
+      };
+    };
+    const retryClient = { chat: { completions: { create: retryCreate } } } as unknown as OpenAI;
+    const timeout = AbortSignal.timeout(60_000);
+    await runValidatedCompletion({ ...BASE, client: retryClient, model: MODEL_ID, signal: timeout });
+    expect(retryOptions).toEqual([{ signal: timeout }, { signal: timeout }]);
+  });
 });

@@ -17,6 +17,14 @@ export interface ValidatedCallOptions<T> {
    * fakes without a `usage` field simply never fire it.
    */
   usageSink?: (u: { promptTokens: number; completionTokens: number }) => void;
+  /**
+   * WR-02: optional abort signal, forwarded as the OpenAI request option on
+   * EVERY attempt (the bounded retry included). The extract route composes
+   * `AbortSignal.any([req.signal, AbortSignal.timeout(…)])` so a client
+   * disconnect cancels the paid call and a hung upstream cannot pin the route
+   * for the SDK's default timeout per attempt.
+   */
+  signal?: AbortSignal;
 }
 
 export async function runValidatedCompletion<T>(o: ValidatedCallOptions<T>): Promise<T> {
@@ -29,14 +37,17 @@ export async function runValidatedCompletion<T>(o: ValidatedCallOptions<T>): Pro
   ];
 
   const call = (extra: object) =>
-    o.client.chat.completions.create({
-      model: o.model,
-      messages,
-      response_format: { type: "json_object" },
-      ...(o.maxCompletionTokens ? { max_completion_tokens: o.maxCompletionTokens } : {}),
-      ...(o.reasoningEffort ? { reasoning_effort: o.reasoningEffort } : {}),
-      ...extra,
-    });
+    o.client.chat.completions.create(
+      {
+        model: o.model,
+        messages,
+        response_format: { type: "json_object" },
+        ...(o.maxCompletionTokens ? { max_completion_tokens: o.maxCompletionTokens } : {}),
+        ...(o.reasoningEffort ? { reasoning_effort: o.reasoningEffort } : {}),
+        ...extra,
+      },
+      { signal: o.signal }, // WR-02: abort/timeout propagation (verified: openai RequestOptions.signal)
+    );
 
   let lastError = "";
   let previousRaw = ""; // the model's own bad reply — replayed as an assistant turn on retry

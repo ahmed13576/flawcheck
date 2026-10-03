@@ -81,6 +81,10 @@ export async function POST(req: Request) {
       usageSink: (u) => {
         usage.v = u;
       },
+      // WR-02: propagate a client disconnect AND bound the paid call — a
+      // hung upstream can no longer pin the route for the SDK's default
+      // timeout per attempt. (The narrative route composes the same pair.)
+      signal: AbortSignal.any([req.signal, AbortSignal.timeout(60_000)]),
     });
     return Response.json({
       extraction,
