@@ -113,6 +113,7 @@ describe("PipelineStatusBar markup", () => {
         designCode: "ASME B31.3 — 2024 Edition",
         pipeClass: 2,
         gaugeUncertainty: 0.1,
+        metadataUnit: "mm", // CR-03
         pressureUnit: "MPa",
         designPressure: 3.5,
         allowableStress: 138,

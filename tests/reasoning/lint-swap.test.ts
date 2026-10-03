@@ -7,12 +7,12 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { POST } from "@/app/api/reasoning/narrative/route";
-import { parseNarrativeFrame } from "@/lib/reasoning/schemas";
+import { parseNarrativeFrame, type MetadataSlice } from "@/lib/reasoning/schemas";
 import { FALLBACK_CLOSING_SENTENCE } from "@/lib/reasoning/fallback";
 import { numericConsistency } from "@/lib/reasoning/lints";
 import { buildNarrativeContext } from "@/lib/reasoning/narrative-context";
 import { criteria } from "@/lib/calc/criteria";
-import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
+import type { ReadingResult } from "@/lib/ingest/session";
 
 vi.mock("@/lib/llm/client", () => ({
   getClient: vi.fn(() => fakeClient),
@@ -47,7 +47,8 @@ const fakeClient = {
   },
 };
 
-const METADATA: ComponentMetadata = {
+// CR-03: strict-schema request fixtures carry the declared metadata unit.
+const METADATA: MetadataSlice = {
   od: 219.1,
   tNominal: 10.31,
   fca: 1.0,
@@ -55,6 +56,7 @@ const METADATA: ComponentMetadata = {
   designCode: "ASME B31.3 — 2024 Edition",
   pipeClass: 2,
   gaugeUncertainty: 0.1,
+  metadataUnit: "mm",
   pressureUnit: "MPa",
   designPressure: 3.5,
   allowableStress: 138,

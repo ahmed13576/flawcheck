@@ -21,6 +21,7 @@ const METADATA = {
   designCode: "ASME B31.3 — 2024 Edition" as const,
   pipeClass: 2 as const,
   gaugeUncertainty: 0.1,
+  metadataUnit: "mm" as const, // CR-03: strict schema carries the declared unit
   pressureUnit: "MPa" as const,
   designPressure: 3.5,
   allowableStress: 138,

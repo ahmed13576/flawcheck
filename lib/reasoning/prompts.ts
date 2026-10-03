@@ -8,7 +8,9 @@
  * key appears in it).
  */
 import { criteria } from "@/lib/calc/criteria";
-import type { ComponentMetadata, PtmIndication } from "@/lib/ingest/session";
+import { toMm } from "@/lib/calc/units";
+import type { PtmIndication } from "@/lib/ingest/session";
+import type { MetadataSlice } from "@/lib/reasoning/schemas";
 import type { NarrativeContext } from "@/lib/reasoning/narrative-context";
 
 /* ------------------------------------------------------------------ */
@@ -91,7 +93,8 @@ You never compute numbers, never evaluate acceptance, and never output thickness
  * data-not-instructions instruction (prompt-injection mitigation, T-03-04).
  */
 export function buildExtractionUserPrompt(
-  metadata: ComponentMetadata,
+  /** CR-03: the parsed request slice — numerics are in `metadataUnit`. */
+  metadata: MetadataSlice,
   notes: string,
   indications: PtmIndication[],
   populationDigest: PopulationDigest,
@@ -104,7 +107,8 @@ export function buildExtractionUserPrompt(
       t_structural_min_mm: metadata.tStructural,
       design_code: metadata.designCode,
       pipe_class: metadata.pipeClass,
-      gauge_uncertainty_mm: metadata.gaugeUncertainty,
+      // CR-03: canonical mm — converted from the declared metadata unit.
+      gauge_uncertainty_mm: toMm(metadata.gaugeUncertainty, metadata.metadataUnit),
       design_pressure: metadata.designPressure,
       pressure_unit: metadata.pressureUnit,
       allowable_stress: metadata.allowableStress,

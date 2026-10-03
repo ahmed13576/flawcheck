@@ -139,6 +139,18 @@ describe("fallbackNarrative — data-conditioned assembly", () => {
     );
     expect(text).toContain(formatFixed(METADATA.gaugeUncertainty, 2));
   });
+
+  it("CR-03: converts a declared-unit gauge uncertainty to canonical mm in the band", () => {
+    // metadataUnit "in" with uncertainty 0.1 → the engine compared against
+    // 6.35 + 2.54 = 8.89 mm. The historical bug printed 6.45 mm ± 0.10 mm —
+    // the declared-unit number silently treated as mm on a safety artifact.
+    const r = reading("re_check");
+    const text = fallbackNarrative(r, METADATA, "in");
+    expect(text).toContain(formatFixed(r.tRequiredMm + 0.1 * 25.4, 2)); // 8.89
+    expect(text).toContain(formatFixed(0.1 * 25.4, 2)); // 2.54
+    expect(text).not.toContain(formatFixed(r.tRequiredMm + 0.1, 2)); // never the raw sum (6.45)
+    expect(text).not.toContain(`± ${formatFixed(0.1, 2)} mm`); // never the raw value labeled mm
+  });
 });
 
 describe("fallbackNarrativeForIndication", () => {

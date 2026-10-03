@@ -14,14 +14,19 @@
 import { describe, it, expect } from "vitest";
 import { POST as extractPOST } from "@/app/api/reasoning/extract/route";
 import { POST as narrativePOST } from "@/app/api/reasoning/narrative/route";
-import { ExtractionResultSchema, parseNarrativeFrame } from "@/lib/reasoning/schemas";
-import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
+import {
+  ExtractionResultSchema,
+  parseNarrativeFrame,
+  type MetadataSlice,
+} from "@/lib/reasoning/schemas";
+import type { ReadingResult } from "@/lib/ingest/session";
 
 const HAS_KEY = !!process.env.NEBIUS_API_KEY;
 const LIVE_GATE = ["1", "true"].includes(String(process.env.FLAWCHECK_LIVE_LLM ?? "").toLowerCase());
 const LIVE_READY = HAS_KEY && LIVE_GATE;
 
-const METADATA: ComponentMetadata = {
+// CR-03: strict-schema request fixtures carry the declared metadata unit.
+const METADATA: MetadataSlice = {
   od: 219.1,
   tNominal: 10.31,
   fca: 1.0,
@@ -29,6 +34,7 @@ const METADATA: ComponentMetadata = {
   designCode: "ASME B31.3 — 2024 Edition",
   pipeClass: 2,
   gaugeUncertainty: 0.1,
+  metadataUnit: "mm",
   pressureUnit: "MPa",
   designPressure: 3.5,
   allowableStress: 138,

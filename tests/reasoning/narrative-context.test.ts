@@ -114,6 +114,20 @@ describe("buildNarrativeContext", () => {
     expect(ctx.payload).toContain('"pressure_unit": "MPa"');
   });
 
+  it("CR-03: converts a declared-unit gauge uncertainty to mm in payload AND allowlist", () => {
+    // metadataUnit "in" with uncertainty 0.25 → 6.35 mm canonical; the raw
+    // declared-unit value must never be registered (the numeric lint would
+    // then approve the model quoting the mislabeled figure).
+    const ctx = build({ metadataUnit: "in" });
+    expect(ctx.payload).toContain('"gauge_uncertainty_mm": "6.35"');
+    expect(ctx.allowedNumbers.has(Number((0.25 * 25.4).toFixed(6)))).toBe(true);
+    expect(ctx.allowedNumbers.has(6.35)).toBe(true);
+    expect(ctx.allowedNumbers.has(0.25)).toBe(false); // raw declared value unregistered
+    // Default (mm) unchanged: the registered value is the raw one.
+    const mmCtx = build();
+    expect(mmCtx.allowedNumbers.has(0.25)).toBe(true);
+  });
+
   it("contains no digit-bearing identifiers, dates, or design_code strings", () => {
     const ctx = build({ history });
     expect(ctx.payload).not.toContain("R1");

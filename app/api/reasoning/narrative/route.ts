@@ -81,7 +81,7 @@ export async function POST(req: Request) {
   // swapped in on every rejected frame.
   const fallbackText =
     request.kind === "cml"
-      ? fallbackNarrative(request.reading, request.metadata)
+      ? fallbackNarrative(request.reading, request.metadata, request.metadata.metadataUnit)
       : fallbackNarrativeForIndication(request.indication, criteria.ptmt);
 
   const encoder = new TextEncoder();
@@ -123,6 +123,7 @@ export async function POST(req: Request) {
               kind: "cml",
               reading: request.reading,
               metadata: request.metadata,
+              metadataUnit: request.metadata.metadataUnit, // CR-03: convert to canonical mm
               extraction: request.extraction,
               history: request.history,
               thresholds: criteria.ptmt,

@@ -21,7 +21,7 @@
  * untouched.
  */
 import { useMemo, useState } from "react";
-import type { ComponentMetadata, ReadingResult, ReadingFlag } from "@/lib/ingest/session";
+import type { ComponentMetadata, ReadingResult, ReadingFlag, Unit } from "@/lib/ingest/session";
 import {
   formatFixed,
   formatCaption,
@@ -83,6 +83,8 @@ export function narrativeRequestBody(
   metadata: ComponentMetadata,
   evaluatedAt: string,
   opts: {
+    /** CR-03: the declared metadata unit — required by the strict schema. */
+    metadataUnit?: Unit;
     extraction?: ExtractionResult | null;
     history?: NarrativeHistory | null;
   } = {},
@@ -91,7 +93,7 @@ export function narrativeRequestBody(
     kind: "cml",
     evaluatedAt,
     reading,
-    metadata,
+    metadata: { ...metadata, metadataUnit: opts.metadataUnit ?? "mm" },
     extraction: opts.extraction ?? null,
     history: opts.history ?? null,
   };
@@ -143,12 +145,15 @@ export function ReasoningDetailRow({
   rowKey,
   reading,
   metadata,
+  metadataUnit,
   entry,
   onRetry,
 }: {
   rowKey: string;
   reading: ReadingResult;
   metadata?: ComponentMetadata;
+  /** CR-03: declared metadata unit — the pane converts gauge uncertainty to mm. */
+  metadataUnit?: Unit;
   entry?: NarrativeEntryState;
   onRetry?: () => void;
 }) {
@@ -166,6 +171,7 @@ export function ReasoningDetailRow({
             <ReasoningPane
               reading={reading}
               metadata={metadata}
+              metadataUnit={metadataUnit}
               entry={effectiveEntry}
             />
             {effectiveEntry.status === "error" && onRetry ? (
@@ -208,7 +214,7 @@ export function ResultsTable({
   // CR-01/WR-01: ONE provider-owned store + narration gate for the whole app —
   // a second module-level store here would double the FIFO cap, hide CML
   // narratives from the status bar, and bypass the UI-41 allowNarration gate.
-  const { store, extraction, allowNarration, historyFor } = useReasoning();
+  const { store, extraction, allowNarration, historyFor, metadataUnit } = useReasoning();
   const { getEntry } = useNarrativeStream(store);
 
   const pageCount = Math.max(1, Math.ceil(readings.length / RESULTS_PAGE_SIZE));
@@ -241,6 +247,7 @@ export function ResultsTable({
     store.open(
       key,
       narrativeRequestBody(reading, metadata, evaluatedAt, {
+        metadataUnit,
         extraction: extractionPack,
         history: historyFor(dataIndex),
       }),
@@ -253,6 +260,7 @@ export function ResultsTable({
     store.retry(
       narrativeKey(evaluatedAt, "cml", rowKey),
       narrativeRequestBody(reading, metadata, evaluatedAt, {
+        metadataUnit,
         extraction: extractionPack, // rebuilt with the CURRENT extraction state (WR-03)
         history: historyFor(dataIndex),
       }),
@@ -405,6 +413,7 @@ export function ResultsTable({
                           rowKey={rowKey}
                           reading={reading}
                           metadata={metadata}
+                          metadataUnit={metadataUnit}
                           entry={entryFor(rowKey)}
                           onRetry={
                             metadata !== undefined && evaluatedAt !== undefined

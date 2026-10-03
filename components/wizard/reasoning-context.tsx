@@ -55,6 +55,8 @@ export interface ReasoningContextValue {
   extraction: ExtractionStatus;
   allowNarration: boolean;
   historyFor(index: number): NarrativeHistory | null;
+  /** CR-03: the declared metadata unit — narrative requests must carry it. */
+  metadataUnit: Unit;
 }
 
 const ReasoningContext = createContext<ReasoningContextValue | null>(null);
@@ -135,7 +137,8 @@ export function ReasoningProvider({
     };
     void runExtractionRequest(
       fetch,
-      { metadata, notes, indications, populationDigest: digest },
+      // CR-03: the strict metadata slice now carries the declared unit.
+      { metadata: { ...metadata, metadataUnit: units.metadata }, notes, indications, populationDigest: digest },
       setExtraction,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once per evaluatedAt
@@ -147,10 +150,11 @@ export function ReasoningProvider({
       extraction,
       allowNarration: extraction.state === "complete" || extraction.state === "disabled",
       historyFor,
+      metadataUnit: units.metadata,
     }),
     // historyFor depends on `inputs`; extraction gates narration.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store, extraction, inputs],
+    [store, extraction, inputs, units.metadata],
   );
 
   return <ReasoningContext.Provider value={value}>{children}</ReasoningContext.Provider>;
@@ -229,5 +233,6 @@ export function useReasoning(): ReasoningContextValue {
     extraction: { state: "disabled" },
     allowNarration: true,
     historyFor: () => null,
+    metadataUnit: "mm",
   };
 }

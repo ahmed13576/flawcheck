@@ -20,10 +20,12 @@
  * identity via verdictLabel()).
  */
 import { formatFixed } from "@/lib/wizard/format";
+import { toMm } from "@/lib/calc/units";
 import type {
   ComponentMetadata,
   PtmIndicationResult,
   ReadingResult,
+  Unit,
   Verdict,
 } from "@/lib/ingest/session";
 
@@ -55,6 +57,13 @@ function cite(allowed: readonly string[], id: string): string {
 export function fallbackNarrative(
   reading: ReadingResult,
   metadata: ComponentMetadata,
+  /**
+   * CR-03: the declared unit of metadata's numerics. The gauge uncertainty is
+   * converted to canonical mm BEFORE the band arithmetic — an in/mils
+   * value must never be added to a mm thickness on the safety artifact.
+   * Defaults to "mm" (the narrative request now carries metadataUnit).
+   */
+  metadataUnit: Unit = "mm",
 ): string {
   const allowed = reading.citations;
   const name = reading.cml ?? reading.location;
@@ -105,7 +114,8 @@ export function fallbackNarrative(
 
   // Gauge-uncertainty band in the locked comparison order (verdicts.ts):
   // 1) t-actual vs t-required; 2) t-actual vs t-required + gauge uncertainty.
-  const unc = metadata.gaugeUncertainty;
+  // CR-03: `unc` is canonical mm — converted from the declared metadata unit.
+  const unc = toMm(metadata.gaugeUncertainty, metadataUnit);
   const tReq = formatFixed(reading.tRequiredMm, 2);
   const tAct = formatFixed(reading.tActualMm, 2);
   const basis =

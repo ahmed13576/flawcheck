@@ -8,15 +8,17 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { POST as narrativePOST } from "@/app/api/reasoning/narrative/route";
 import { POST as extractPOST } from "@/app/api/reasoning/extract/route";
-import { parseNarrativeFrame } from "@/lib/reasoning/schemas";
+import { parseNarrativeFrame, type MetadataSlice } from "@/lib/reasoning/schemas";
 import { tokenize } from "@/lib/reasoning/tokenizer";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { ReasoningPane } from "@/components/wizard/reasoning-pane";
 import { criteria } from "@/lib/calc/criteria";
-import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
+import type { ReadingResult } from "@/lib/ingest/session";
 
-const METADATA: ComponentMetadata = {
+// CR-03: strict-schema request fixtures carry the declared metadata unit
+// ("mm" — the fixture numerics are mm values).
+const METADATA: MetadataSlice = {
   od: 219.1,
   tNominal: 10.31,
   fca: 1,
@@ -24,6 +26,7 @@ const METADATA: ComponentMetadata = {
   designCode: "ASME B31.3 — 2024 Edition",
   pipeClass: 2,
   gaugeUncertainty: 0.1,
+  metadataUnit: "mm",
   pressureUnit: "MPa",
   designPressure: 3.5,
   allowableStress: 138,

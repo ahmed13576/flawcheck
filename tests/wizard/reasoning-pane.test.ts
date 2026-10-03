@@ -136,6 +136,21 @@ describe("ReasoningPane — deterministic chain (UI-26/27)", () => {
     expect(markup).toContain("ACCEPT");
     expect(markup).toContain("t-actual 6.50 mm ≥ t-required + 0.10 mm gauge uncertainty");
   });
+
+  it("CR-03: converts the declared-unit gauge uncertainty to mm in LIMIT and verdict basis", () => {
+    // metadataUnit "in" with uncertainty 0.01 → 0.25 mm canonical (0.01 in =
+    // 0.254 mm); the historical bug labeled the raw 0.01 as "mm".
+    const markup = renderToStaticMarkup(
+      createElement(ReasoningPane, {
+        reading: READING,
+        metadata: { ...METADATA, gaugeUncertainty: 0.01 },
+        metadataUnit: "in",
+        entry: FALLBACK_ENTRY,
+      }),
+    );
+    expect(markup).toContain("± 0.25 mm gauge uncertainty");
+    expect(markup).not.toContain("± 0.01 mm gauge uncertainty");
+  });
 });
 
 describe("ReasoningPane — narrative states", () => {
