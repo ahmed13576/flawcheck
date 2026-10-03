@@ -11,6 +11,8 @@
  * patterns, data-* hooks) are unchanged — these pins coexist with them.
  */
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Home from "@/app/page";
@@ -203,10 +205,10 @@ describe("tokenized chrome", () => {
   it("resolves the verdict token classes in the compiled CSS contract", () => {
     // The @theme inline mappings must expose accept/recheck/fail so verdict
     // chip classes resolve; pinned here via the CSS source contract.
-    const fs = require("node:fs");
-    const path = require("node:path");
-    const css = fs.readFileSync(
-      path.resolve(__dirname, "../../app/globals.css"),
+    
+    
+    const css = readFileSync(
+      resolve(__dirname, "../../app/globals.css"),
       "utf8",
     );
     expect(css).toContain("--color-accept: var(--accept)");

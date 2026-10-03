@@ -18,16 +18,17 @@ import { ReportDocument } from "@/components/report/report-document";
 
 export default function ReportPage() {
   const router = useRouter();
-  const [snapshot, setSnapshot] = useState<ReportSnapshot | null>(null);
+  // Read-once derivation: sessionStorage is an external system read during
+  // render (client-only page), so no state mirror is needed and the redirect
+  // fires from a plain effect without cascading setState (react-hooks v7).
+  const snapshot = readReportSnapshot();
+  const hasSnapshot = snapshot !== null;
 
   useEffect(() => {
-    const snap = readReportSnapshot();
-    if (!snap) {
+    if (!hasSnapshot) {
       router.replace("/");
-      return;
     }
-    setSnapshot(snap);
-  }, [router]);
+  }, [hasSnapshot, router]);
 
   if (!snapshot) return null; // absent snapshot → redirecting home
 

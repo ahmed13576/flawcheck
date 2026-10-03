@@ -76,8 +76,8 @@ describe("PipelineStatusBar markup", () => {
   });
 
   it("complete: badge equals the injected model verbatim; metrics carry the em-dash cost", async () => {
-    const store = createNarrativeStore();
-    (globalThis as { __flawcheckFallbackStore?: unknown }).__flawcheckFallbackStore = store;
+    const { __getFallbackStoreForTests } = await import("@/components/wizard/reasoning-context");
+    const store = __getFallbackStoreForTests();
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => sseResponse([USAGE_FRAME])),
