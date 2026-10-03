@@ -227,6 +227,27 @@ describe("createNarrativeStore", () => {
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 
+  it("WR-04: EOF without a terminal frame marks the entry errored — never a truncated complete", async () => {
+    // Only delta frames, then EOF ([DONE] is the sentinel, not a terminal
+    // frame — parseNarrativeFrame returns null for it). The historical bug
+    // promoted the truncated text to status "complete".
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        sseResponse([
+          JSON.stringify({ type: "delta", text: "The measured wall thickness is 6.50 mm. " }),
+        ]),
+      ),
+    );
+    const store = createNarrativeStore();
+    const key = narrativeKey("E1", "cml", "r-1");
+    store.open(key, payload(), { allowNarration: true });
+    await settle();
+    const entry = store.get(key);
+    expect(entry?.status).toBe("error");
+    expect(entry?.errorReason).toBe("narrative stream ended without a terminal frame");
+  });
+
   it("chunk-boundary safety: a [[cite: token split across deltas never renders partially", async () => {
     const full = "Rate is 0.300 mm per year. [[cite:api570_7_2]] The end.";
     const cut = full.indexOf("[[cite:api570_7_2]]") + 5; // split INSIDE the token

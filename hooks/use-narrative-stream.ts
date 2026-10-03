@@ -328,6 +328,14 @@ export async function consumeNarrativeStream(
       }
     }
   }
+  if (!settled) {
+    // WR-04: EOF without a terminal frame (proxy/dev-server kill, upstream
+    // crash between deltas and the terminal) is a TRUNCATED narrative — it
+    // must never be promoted to "complete" and rendered as a finished
+    // product. The store's onError marks the entry errored; onDone is a no-op
+    // for error entries, so the truncated text can never settle as complete.
+    handlers.onError("narrative stream ended without a terminal frame");
+  }
   handlers.onDone();
 }
 
