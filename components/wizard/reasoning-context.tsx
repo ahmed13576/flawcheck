@@ -77,9 +77,9 @@ export function ReasoningProvider({
   mapping,
   children,
 }: ReasoningProviderProps) {
-  const storeRef = useRef<NarrativeStore | null>(null);
-  if (storeRef.current === null) storeRef.current = createNarrativeStore();
-  const store = storeRef.current;
+  // Single-store-per-mount: useState's lazy initializer creates exactly one
+  // store (the previous lazy-ref write-during-render tripped the React lint).
+  const [store] = useState<NarrativeStore>(() => createNarrativeStore());
 
   const firedForRef = useRef<Set<string>>(new Set());
   const [extraction, setExtraction] = useState<ExtractionStatus>({ state: "pending" });
@@ -177,15 +177,19 @@ export function ReasoningProvider({
  * store and narration enabled — provider-gated semantics apply only inside
  * Screen 3.
  */
+/** Module-level fallback store — eager (tiny, inert until used). */
+const fallbackStoreSingleton: NarrativeStore = createNarrativeStore();
+
+/** Test seam: prime the fallback store (pipeline-status-bar markup tests). */
+export function __getFallbackStoreForTests(): NarrativeStore {
+  return fallbackStoreSingleton;
+}
+
 export function useReasoning(): ReasoningContextValue {
   const ctx = useContext(ReasoningContext);
   if (ctx) return ctx;
-  const fallbackRef = (globalThis as { __flawcheckFallbackStore?: NarrativeStore });
-  if (!fallbackRef.__flawcheckFallbackStore) {
-    fallbackRef.__flawcheckFallbackStore = createNarrativeStore();
-  }
   return {
-    store: fallbackRef.__flawcheckFallbackStore,
+    store: fallbackStoreSingleton,
     extraction: { state: "disabled" },
     allowNarration: true,
     historyFor: () => null,

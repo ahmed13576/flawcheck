@@ -149,7 +149,7 @@ export function ReasoningPane({
   const isPtmt = indication !== undefined;
   const subjectId = indication ? indication.id : (reading as ReadingResult).readingId;
   const [openCitation, setOpenCitation] = useState<string | null>(null);
-  const auditClock = useRef<string>(clockStamp());
+  const [auditClock] = useState<string>(clockStamp()); // stable per mount
 
   const toggleCitation = (id: string) =>
     setOpenCitation((prev) => (prev === id ? null : id));
@@ -401,7 +401,7 @@ export function ReasoningPane({
         )}
         {unresolved.map((id) => (
           <span key={id} className="w-full text-xs text-amber-400">
-            {`Unresolved citation blocked: '${id}' — rendered blank (audit ${auditClock.current}).`}
+            {`Unresolved citation blocked: '${id}' — rendered blank (audit ${auditClock}).`}
           </span>
         ))}
       </div>

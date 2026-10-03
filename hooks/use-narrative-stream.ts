@@ -303,7 +303,7 @@ export async function consumeNarrativeStream(
     buffer += decoder.decode(value, { stream: true });
     // safeTailHold: never release a trailing partial `[[cite:` token (R3)
     const safe = safeTailHold(buffer);
-    let releasable = safe;
+    const releasable = safe;
     buffer = buffer.slice(safe.length);
     const parts = releasable.split("\n\n");
     const trailing = parts.pop() ?? "";
