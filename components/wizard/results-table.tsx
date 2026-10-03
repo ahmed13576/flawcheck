@@ -20,7 +20,7 @@
  * resultRowKey namespacing and the locked order of the first ten columns
  * untouched.
  */
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ComponentMetadata, ReadingResult, ReadingFlag } from "@/lib/ingest/session";
 import {
   formatFixed,
@@ -31,7 +31,12 @@ import {
 import { VerdictChip, FlagChip } from "@/components/wizard/verdict-chip";
 import { FlagDetailRow } from "@/components/wizard/flag-detail-row";
 import { ReasoningPane, type NarrativeEntryState } from "@/components/wizard/reasoning-pane";
-import { parseNarrativeFrame } from "@/lib/reasoning/schemas";
+import {
+  createNarrativeStore,
+  useNarrativeStream,
+  narrativeKey,
+} from "@/hooks/use-narrative-stream";
+import type { NarrativeRequest } from "@/lib/reasoning/schemas";
 
 export const RESULTS_PAGE_SIZE = 50;
 
@@ -72,37 +77,19 @@ export function narrativeRequestBody(
   reading: ReadingResult,
   metadata: ComponentMetadata,
   evaluatedAt: string,
-): Record<string, unknown> {
+): NarrativeRequest {
   return {
     kind: "cml",
     evaluatedAt,
     reading,
     metadata,
-    extraction: null,
+    extraction: null, // 03-04's provider wires the real pack; the route 422s on the enabled path without one
     history: null,
   };
 }
 
-/** Read the full SSE frame stream to completion (one-shot tracer glue). */
-async function collectNarrativeFrames(res: Response) {
-  const reader = res.body?.getReader();
-  if (!reader) throw new Error("response body is not readable");
-  const decoder = new TextDecoder();
-  let buffer = "";
-  const frames: ReturnType<typeof parseNarrativeFrame>[] = [];
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split("\n\n");
-    buffer = parts.pop() ?? "";
-    for (const part of parts) {
-      const frame = parseNarrativeFrame(part.replace(/^data: /, "").trim());
-      if (frame) frames.push(frame);
-    }
-  }
-  return frames;
-}
+/** Module-level store: one narrative cache per browser session (UI-31/UI-45). */
+const narrativeStore = createNarrativeStore();
 
 /**
  * WR-04: 'duplicate reading ID' is a warning that never blocks, so identical
@@ -151,11 +138,13 @@ export function ReasoningDetailRow({
   reading,
   metadata,
   entry,
+  onRetry,
 }: {
   rowKey: string;
   reading: ReadingResult;
   metadata?: ComponentMetadata;
   entry?: NarrativeEntryState;
+  onRetry?: () => void;
 }) {
   const effectiveEntry: NarrativeEntryState =
     entry ?? {
@@ -167,11 +156,22 @@ export function ReasoningDetailRow({
     <tr className="bg-background">
       <td id={`reasoning-${rowKey}`} colSpan={11} className="px-6 py-2">
         {metadata ? (
-          <ReasoningPane
-            reading={reading}
-            metadata={metadata}
-            entry={effectiveEntry}
-          />
+          <>
+            <ReasoningPane
+              reading={reading}
+              metadata={metadata}
+              entry={effectiveEntry}
+            />
+            {effectiveEntry.status === "error" && onRetry ? (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-secondary"
+              >
+                Retry narrative
+              </button>
+            ) : null}
+          </>
         ) : (
           <p className="text-sm text-muted-foreground">
             Reasoning pane requires the session metadata slice.
@@ -199,8 +199,7 @@ export function ResultsTable({
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [reasoningOpen, setReasoningOpen] = useState<Record<string, boolean>>({});
-  const [entries, setEntries] = useState<Record<string, NarrativeEntryState>>({});
-  const requestedRef = useRef<Set<string>>(new Set());
+  const { getEntry } = useNarrativeStream(narrativeStore);
 
   const pageCount = Math.max(1, Math.ceil(readings.length / RESULTS_PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), pageCount);
@@ -218,57 +217,32 @@ export function ResultsTable({
 
   const toggleReasoning = (rowKey: string, reading: ReadingResult) => {
     setReasoningOpen((prev) => ({ ...prev, [rowKey]: !prev[rowKey] }));
-    // Tracer glue (superseded by Plan 03-03's hook): ONE one-shot fetch on
-    // first open — no cache, no abort, no incremental rendering here.
+    // Store-backed lazy open (UI-31/UI-44): first open fetches; re-opens hit
+    // the evaluatedAt-keyed cache and issue zero fetches. Metadata/evaluatedAt
+    // absent → entryFor renders the error state (demo path always supplies).
     if (
-      !requestedRef.current.has(rowKey) &&
       metadata !== undefined &&
-      evaluatedAt !== undefined
+      evaluatedAt !== undefined &&
+      narrativeStore.get(narrativeKey(evaluatedAt, "cml", rowKey)) === undefined
     ) {
-      requestedRef.current.add(rowKey);
-      setEntries((prev) => ({ ...prev, [rowKey]: { status: "loading", text: "" } }));
-      fetch("/api/reasoning/narrative", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(narrativeRequestBody(reading, metadata, evaluatedAt)),
-      })
-        .then(async (res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const frames = await collectNarrativeFrames(res);
-          const served = frames.find(
-            (f) => f?.type === "fallback" || f?.type === "rejected",
-          );
-          if (served && (served.type === "fallback" || served.type === "rejected")) {
-            setEntries((prev) => ({
-              ...prev,
-              [rowKey]: { status: "fallback", text: "", fallbackText: served.fallback },
-            }));
-          } else {
-            setEntries((prev) => ({
-              ...prev,
-              [rowKey]: {
-                status: "error",
-                text: "",
-                errorReason: "no narrative frame in response",
-              },
-            }));
-          }
-        })
-        .catch((e: unknown) => {
-          setEntries((prev) => ({
-            ...prev,
-            [rowKey]: {
-              status: "error",
-              text: "",
-              errorReason: e instanceof Error ? e.message : String(e),
-            },
-          }));
-        });
+      narrativeStore.open(
+        narrativeKey(evaluatedAt, "cml", rowKey),
+        narrativeRequestBody(reading, metadata, evaluatedAt),
+        { allowNarration: true },
+      );
     }
   };
 
+  const retryNarrative = (rowKey: string, reading: ReadingResult) => {
+    if (metadata === undefined || evaluatedAt === undefined) return;
+    narrativeStore.retry(
+      narrativeKey(evaluatedAt, "cml", rowKey),
+      narrativeRequestBody(reading, metadata, evaluatedAt),
+    );
+  };
+
   const entryFor = (rowKey: string): NarrativeEntryState =>
-    entries[rowKey] ?? {
+    (evaluatedAt !== undefined ? getEntry(narrativeKey(evaluatedAt, "cml", rowKey)) : undefined) ?? {
       status: "error",
       text: "",
       errorReason: "narrative request unavailable in this render context",
@@ -411,6 +385,11 @@ export function ResultsTable({
                           reading={reading}
                           metadata={metadata}
                           entry={entryFor(rowKey)}
+                          onRetry={
+                            metadata !== undefined && evaluatedAt !== undefined
+                              ? () => retryNarrative(rowKey, reading)
+                              : undefined
+                          }
                         />,
                       ]
                     : []),

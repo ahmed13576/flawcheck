@@ -325,6 +325,7 @@ export function useNarrativeStream(store: NarrativeStore): {
   useSyncExternalStore(
     (cb) => store.subscribe(cb),
     () => store.version(),
+    () => store.version(), // getServerSnapshot — SSR markup tests + RSC render
   );
   return {
     getEntry: (key) => store.get(key),
