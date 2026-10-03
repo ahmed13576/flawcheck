@@ -278,6 +278,17 @@ function renderResults(): string {
       onPageChange: () => {},
       onBackToMetadata: () => {},
       onSaveReview: () => {},
+      rows: [],
+      mapping: {
+        readingId: null,
+        measuredThickness: null,
+        measurementDate: null,
+        tank: null,
+        tInitial: null,
+        tPrevious: null,
+      },
+      notes: "",
+      indications: [],
     }),
   );
 }

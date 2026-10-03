@@ -44,6 +44,10 @@ export interface NarrativeStore {
   retry(key: NarrativeKey, payload: NarrativeRequest): void;
   abort(key: NarrativeKey): void;
   totals(): StoreTotals;
+  /** Model string from the last completed narrative (runtime-resolved, PLAT-05). */
+  narrativeModel(): string | null;
+  /** Panes currently in loading/streaming state (status-bar running… row). */
+  streamingCount(): number;
   fallbackServed(): boolean;
   unresolvedCitations(): string[];
 }
@@ -200,6 +204,21 @@ export function createNarrativeStore(): NarrativeStore {
         }
       }
       return { promptTokens, completionTokens, latencyMs };
+    },
+
+    narrativeModel() {
+      for (const e of entries.values()) {
+        if (e.status === "complete" && e.model) return e.model;
+      }
+      return null;
+    },
+
+    streamingCount() {
+      let n = 0;
+      for (const e of entries.values()) {
+        if (e.status === "loading" || e.status === "streaming") n++;
+      }
+      return n;
     },
 
     fallbackServed: () => fallbackServedFlag,

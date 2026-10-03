@@ -23,6 +23,8 @@ import { useRef, useState, useMemo } from "react";
 import { ArrowRight, Search } from "lucide-react";
 import { useWizard } from "@/components/wizard/wizard-context";
 import { SummaryStrip } from "@/components/wizard/summary-strip";
+import { ReasoningProvider, useReasoning } from "@/components/wizard/reasoning-context";
+import { PipelineStatusBar } from "@/components/wizard/pipeline-status-bar";
 import { ResultsTable } from "@/components/wizard/results-table";
 import { PtmtTriageList } from "@/components/wizard/ptmt-triage-list";
 import { formatEvaluatedAt } from "@/lib/wizard/format";
@@ -34,9 +36,12 @@ import {
 import type {
   ComponentMetadata,
   EvaluationResults,
+  ParsedRow,
+  PtmIndication,
   ReadingResult,
   Unit,
 } from "@/lib/ingest/session";
+import type { TargetField } from "@/lib/ingest/session";
 
 const UNIT_ASSUMPTION_COPY =
   "Units: CSV thickness in {csv}, metadata in {meta}. All values converted to mm (canonical).";
@@ -116,6 +121,12 @@ export interface ScreenResultsContentProps {
   onPageChange: (page: number) => void;
   onBackToMetadata: () => void;
   onSaveReview: () => void;
+  /** Session slices for the reasoning provider (03-04): extraction input +
+   * groupByCml history seam. */
+  rows: ParsedRow[];
+  mapping: Record<TargetField, string | null>;
+  notes: string;
+  indications: PtmIndication[];
 }
 
 export function ScreenResultsContent({
@@ -129,6 +140,10 @@ export function ScreenResultsContent({
   onPageChange,
   onBackToMetadata,
   onSaveReview,
+  rows,
+  mapping,
+  notes,
+  indications,
 }: ScreenResultsContentProps) {
   const [tab, setTab] = useState<ResultsTab>("all");
   const [query, setQuery] = useState("");
@@ -165,7 +180,18 @@ export function ScreenResultsContent({
 
   return (
     <section aria-label="Screen 3 — Results">
-      <div className="flex flex-col gap-6">
+      <ReasoningProvider
+        results={results}
+        metadata={metadata}
+        notes={notes}
+        indications={indications}
+        units={units}
+        evaluatedAt={evaluatedAt ?? ""}
+        rows={rows}
+        mapping={mapping}
+      >
+        <StatusRegion />
+        <div className="flex flex-col gap-6">
         <SummaryStrip summary={summary} />
 
         {/* Hero card — copy strings from Screen 3.png; n is the REAL count. */}
@@ -305,8 +331,29 @@ export function ScreenResultsContent({
             </Button>
           </div>
         </footer>
-      </div>
+        </div>
+      </ReasoningProvider>
     </section>
+  );
+}
+
+/** Status bar + extraction-failure banner (consumes the provider). */
+function StatusRegion() {
+  const { extraction } = useReasoning();
+  return (
+    <>
+      {extraction.state === "failed" ? (
+        <div
+          role="alert"
+          className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          Extraction failed: {extraction.message}. Narrative generation was
+          skipped — verdicts below are computed and unaffected. Correct the
+          input and re-run the evaluation.
+        </div>
+      ) : null}
+      <PipelineStatusBar />
+    </>
   );
 }
 
@@ -348,6 +395,10 @@ export function ScreenResults() {
       onPageChange={(page) => dispatch({ type: "set-page", page })}
       onBackToMetadata={() => dispatch({ type: "set-screen", screen: 2 })}
       onSaveReview={handleSaveReview}
+      rows={state.rows}
+      mapping={state.mapping}
+      notes={state.ptmt.notes}
+      indications={state.ptmt.indications}
     />
   );
 }
