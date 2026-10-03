@@ -29,7 +29,7 @@ import { formatFixed } from "@/lib/wizard/format";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { CitationChip, type CitationRecord } from "@/components/wizard/citation-chip";
 import { tokenize } from "@/lib/reasoning/tokenizer";
-import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
+import type { ComponentMetadata, PtmIndicationResult, ReadingResult } from "@/lib/ingest/session";
 
 export interface NarrativeEntryState {
   status: "loading" | "streaming" | "complete" | "error" | "fallback";
@@ -129,23 +129,100 @@ function clockStamp(): string {
 export function ReasoningPane({
   reading,
   metadata,
+  indication,
   entry,
   onRetry,
   onUnresolvedCitation,
 }: {
-  reading: ReadingResult;
-  metadata: ComponentMetadata;
+  /** CML variant: the full ReadingResult chain (mutually exclusive with indication). */
+  reading?: ReadingResult;
+  metadata?: ComponentMetadata;
+  /** PT/MT variant (03-04 Task 2): engine-emitted indication chain. */
+  indication?: PtmIndicationResult;
   entry: NarrativeEntryState;
   onRetry?: () => void;
   onUnresolvedCitation?: (id: string) => void;
 }) {
+  if (!reading && !indication) {
+    throw new Error("ReasoningPane requires reading or indication");
+  }
+  const isPtmt = indication !== undefined;
+  const subjectId = indication ? indication.id : (reading as ReadingResult).readingId;
   const [openCitation, setOpenCitation] = useState<string | null>(null);
   const auditClock = useRef<string>(clockStamp());
 
   const toggleCitation = (id: string) =>
     setOpenCitation((prev) => (prev === id ? null : id));
 
-  const chain = (
+  const ptmtChain = indication ? (
+    <div className="flex flex-col gap-3">
+      <div>
+        <p className={STEP_LABEL}>Inputs</p>
+        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+          <span className={`${CHAIN_VALUE} whitespace-nowrap`}>
+            <span className="mr-1 font-sans text-xs text-muted-foreground">Method</span>
+            {indication.method}
+          </span>
+          <span className={`${CHAIN_VALUE} whitespace-nowrap`}>
+            <span className="mr-1 font-sans text-xs text-muted-foreground">Dimensions</span>
+            {`L ${indication.lengthMm.toFixed(1)} × W ${indication.widthMm.toFixed(1)} mm`}
+          </span>
+          <span className={`${CHAIN_VALUE} whitespace-nowrap`}>
+            <span className="mr-1 font-sans text-xs text-muted-foreground">Count</span>
+            {indication.count}
+          </span>
+          <span className={`${CHAIN_VALUE} whitespace-nowrap`}>
+            <span className="mr-1 font-sans text-xs text-muted-foreground">Edge separation</span>
+            {indication.edgeSeparationMm === null
+              ? "—"
+              : `${indication.edgeSeparationMm.toFixed(1)} mm`}
+          </span>
+          <span className={`${CHAIN_VALUE} whitespace-nowrap`}>
+            <span className="mr-1 font-sans text-xs text-muted-foreground">Crack suspect</span>
+            {indication.crackSuspect ? "yes" : "no"}
+          </span>
+          {(
+            [
+              ["Relevance threshold", criteria.ptmt.relevance_threshold_mm],
+              ["Max rounded dimension", criteria.ptmt.limits.max_rounded_dimension_mm],
+            ] as const
+          ).map(([label, value]) => (
+            <span key={label} className={`${CHAIN_VALUE} whitespace-nowrap`}>
+              <span className="mr-1 font-sans text-xs text-muted-foreground">{label}</span>
+              {value} mm
+            </span>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p className={STEP_LABEL}>Clause</p>
+        <div className="mt-1 flex flex-wrap items-start gap-2">
+          {(() => {
+            const record = recordFor(indication.citationId);
+            return record ? (
+              <CitationChip
+                record={record}
+                expanded={openCitation === indication.citationId}
+                onToggle={toggleCitation}
+              />
+            ) : null;
+          })()}
+        </div>
+      </div>
+      <div>
+        <p className={STEP_LABEL}>Limit</p>
+        <p className="mt-1 text-sm">{indication.detail}</p>
+      </div>
+      <div>
+        <p className={STEP_LABEL}>Verdict</p>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <VerdictChip verdict={indication.verdict} />
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const chain = reading ? (
     <div className="flex flex-col gap-3">
       <div>
         <p className={STEP_LABEL}>Inputs</p>
@@ -192,7 +269,7 @@ export function ReasoningPane({
       <div>
         <p className={STEP_LABEL}>Limit</p>
         <p className={`${CHAIN_VALUE} mt-1 whitespace-nowrap`}>
-          {`t-required ${formatFixed(reading.tRequiredMm, 2)} mm ± ${formatFixed(metadata.gaugeUncertainty, 2)} mm gauge uncertainty`}
+          {`t-required ${formatFixed(reading.tRequiredMm, 2)} mm ± ${formatFixed((metadata as ComponentMetadata).gaugeUncertainty, 2)} mm gauge uncertainty`}
         </p>
         {reading.crGoverningMmYr !== null && (
           <p className={`${CHAIN_VALUE} whitespace-nowrap`}>
@@ -204,11 +281,12 @@ export function ReasoningPane({
         <p className={STEP_LABEL}>Verdict</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <VerdictChip verdict={reading.verdict} />
-          <span className="text-sm">{verdictBasis(reading, metadata)}</span>
+          <span className="text-sm">{verdictBasis(reading, metadata as ComponentMetadata)}</span>
         </div>
       </div>
     </div>
-  );
+  )
+  : ptmtChain;
 
   const streaming = entry.status === "streaming";
   const narrativeText = entry.status === "fallback" ? (entry.fallbackText ?? "") : entry.text;
@@ -225,7 +303,7 @@ export function ReasoningPane({
   return (
     <div
       className="rounded-lg border border-border bg-card p-4"
-      aria-label={`Reasoning for ${reading.readingId}`}
+      aria-label={`Reasoning for ${subjectId}`}
     >
       {chain}
 

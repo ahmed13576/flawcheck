@@ -146,6 +146,7 @@ export function ScreenResultsContent({
   indications,
 }: ScreenResultsContentProps) {
   const [tab, setTab] = useState<ResultsTab>("all");
+  const [unresolvedCitations, setUnresolvedCitations] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   const [savedVisible, setSavedVisible] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -181,6 +182,7 @@ export function ScreenResultsContent({
   return (
     <section aria-label="Screen 3 — Results">
       <ReasoningProvider
+        key={evaluatedAt ?? "none"}
         results={results}
         metadata={metadata}
         notes={notes}
@@ -191,7 +193,7 @@ export function ScreenResultsContent({
         mapping={mapping}
       >
         <StatusRegion />
-        <div className="flex flex-col gap-6">
+        <div key={evaluatedAt ?? "none"} className="flex flex-col gap-6">
         <SummaryStrip summary={summary} />
 
         {/* Hero card — copy strings from Screen 3.png; n is the REAL count. */}
@@ -280,7 +282,23 @@ export function ScreenResultsContent({
           />
         )}
 
-        <PtmtTriageList indications={results.indications} />
+        <PtmtTriageList
+            indications={results.indications}
+            evaluatedAt={evaluatedAt}
+            onUnresolvedCitation={(id) =>
+              setUnresolvedCitations((prev) => {
+                if (prev.has(id)) return prev;
+                const next = new Set(prev);
+                next.add(id);
+                return next;
+              })
+            }
+          />
+          {unresolvedCitations.size > 0 ? (
+            <p className="font-mono text-xs text-muted-foreground">
+              {`Citation audit: ${unresolvedCitations.size} unresolved citation(s) blocked at renderer.`}
+            </p>
+          ) : null}
 
         <div
           className="flex flex-col gap-2 pb-2 font-mono text-xs text-muted-foreground"

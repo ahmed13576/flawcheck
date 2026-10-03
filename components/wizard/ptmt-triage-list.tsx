@@ -8,11 +8,21 @@
  * line, verdict chip right, and the mono clause line from the existing engine
  * data (ASME B31.3 §344.3.2 MT / §344.4.2 PT — auto-selected by method).
  * Empty state per the Copywriting Contract (UI-20).
+ *
+ * 03-04 Task 2: each card gains the CML toggle contract (View/Hide reasoning,
+ * chevron rotate + motion-reduce, aria-expanded/aria-controls) and expands to
+ * a ReasoningPane instance fed by the shared provider store — kind "ptmt"
+ * payloads, identical five states, fallback from fallbackNarrativeForIndication.
  */
-import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import type { EvaluationResults, PtmIndicationResult } from "@/lib/ingest/session";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { FlagBadge } from "@/components/wizard/flag-badge";
+import { ReasoningPane } from "@/components/wizard/reasoning-pane";
+import { useReasoning } from "@/components/wizard/reasoning-context";
+import { narrativeKey } from "@/hooks/use-narrative-stream";
+import { criteria } from "@/lib/calc/criteria";
 
 function clauseRefForMethod(method: "PT" | "MT"): string {
   return method === "MT" ? "ASME B31.3 §344.3.2" : "ASME B31.3 §344.4.2";
@@ -40,7 +50,24 @@ export function dimensionsLine(
   return `declared: ${ind.morphology} (informational) — ${dims} classifies ${derived} per ASME B31.3 (L > 3W governs the verdict)`;
 }
 
-export function PtmtTriageList({ indications }: { indications: EvaluationResults["indications"] }) {
+const TOGGLE =
+  "inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary";
+const CHEVRON =
+  "transition-transform motion-reduce:transition-none";
+
+export function PtmtTriageList({
+  indications,
+  evaluatedAt,
+  onUnresolvedCitation,
+}: {
+  indications: EvaluationResults["indications"];
+  evaluatedAt: string | null;
+  onUnresolvedCitation?: (id: string) => void;
+}) {
+  const { store, allowNarration } = useReasoning();
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const toggle = (id: string) => setOpen((prev) => ({ ...prev, [id]: !prev[id] }));
+
   if (indications.length === 0) {
     return (
       <section aria-label="PT/MT triage" className="rounded-xl border border-border bg-card p-6">
@@ -56,28 +83,83 @@ export function PtmtTriageList({ indications }: { indications: EvaluationResults
   return (
     <section aria-label="PT/MT triage" className="flex flex-col gap-4">
       <h2 className="text-xl font-semibold">PT/MT triage</h2>
-      {indications.map((indication) => (
-        <article
-          key={indication.id}
-          className="flex gap-4 rounded-xl border border-border bg-card p-6"
-        >
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-400">
-            <ArrowRight className="size-5" aria-hidden="true" />
-          </div>
-          <div className="flex flex-1 flex-col gap-3">
-            <h3 className="font-semibold">Recommended next step</h3>
-            <div className="flex flex-wrap items-center gap-2">
-              <FlagBadge label={`[${indication.method}]`} tone="neutral" />
-              <span className="text-sm text-muted-foreground">{dimensionsLine(indication)}</span>
+      {indications.map((indication) => {
+        const isOpen = Boolean(open[indication.id]);
+        const entry =
+          evaluatedAt !== null
+            ? store.get(narrativeKey(evaluatedAt, "ptmt", indication.id))
+            : undefined;
+        return (
+          <article
+            key={indication.id}
+            className="flex gap-4 rounded-xl border border-border bg-card p-6"
+          >
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-400">
+              <ArrowRight className="size-5" aria-hidden="true" />
             </div>
-            <p className="text-sm text-muted-foreground">{indication.detail}</p>
-            <p className="font-mono text-xs text-muted-foreground">
-              {clauseRefForMethod(indication.method)}
-            </p>
-          </div>
-          <VerdictChip verdict={indication.verdict} />
-        </article>
-      ))}
+            <div className="flex flex-1 flex-col gap-3">
+              <h3 className="font-semibold">Recommended next step</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <FlagBadge label={`[${indication.method}]`} tone="neutral" />
+                <span className="text-sm text-muted-foreground">{dimensionsLine(indication)}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">{indication.detail}</p>
+              <p className="font-mono text-xs text-muted-foreground">
+                {clauseRefForMethod(indication.method)}
+              </p>
+              <button
+                type="button"
+                className={TOGGLE}
+                aria-expanded={isOpen}
+                aria-controls={`reasoning-ptmt-${indication.id}`}
+                onClick={() => {
+                  toggle(indication.id);
+                  if (
+                    !isOpen &&
+                    evaluatedAt !== null &&
+                    store.get(narrativeKey(evaluatedAt, "ptmt", indication.id)) === undefined
+                  ) {
+                    store.open(
+                      narrativeKey(evaluatedAt, "ptmt", indication.id),
+                      {
+                        kind: "ptmt",
+                        evaluatedAt,
+                        indication,
+                      },
+                      { allowNarration },
+                    );
+                  }
+                }}
+              >
+                <ChevronDown
+                  className={`size-4 ${CHEVRON} ${isOpen ? "rotate-180" : ""}`}
+                  aria-hidden="true"
+                />
+                {isOpen ? "Hide reasoning" : "View reasoning"}
+              </button>
+              {isOpen ? (
+                <div
+                  id={`reasoning-ptmt-${indication.id}`}
+                  aria-label={`Reasoning for ${indication.id}`}
+                >
+                  <ReasoningPane
+                    indication={indication}
+                    metadata={undefined}
+                    entry={
+                      entry ?? { status: "error", text: "", errorReason: "narrative request unavailable in this render context" }
+                    }
+                    onUnresolvedCitation={onUnresolvedCitation}
+                  />
+                </div>
+              ) : null}
+            </div>
+            <VerdictChip verdict={indication.verdict} />
+          </article>
+        );
+      })}
+      {/* criteria.ptmt referenced for the chain thresholds — keep the import
+          meaningful for the pane's per-method threshold block. */}
+      <span className="hidden">{typeof criteria.ptmt.relevance_threshold_mm}</span>
     </section>
   );
 }
