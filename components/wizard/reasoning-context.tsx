@@ -103,6 +103,16 @@ export function ReasoningProvider({
   };
 
   // ONE batched extraction per evaluatedAt (client-computed digest per R1).
+  //
+  // CR-02 (StrictMode deadlock): this effect deliberately registers NO
+  // cleanup and has NO cancellation channel. React 18/19 StrictMode
+  // double-invokes effects on mount (setup → cleanup → setup) with refs
+  // preserved: the historical `cancelled = true` cleanup discarded the only
+  // in-flight fetch (setup #2 early-returns on the firedForRef guard), pinning
+  // extraction at "running" forever in every dev run. React 18+ tolerates
+  // post-unmount setState on the same fiber, and firedForRef (keyed by
+  // evaluatedAt) keeps the fire-once-per-evaluation guarantee — see the
+  // runExtractionRequest contract and tests/wizard/reasoning-strictmode.test.ts.
   useEffect(() => {
     if (!evaluatedAt || firedForRef.current.has(evaluatedAt)) return;
     firedForRef.current.add(evaluatedAt);
@@ -117,42 +127,11 @@ export function ReasoningProvider({
       dateRange: dates.length > 0 ? { from: dates[0], to: dates[dates.length - 1] } : null,
       units: { csvThickness: units.csvThickness, metadata: units.metadata },
     };
-    let cancelled = false;
-    fetch("/api/reasoning/extract", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ metadata, notes, indications, populationDigest: digest }),
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        const json = (await res.json()) as {
-          extraction: unknown;
-          usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string } | null;
-          disabled?: boolean;
-          error?: string;
-        };
-        if (json.disabled) {
-          setExtraction({ state: "disabled" });
-          return;
-        }
-        if (!res.ok) {
-          setExtraction({ state: "failed", message: json.error ?? `extraction failed (${res.status})` });
-          return;
-        }
-        if (!json.usage) {
-          setExtraction({ state: "failed", message: "extraction response missing usage" });
-          return;
-        }
-        setExtraction({ state: "complete", usage: json.usage });
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) {
-          setExtraction({ state: "failed", message: e instanceof Error ? e.message : String(e) });
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    void runExtractionRequest(
+      fetch,
+      { metadata, notes, indications, populationDigest: digest },
+      setExtraction,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once per evaluatedAt
   }, [evaluatedAt]);
 
@@ -169,6 +148,53 @@ export function ReasoningProvider({
   );
 
   return <ReasoningContext.Provider value={value}>{children}</ReasoningContext.Provider>;
+}
+
+/**
+ * The ONE extraction request → state-machine mapping (CR-02): pure async, no
+ * React, and deliberately NO cancellation/cleanup parameter. The route
+ * contract: 200 {disabled:true} → `disabled`; non-200 or a missing usage
+ * block → `failed` (loud, never a silent skip); success → `complete`. A
+ * network/parse throw → `failed` with the error message. Because there is no
+ * cancellation channel, a StrictMode setup → cleanup → setup sequence can
+ * never discard the in-flight response — the first request's settlement is
+ * the one that lands on the (preserved) fiber state. Exported for the node
+ * test-suite (the hermetic suite has no DOM, so provider effects cannot run
+ * there — tests/wizard/reasoning-strictmode.test.ts pins this contract).
+ */
+export async function runExtractionRequest(
+  fetchImpl: typeof fetch,
+  body: unknown,
+  onState: (s: ExtractionStatus) => void,
+): Promise<void> {
+  try {
+    const res = await fetchImpl("/api/reasoning/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const json = (await res.json()) as {
+      extraction: unknown;
+      usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string } | null;
+      disabled?: boolean;
+      error?: string;
+    };
+    if (json.disabled) {
+      onState({ state: "disabled" });
+      return;
+    }
+    if (!res.ok) {
+      onState({ state: "failed", message: json.error ?? `extraction failed (${res.status})` });
+      return;
+    }
+    if (!json.usage) {
+      onState({ state: "failed", message: "extraction response missing usage" });
+      return;
+    }
+    onState({ state: "complete", usage: json.usage });
+  } catch (e: unknown) {
+    onState({ state: "failed", message: e instanceof Error ? e.message : String(e) });
+  }
 }
 
 /**
