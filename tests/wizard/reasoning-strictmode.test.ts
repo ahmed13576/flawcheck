@@ -33,6 +33,12 @@ const USAGE = {
   model: "fixture-extraction-model",
 };
 
+const PACK = { componentContext: { serviceDescription: "x" } };
+
+function extractionOkResponse(): Response {
+  return new Response(JSON.stringify({ extraction: PACK, usage: USAGE }), { status: 200 });
+}
+
 function jsonResponse(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), { status });
 }
@@ -63,9 +69,7 @@ function makeStrictModeEffect(
 
 describe("CR-02 — extraction survives StrictMode setup → cleanup → setup", () => {
   it("the guard dedupes the double-invoke; the FIRST request settles the state (never stuck running)", async () => {
-    const fetchMock = vi.fn(async () =>
-      jsonResponse({ extraction: { componentContext: { serviceDescription: "x" } }, usage: USAGE }),
-    );
+    const fetchMock = vi.fn(async () => extractionOkResponse());
     const states: ExtractionStatus[] = [];
     const effect = makeStrictModeEffect(fetchMock, (s) => states.push(s));
 
@@ -77,13 +81,11 @@ describe("CR-02 — extraction survives StrictMode setup → cleanup → setup",
     const final = states[states.length - 1];
     // The regression asserted the FINAL state — the discarded response left
     // { state: "running" } forever; the fix settles "complete".
-    expect(final).toEqual({ state: "complete", usage: USAGE });
+    expect(final).toEqual({ state: "complete", pack: PACK, usage: USAGE });
   });
 
   it("re-fires for a NEW evaluatedAt (re-evaluation) even after a previous one completed", async () => {
-    const fetchMock = vi.fn(async () =>
-      jsonResponse({ extraction: { componentContext: { serviceDescription: "x" } }, usage: USAGE }),
-    );
+    const fetchMock = vi.fn(async () => extractionOkResponse());
     const states: ExtractionStatus[] = [];
     const effect = makeStrictModeEffect(fetchMock, (s) => states.push(s));
 
@@ -94,7 +96,7 @@ describe("CR-02 — extraction survives StrictMode setup → cleanup → setup",
     await settle();
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(states[states.length - 1]).toEqual({ state: "complete", usage: USAGE });
+    expect(states[states.length - 1]).toEqual({ state: "complete", pack: PACK, usage: USAGE });
   });
 
   it("runExtractionRequest maps the route contract: disabled / non-200 / missing usage / success / throw", async () => {
@@ -123,12 +125,8 @@ describe("CR-02 — extraction survives StrictMode setup → cleanup → setup",
     );
     expect(states.pop()).toEqual({ state: "failed", message: "extraction response missing usage" });
 
-    await runExtractionRequest(
-      async () => jsonResponse({ extraction: { componentContext: { serviceDescription: "x" } }, usage: USAGE }),
-      body,
-      collect,
-    );
-    expect(states.pop()).toEqual({ state: "complete", usage: USAGE });
+    await runExtractionRequest(async () => extractionOkResponse(), body, collect);
+    expect(states.pop()).toEqual({ state: "complete", pack: PACK, usage: USAGE });
 
     await runExtractionRequest(async () => {
       throw new Error("network reset");

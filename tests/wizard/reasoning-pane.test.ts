@@ -343,4 +343,39 @@ describe("narrativeRequestBody — tracer glue body contract", () => {
     const { NarrativeRequestSchema } = await import("@/lib/reasoning/schemas");
     expect(NarrativeRequestSchema.safeParse(body).success).toBe(true);
   });
+
+  it("CR-01: carries the provider extraction pack + the reading's history when supplied", async () => {
+    const { narrativeRequestBody } = await import("@/components/wizard/results-table");
+    const pack = {
+      componentContext: { serviceDescription: "Cooling water line, carbon steel." },
+      notableFacts: ["Coating intact."],
+      ptmtNotesSummary: null,
+      cautions: [],
+    };
+    const history = { tInitialMm: 9.5, tPreviousMm: 9.2, dtLtYears: 10, dtStYears: null };
+    const body = narrativeRequestBody(READING, METADATA, "2026-09-27T14:32:00Z", {
+      extraction: pack,
+      history,
+    });
+    expect(body.extraction).toEqual(pack);
+    expect(body.history).toEqual(history);
+    // The enabled route's strict schema must accept the wired body (the
+    // Pitfall-5 guard 422s null-pack enabled calls — CR-01's dead path).
+    const { NarrativeRequestSchema } = await import("@/lib/reasoning/schemas");
+    expect(NarrativeRequestSchema.safeParse(body).success).toBe(true);
+  });
+});
+
+describe("WR-01 — one narrative store app-wide (provider-owned)", () => {
+  it("ResultsTable consumes useReasoning() and creates NO module-level second store", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(
+      new URL("../../components/wizard/results-table.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(src).toContain("useReasoning()");
+    expect(src).not.toMatch(/createNarrativeStore/);
+    // The UI-41 gate comes from the context — never hardcoded per call site.
+    expect(src).not.toContain("allowNarration: true");
+  });
 });

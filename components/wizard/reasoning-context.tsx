@@ -25,6 +25,7 @@ import {
   createNarrativeStore,
   type NarrativeStore,
 } from "@/hooks/use-narrative-stream";
+import type { ExtractionResult } from "@/lib/reasoning/schemas";
 import type {
   EvaluationInput,
   EvaluationResults,
@@ -40,7 +41,12 @@ import type { Unit } from "@/lib/ingest/session";
 export type ExtractionStatus =
   | { state: "pending" }
   | { state: "running" }
-  | { state: "complete"; usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string } }
+  | {
+      state: "complete";
+      /** CR-01: the structured context pack the narrative requests must carry. */
+      pack: ExtractionResult;
+      usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string };
+    }
   | { state: "failed"; message: string }
   | { state: "disabled" };
 
@@ -191,7 +197,11 @@ export async function runExtractionRequest(
       onState({ state: "failed", message: "extraction response missing usage" });
       return;
     }
-    onState({ state: "complete", usage: json.usage });
+    if (json.extraction === null || json.extraction === undefined) {
+      onState({ state: "failed", message: "extraction response missing the context pack" });
+      return;
+    }
+    onState({ state: "complete", pack: json.extraction as ExtractionResult, usage: json.usage });
   } catch (e: unknown) {
     onState({ state: "failed", message: e instanceof Error ? e.message : String(e) });
   }

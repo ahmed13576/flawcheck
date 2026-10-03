@@ -130,6 +130,12 @@ describe("PipelineStatusBar markup", () => {
       createElement(PipelineStatusBar, {
         extractionOverride: {
           state: "complete",
+          pack: {
+            componentContext: { serviceDescription: "Cooling water line, carbon steel." },
+            notableFacts: ["Coating intact."],
+            ptmtNotesSummary: null,
+            cautions: [],
+          },
           usage: { promptTokens: 790, completionTokens: 550, latencyMs: 3448, model: MODEL },
         },
       }),
