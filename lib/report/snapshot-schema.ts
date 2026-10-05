@@ -151,7 +151,7 @@ export const ReportAuditSchema = z
   .object({
     evaluatedAt: z.string().min(1),
     inputHash: z.string().min(1),
-    steps: z.array(AuditStepSchema).length(2),
+    steps: z.tuple([AuditStepSchema, AuditStepSchema]), // exactly [extraction, narrative]
   })
   .strict();
 
