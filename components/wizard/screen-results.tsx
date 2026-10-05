@@ -416,7 +416,7 @@ export function ScreenResults() {
       rows={state.rows}
       mapping={state.mapping}
       notes={state.ptmt.notes}
-      indications={state.ptmt.indications}
+      indications={results.indications}
     />
   );
 }
