@@ -19,12 +19,14 @@
  *   present and omitted when null (open-question resolution 4).
  */
 import { criteria } from "@/lib/calc/criteria";
+import { toMm } from "@/lib/calc/units";
 import { formatFixed } from "@/lib/wizard/format";
 import { VERDICT_LABELS } from "@/lib/reasoning/fallback";
 import type {
   ComponentMetadata,
   PtmIndicationResult,
   ReadingResult,
+  Unit,
 } from "@/lib/ingest/session";
 import type { ExtractionResult } from "@/lib/reasoning/schemas";
 
@@ -42,6 +44,14 @@ export interface NarrativeContextInput {
   reading?: ReadingResult;
   /** CML metadata numerics (gauge uncertainty, design pressure, stress). */
   metadata?: ComponentMetadata;
+  /**
+   * CR-03: the declared unit of `metadata`'s numerics. gaugeUncertainty is
+   * converted to canonical mm via lib/calc's toMm BEFORE it is rendered into
+   * the payload or registered in the numeric allowlist — the declared-unit
+   * value must never leak into mm arithmetic. Defaults to "mm" (the request
+   * schema now carries metadataUnit; ptmt requests have no metadata).
+   */
+  metadataUnit?: Unit;
   /** Required for kind "ptmt". */
   indication?: PtmIndicationResult;
   /** The Lightning evaluation context pack — worded fields only. */
@@ -127,8 +137,12 @@ export function buildNarrativeContext(input: NarrativeContextInput): NarrativeCo
       if (Object.keys(h).length > 0) values.history = h;
     }
     if (input.metadata) {
+      // CR-03: convert the declared-unit gauge uncertainty to canonical mm
+      // BEFORE formatting AND registering it — the allowlist and the payload
+      // must agree on the mm value the engine actually band-compared with.
+      const gaugeUncertaintyMm = toMm(input.metadata.gaugeUncertainty, input.metadataUnit ?? "mm");
       values.metadata = {
-        gauge_uncertainty_mm: fmt(input.metadata.gaugeUncertainty, 2),
+        gauge_uncertainty_mm: fmt(gaugeUncertaintyMm, 2),
         design_pressure: fmt(input.metadata.designPressure, 2),
         pressure_unit: input.metadata.pressureUnit,
         allowable_stress: fmt(input.metadata.allowableStress, 2),

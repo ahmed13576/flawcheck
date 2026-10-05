@@ -8,7 +8,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { POST } from "@/app/api/reasoning/extract/route";
 import { ExtractionResultSchema } from "@/lib/reasoning/schemas";
-import type { ComponentMetadata } from "@/lib/ingest/session";
 
 vi.mock("@/lib/llm/client", () => ({
   getClient: vi.fn(() => fakeClient),
@@ -39,7 +38,8 @@ const fakeClient = {
   },
 };
 
-const METADATA: ComponentMetadata = {
+// CR-03: strict-schema request fixtures carry the declared metadata unit.
+const METADATA: import("@/lib/reasoning/schemas").MetadataSlice = {
   od: 219.1,
   tNominal: 10.31,
   fca: 1.0,
@@ -47,6 +47,7 @@ const METADATA: ComponentMetadata = {
   designCode: "ASME B31.3 — 2024 Edition",
   pipeClass: 2,
   gaugeUncertainty: 0.1,
+  metadataUnit: "mm",
   pressureUnit: "MPa",
   designPressure: 3.5,
   allowableStress: 138,

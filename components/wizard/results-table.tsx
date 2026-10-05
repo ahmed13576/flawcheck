@@ -21,7 +21,7 @@
  * untouched.
  */
 import { useMemo, useState } from "react";
-import type { ComponentMetadata, ReadingResult, ReadingFlag } from "@/lib/ingest/session";
+import type { ComponentMetadata, ReadingResult, ReadingFlag, Unit } from "@/lib/ingest/session";
 import {
   formatFixed,
   formatCaption,
@@ -31,12 +31,13 @@ import {
 import { VerdictChip, FlagChip } from "@/components/wizard/verdict-chip";
 import { FlagDetailRow } from "@/components/wizard/flag-detail-row";
 import { ReasoningPane, type NarrativeEntryState } from "@/components/wizard/reasoning-pane";
+import { useReasoning } from "@/components/wizard/reasoning-context";
 import {
-  createNarrativeStore,
   useNarrativeStream,
   narrativeKey,
 } from "@/hooks/use-narrative-stream";
-import type { NarrativeRequest } from "@/lib/reasoning/schemas";
+import type { NarrativeRequest, ExtractionResult } from "@/lib/reasoning/schemas";
+import type { NarrativeHistory } from "@/lib/reasoning/narrative-context";
 
 export const RESULTS_PAGE_SIZE = 50;
 
@@ -69,27 +70,34 @@ const REASONING_TOGGLE =
   "inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-xs font-semibold hover:border-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring";
 
 /**
- * Tracer glue request body (superseded by Plan 03-03's hook). Exported pure
- * for the node test-suite; `history: null` satisfies the strict schema's
- * nullable-required key.
+ * CML narrative request body (CR-01). Exported pure for the node test-suite.
+ * The provider's extraction pack rides along when extraction is complete —
+ * the route's Pitfall-5 guard 422s every enabled cml request carrying
+ * `extraction: null`; while extraction is pending/failed the caller does not
+ * open panes at all (allowNarration is false → the store answers with the
+ * UI-41 error entry instead of fetching). `history` carries the reading's
+ * positional campaign history (IN-01 seam) — null for a first campaign.
  */
 export function narrativeRequestBody(
   reading: ReadingResult,
   metadata: ComponentMetadata,
   evaluatedAt: string,
-): NarrativeRequest {
+  opts: {
+    /** CR-03: the declared metadata unit — required by the strict schema. */
+    metadataUnit?: Unit;
+    extraction?: ExtractionResult | null;
+    history?: NarrativeHistory | null;
+  } = {},
+): Extract<NarrativeRequest, { kind: "cml" }> {
   return {
     kind: "cml",
     evaluatedAt,
     reading,
-    metadata,
-    extraction: null, // 03-04's provider wires the real pack; the route 422s on the enabled path without one
-    history: null,
+    metadata: { ...metadata, metadataUnit: opts.metadataUnit ?? "mm" },
+    extraction: opts.extraction ?? null,
+    history: opts.history ?? null,
   };
 }
-
-/** Module-level store: one narrative cache per browser session (UI-31/UI-45). */
-const narrativeStore = createNarrativeStore();
 
 /**
  * WR-04: 'duplicate reading ID' is a warning that never blocks, so identical
@@ -137,12 +145,15 @@ export function ReasoningDetailRow({
   rowKey,
   reading,
   metadata,
+  metadataUnit,
   entry,
   onRetry,
 }: {
   rowKey: string;
   reading: ReadingResult;
   metadata?: ComponentMetadata;
+  /** CR-03: declared metadata unit — the pane converts gauge uncertainty to mm. */
+  metadataUnit?: Unit;
   entry?: NarrativeEntryState;
   onRetry?: () => void;
 }) {
@@ -160,6 +171,7 @@ export function ReasoningDetailRow({
             <ReasoningPane
               reading={reading}
               metadata={metadata}
+              metadataUnit={metadataUnit}
               entry={effectiveEntry}
             />
             {effectiveEntry.status === "error" && onRetry ? (
@@ -199,7 +211,11 @@ export function ResultsTable({
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [reasoningOpen, setReasoningOpen] = useState<Record<string, boolean>>({});
-  const { getEntry } = useNarrativeStream(narrativeStore);
+  // CR-01/WR-01: ONE provider-owned store + narration gate for the whole app —
+  // a second module-level store here would double the FIFO cap, hide CML
+  // narratives from the status bar, and bypass the UI-41 allowNarration gate.
+  const { store, extraction, allowNarration, historyFor, metadataUnit } = useReasoning();
+  const { getEntry } = useNarrativeStream(store);
 
   const pageCount = Math.max(1, Math.ceil(readings.length / RESULTS_PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), pageCount);
@@ -215,29 +231,39 @@ export function ResultsTable({
   const toggle = (key: string) =>
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const toggleReasoning = (rowKey: string, reading: ReadingResult) => {
+  /** The provider's extraction pack — null while extraction is pending/failed
+   * (allowNarration is false then, so open() errors with the UI-41 reason
+   * instead of fetching and the route never sees a null-pack enabled call). */
+  const extractionPack = extraction.state === "complete" ? extraction.pack : null;
+
+  const toggleReasoning = (rowKey: string, reading: ReadingResult, dataIndex: number) => {
     setReasoningOpen((prev) => ({ ...prev, [rowKey]: !prev[rowKey] }));
     // Store-backed lazy open (UI-31/UI-44): first open fetches; re-opens hit
     // the evaluatedAt-keyed cache and issue zero fetches. Metadata/evaluatedAt
     // absent → entryFor renders the error state (demo path always supplies).
-    if (
-      metadata !== undefined &&
-      evaluatedAt !== undefined &&
-      narrativeStore.get(narrativeKey(evaluatedAt, "cml", rowKey)) === undefined
-    ) {
-      narrativeStore.open(
-        narrativeKey(evaluatedAt, "cml", rowKey),
-        narrativeRequestBody(reading, metadata, evaluatedAt),
-        { allowNarration: true },
-      );
-    }
+    if (metadata === undefined || evaluatedAt === undefined) return;
+    const key = narrativeKey(evaluatedAt, "cml", rowKey);
+    if (store.get(key) !== undefined) return;
+    store.open(
+      key,
+      narrativeRequestBody(reading, metadata, evaluatedAt, {
+        metadataUnit,
+        extraction: extractionPack,
+        history: historyFor(dataIndex),
+      }),
+      { allowNarration },
+    );
   };
 
-  const retryNarrative = (rowKey: string, reading: ReadingResult) => {
+  const retryNarrative = (rowKey: string, reading: ReadingResult, dataIndex: number) => {
     if (metadata === undefined || evaluatedAt === undefined) return;
-    narrativeStore.retry(
+    store.retry(
       narrativeKey(evaluatedAt, "cml", rowKey),
-      narrativeRequestBody(reading, metadata, evaluatedAt),
+      narrativeRequestBody(reading, metadata, evaluatedAt, {
+        metadataUnit,
+        extraction: extractionPack, // rebuilt with the CURRENT extraction state (WR-03)
+        history: historyFor(dataIndex),
+      }),
     );
   };
 
@@ -274,7 +300,10 @@ export function ResultsTable({
             {pageSlice.map((reading, i) => {
               const rl = rlCell(reading);
               const next = nextInspectionCell(reading);
-              const rowKey = resultRowKey(reading.readingId, start - 1 + i);
+              // Absolute position in the FULL readings array — the history seam
+              // is positionally aligned to it (groupByCml 1:1 with inputs).
+              const dataIndex = start - 1 + i;
+              const rowKey = resultRowKey(reading.readingId, dataIndex);
               return (
                 [
                   <tr key={rowKey} className="bg-background">
@@ -345,7 +374,7 @@ export function ResultsTable({
                         className={REASONING_TOGGLE}
                         aria-expanded={Boolean(reasoningOpen[rowKey])}
                         aria-controls={`reasoning-${rowKey}`}
-                        onClick={() => toggleReasoning(rowKey, reading)}
+                        onClick={() => toggleReasoning(rowKey, reading, dataIndex)}
                       >
                         <svg
                           viewBox="0 0 16 16"
@@ -384,10 +413,11 @@ export function ResultsTable({
                           rowKey={rowKey}
                           reading={reading}
                           metadata={metadata}
+                          metadataUnit={metadataUnit}
                           entry={entryFor(rowKey)}
                           onRetry={
                             metadata !== undefined && evaluatedAt !== undefined
-                              ? () => retryNarrative(rowKey, reading)
+                              ? () => retryNarrative(rowKey, reading, dataIndex)
                               : undefined
                           }
                         />,

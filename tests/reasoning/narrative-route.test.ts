@@ -9,11 +9,12 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { POST } from "@/app/api/reasoning/narrative/route";
-import { parseNarrativeFrame } from "@/lib/reasoning/schemas";
+import { parseNarrativeFrame, type MetadataSlice } from "@/lib/reasoning/schemas";
 import { fallbackNarrative } from "@/lib/reasoning/fallback";
-import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
+import type { ReadingResult } from "@/lib/ingest/session";
 
-const METADATA: ComponentMetadata = {
+// CR-03: strict-schema request fixtures carry the declared metadata unit.
+const METADATA: MetadataSlice = {
   od: 219.1,
   tNominal: 10.31,
   fca: 1.0,
@@ -21,6 +22,7 @@ const METADATA: ComponentMetadata = {
   designCode: "ASME B31.3 — 2024 Edition",
   pipeClass: 2,
   gaugeUncertainty: 0.1,
+  metadataUnit: "mm",
   pressureUnit: "MPa",
   designPressure: 3.5,
   allowableStress: 138,
@@ -171,5 +173,14 @@ describe("POST /api/reasoning/narrative — fallback-first slice", () => {
     const { history: _omitted, ...partial } = VALID_CML_BODY;
     const res = await post(partial);
     expect(res.status).toBe(400);
+  });
+
+  it("CR-03: rejects a metadata slice missing metadataUnit with 400 (strict schema)", async () => {
+    const metadataWithoutUnit = { ...METADATA } as Record<string, unknown>;
+    delete metadataWithoutUnit.metadataUnit;
+    const res = await post({ ...VALID_CML_BODY, metadata: metadataWithoutUnit });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("metadataUnit");
   });
 });

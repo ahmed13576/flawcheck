@@ -74,9 +74,16 @@ export function buildConclusions(snapshot: ReportSnapshot): ConclusionLine[] {
     if (reading.verdict === "accept") continue;
     const name = reading.cml ?? reading.location;
     if (reading.verdict === "reject") {
+      // WR-08: cite the reading's OWN engine-emitted citation (the governing
+      // t-required branch varies) — pressure-design clause only as fallback.
+      const engineCite =
+        reading.citations.find((id) => citationRef(id) !== "") ?? null;
+      const citeId =
+        engineCite ??
+        (citationRef("asme_b31_3_304_1_2") !== "" ? "asme_b31_3_304_1_2" : null);
       lines.push({
         text: `${name} is below the calculated required thickness and requires disposition before continued service.`,
-        citationId: citationRef("asme_b31_3_304_1_2") !== "" ? "asme_b31_3_304_1_2" : null,
+        citationId: citeId,
       });
     } else {
       const cite = reading.citations.find((id) => citationRef(id) !== "") ?? null;

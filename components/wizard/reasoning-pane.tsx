@@ -25,11 +25,17 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { criteria } from "@/lib/calc/criteria";
+import { toMm } from "@/lib/calc/units";
 import { formatFixed } from "@/lib/wizard/format";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { CitationChip, type CitationRecord } from "@/components/wizard/citation-chip";
 import { tokenize } from "@/lib/reasoning/tokenizer";
-import type { ComponentMetadata, PtmIndicationResult, ReadingResult } from "@/lib/ingest/session";
+import type {
+  ComponentMetadata,
+  PtmIndicationResult,
+  ReadingResult,
+  Unit,
+} from "@/lib/ingest/session";
 
 export interface NarrativeEntryState {
   status: "loading" | "streaming" | "complete" | "error" | "fallback";
@@ -51,11 +57,17 @@ const CHAIN_VALUE = "font-mono text-sm tabular-nums";
 const METRICS = "font-mono text-xs tabular-nums whitespace-nowrap text-muted-foreground";
 const NO_METRICS = "— · — · —";
 
-/** Verdict basis text restating the verdicts.ts band comparison (locked order). */
-function verdictBasis(reading: ReadingResult, metadata: ComponentMetadata): string {
+/** Verdict basis text restating the verdicts.ts band comparison (locked order).
+ * CR-03: the gauge uncertainty is converted from the declared metadata unit to
+ * canonical mm BEFORE display — the engine band-compared the converted value. */
+function verdictBasis(
+  reading: ReadingResult,
+  metadata: ComponentMetadata,
+  metadataUnit: Unit,
+): string {
   const tAct = formatFixed(reading.tActualMm, 2);
   const tReq = formatFixed(reading.tRequiredMm, 2);
-  const unc = formatFixed(metadata.gaugeUncertainty, 2);
+  const unc = formatFixed(toMm(metadata.gaugeUncertainty, metadataUnit), 2);
   if (reading.verdict === "reject") {
     return `t-actual ${tAct} mm < t-required ${tReq} mm`;
   }
@@ -129,6 +141,7 @@ function clockStamp(): string {
 export function ReasoningPane({
   reading,
   metadata,
+  metadataUnit = "mm",
   indication,
   entry,
   onRetry,
@@ -137,6 +150,8 @@ export function ReasoningPane({
   /** CML variant: the full ReadingResult chain (mutually exclusive with indication). */
   reading?: ReadingResult;
   metadata?: ComponentMetadata;
+  /** CR-03: declared unit of `metadata`'s numerics (default "mm"). */
+  metadataUnit?: Unit;
   /** PT/MT variant (03-04 Task 2): engine-emitted indication chain. */
   indication?: PtmIndicationResult;
   entry: NarrativeEntryState;
@@ -149,7 +164,7 @@ export function ReasoningPane({
   const isPtmt = indication !== undefined;
   const subjectId = indication ? indication.id : (reading as ReadingResult).readingId;
   const [openCitation, setOpenCitation] = useState<string | null>(null);
-  const auditClock = useRef<string>(clockStamp());
+  const [auditClock] = useState<string>(clockStamp()); // stable per mount
 
   const toggleCitation = (id: string) =>
     setOpenCitation((prev) => (prev === id ? null : id));
@@ -269,7 +284,7 @@ export function ReasoningPane({
       <div>
         <p className={STEP_LABEL}>Limit</p>
         <p className={`${CHAIN_VALUE} mt-1 whitespace-nowrap`}>
-          {`t-required ${formatFixed(reading.tRequiredMm, 2)} mm ± ${formatFixed((metadata as ComponentMetadata).gaugeUncertainty, 2)} mm gauge uncertainty`}
+          {`t-required ${formatFixed(reading.tRequiredMm, 2)} mm ± ${formatFixed(toMm((metadata as ComponentMetadata).gaugeUncertainty, metadataUnit), 2)} mm gauge uncertainty`}
         </p>
         {reading.crGoverningMmYr !== null && (
           <p className={`${CHAIN_VALUE} whitespace-nowrap`}>
@@ -281,7 +296,9 @@ export function ReasoningPane({
         <p className={STEP_LABEL}>Verdict</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <VerdictChip verdict={reading.verdict} />
-          <span className="text-sm">{verdictBasis(reading, metadata as ComponentMetadata)}</span>
+          <span className="text-sm">
+            {verdictBasis(reading, metadata as ComponentMetadata, metadataUnit)}
+          </span>
         </div>
       </div>
     </div>
@@ -401,7 +418,7 @@ export function ReasoningPane({
         )}
         {unresolved.map((id) => (
           <span key={id} className="w-full text-xs text-amber-400">
-            {`Unresolved citation blocked: '${id}' — rendered blank (audit ${auditClock.current}).`}
+            {`Unresolved citation blocked: '${id}' — rendered blank (audit ${auditClock}).`}
           </span>
         ))}
       </div>

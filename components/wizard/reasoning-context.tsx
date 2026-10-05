@@ -25,6 +25,7 @@ import {
   createNarrativeStore,
   type NarrativeStore,
 } from "@/hooks/use-narrative-stream";
+import type { ExtractionResult } from "@/lib/reasoning/schemas";
 import type {
   EvaluationInput,
   EvaluationResults,
@@ -40,7 +41,12 @@ import type { Unit } from "@/lib/ingest/session";
 export type ExtractionStatus =
   | { state: "pending" }
   | { state: "running" }
-  | { state: "complete"; usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string } }
+  | {
+      state: "complete";
+      /** CR-01: the structured context pack the narrative requests must carry. */
+      pack: ExtractionResult;
+      usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string };
+    }
   | { state: "failed"; message: string }
   | { state: "disabled" };
 
@@ -49,6 +55,8 @@ export interface ReasoningContextValue {
   extraction: ExtractionStatus;
   allowNarration: boolean;
   historyFor(index: number): NarrativeHistory | null;
+  /** CR-03: the declared metadata unit — narrative requests must carry it. */
+  metadataUnit: Unit;
 }
 
 const ReasoningContext = createContext<ReasoningContextValue | null>(null);
@@ -77,9 +85,9 @@ export function ReasoningProvider({
   mapping,
   children,
 }: ReasoningProviderProps) {
-  const storeRef = useRef<NarrativeStore | null>(null);
-  if (storeRef.current === null) storeRef.current = createNarrativeStore();
-  const store = storeRef.current;
+  // Single-store-per-mount: useState's lazy initializer creates exactly one
+  // store (the previous lazy-ref write-during-render tripped the React lint).
+  const [store] = useState<NarrativeStore>(() => createNarrativeStore());
 
   const firedForRef = useRef<Set<string>>(new Set());
   const [extraction, setExtraction] = useState<ExtractionStatus>({ state: "pending" });
@@ -103,6 +111,16 @@ export function ReasoningProvider({
   };
 
   // ONE batched extraction per evaluatedAt (client-computed digest per R1).
+  //
+  // CR-02 (StrictMode deadlock): this effect deliberately registers NO
+  // cleanup and has NO cancellation channel. React 18/19 StrictMode
+  // double-invokes effects on mount (setup → cleanup → setup) with refs
+  // preserved: the historical `cancelled = true` cleanup discarded the only
+  // in-flight fetch (setup #2 early-returns on the firedForRef guard), pinning
+  // extraction at "running" forever in every dev run. React 18+ tolerates
+  // post-unmount setState on the same fiber, and firedForRef (keyed by
+  // evaluatedAt) keeps the fire-once-per-evaluation guarantee — see the
+  // runExtractionRequest contract and tests/wizard/reasoning-strictmode.test.ts.
   useEffect(() => {
     if (!evaluatedAt || firedForRef.current.has(evaluatedAt)) return;
     firedForRef.current.add(evaluatedAt);
@@ -117,42 +135,12 @@ export function ReasoningProvider({
       dateRange: dates.length > 0 ? { from: dates[0], to: dates[dates.length - 1] } : null,
       units: { csvThickness: units.csvThickness, metadata: units.metadata },
     };
-    let cancelled = false;
-    fetch("/api/reasoning/extract", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ metadata, notes, indications, populationDigest: digest }),
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        const json = (await res.json()) as {
-          extraction: unknown;
-          usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string } | null;
-          disabled?: boolean;
-          error?: string;
-        };
-        if (json.disabled) {
-          setExtraction({ state: "disabled" });
-          return;
-        }
-        if (!res.ok) {
-          setExtraction({ state: "failed", message: json.error ?? `extraction failed (${res.status})` });
-          return;
-        }
-        if (!json.usage) {
-          setExtraction({ state: "failed", message: "extraction response missing usage" });
-          return;
-        }
-        setExtraction({ state: "complete", usage: json.usage });
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) {
-          setExtraction({ state: "failed", message: e instanceof Error ? e.message : String(e) });
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
+    void runExtractionRequest(
+      fetch,
+      // CR-03: the strict metadata slice now carries the declared unit.
+      { metadata: { ...metadata, metadataUnit: units.metadata }, notes, indications, populationDigest: digest },
+      setExtraction,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once per evaluatedAt
   }, [evaluatedAt]);
 
@@ -162,13 +150,65 @@ export function ReasoningProvider({
       extraction,
       allowNarration: extraction.state === "complete" || extraction.state === "disabled",
       historyFor,
+      metadataUnit: units.metadata,
     }),
     // historyFor depends on `inputs`; extraction gates narration.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store, extraction, inputs],
+    [store, extraction, inputs, units.metadata],
   );
 
   return <ReasoningContext.Provider value={value}>{children}</ReasoningContext.Provider>;
+}
+
+/**
+ * The ONE extraction request → state-machine mapping (CR-02): pure async, no
+ * React, and deliberately NO cancellation/cleanup parameter. The route
+ * contract: 200 {disabled:true} → `disabled`; non-200 or a missing usage
+ * block → `failed` (loud, never a silent skip); success → `complete`. A
+ * network/parse throw → `failed` with the error message. Because there is no
+ * cancellation channel, a StrictMode setup → cleanup → setup sequence can
+ * never discard the in-flight response — the first request's settlement is
+ * the one that lands on the (preserved) fiber state. Exported for the node
+ * test-suite (the hermetic suite has no DOM, so provider effects cannot run
+ * there — tests/wizard/reasoning-strictmode.test.ts pins this contract).
+ */
+export async function runExtractionRequest(
+  fetchImpl: typeof fetch,
+  body: unknown,
+  onState: (s: ExtractionStatus) => void,
+): Promise<void> {
+  try {
+    const res = await fetchImpl("/api/reasoning/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const json = (await res.json()) as {
+      extraction: unknown;
+      usage: { promptTokens: number; completionTokens: number; latencyMs: number; model: string } | null;
+      disabled?: boolean;
+      error?: string;
+    };
+    if (json.disabled) {
+      onState({ state: "disabled" });
+      return;
+    }
+    if (!res.ok) {
+      onState({ state: "failed", message: json.error ?? `extraction failed (${res.status})` });
+      return;
+    }
+    if (!json.usage) {
+      onState({ state: "failed", message: "extraction response missing usage" });
+      return;
+    }
+    if (json.extraction === null || json.extraction === undefined) {
+      onState({ state: "failed", message: "extraction response missing the context pack" });
+      return;
+    }
+    onState({ state: "complete", pack: json.extraction as ExtractionResult, usage: json.usage });
+  } catch (e: unknown) {
+    onState({ state: "failed", message: e instanceof Error ? e.message : String(e) });
+  }
 }
 
 /**
@@ -177,17 +217,22 @@ export function ReasoningProvider({
  * store and narration enabled — provider-gated semantics apply only inside
  * Screen 3.
  */
+/** Module-level fallback store — eager (tiny, inert until used). */
+const fallbackStoreSingleton: NarrativeStore = createNarrativeStore();
+
+/** Test seam: prime the fallback store (pipeline-status-bar markup tests). */
+export function __getFallbackStoreForTests(): NarrativeStore {
+  return fallbackStoreSingleton;
+}
+
 export function useReasoning(): ReasoningContextValue {
   const ctx = useContext(ReasoningContext);
   if (ctx) return ctx;
-  const fallbackRef = (globalThis as { __flawcheckFallbackStore?: NarrativeStore });
-  if (!fallbackRef.__flawcheckFallbackStore) {
-    fallbackRef.__flawcheckFallbackStore = createNarrativeStore();
-  }
   return {
-    store: fallbackRef.__flawcheckFallbackStore,
+    store: fallbackStoreSingleton,
     extraction: { state: "disabled" },
     allowNarration: true,
     historyFor: () => null,
+    metadataUnit: "mm",
   };
 }

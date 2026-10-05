@@ -96,11 +96,23 @@ export function verdictAgreement(text: string, verdict: LintVerdict): boolean {
  * Citation-allowlist (lint 3, wrong-context hard reject per A8): every
  * [[cite:<id>]] in the text must be in allowedIds — which is ALREADY the
  * subset the engine emitted for this reading, so an id that exists globally
- * but not for this reading still rejects.
+ * but not for this reading still rejects. WR-05: any [[cite: machinery left
+ * after stripping the strict-grammar tokens — a malformed id (invalid
+ * charset, empty) — rejects too; the machinery must never reach the reader.
  */
 export function citationAllowlistLint(text: string, allowedIds: string[]): boolean {
-  const tokens = [...text.matchAll(/\[\[cite:([a-z0-9_]+)\]\]/g)].map((m) => m[1]);
-  return tokens.every((id) => allowedIds.includes(id));
+  // Local FRESH regexes: a module-level global regex's lastIndex persists
+  // across calls, and matchAll clones WITH that lastIndex — mid-text state
+  // yields corrupted matches (undefined groups; found by the WR-05 pins).
+  // WR-05: the WIDENED charset for token extraction — any [[cite:…]] shape is
+  // a citation token, so a malformed id (FOO, empty) is caught by the
+  // allowlist check instead of falling through as raw machinery text.
+  const tokens = [...text.matchAll(/\[\[cite:([^\]\n]*)\]\]/g)].map((m) => m[1]);
+  if (!tokens.every((id) => allowedIds.includes(id))) return false;
+  // WR-05: any [[cite: machinery left after stripping the strict-grammar
+  // tokens (a malformed id like FOO, or empty) rejects too — widened charset.
+  const machineryScan = text.replace(/\[\[cite:[^\]\n]*\]\]/g, " ");
+  return !machineryScan.includes("[[cite:");
 }
 
 /**

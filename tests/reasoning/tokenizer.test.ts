@@ -53,6 +53,24 @@ describe("tokenize — unknown and incomplete tokens", () => {
     const segments = tokenize("[[cite:api570_table1]]");
     expect(segments).toEqual([{ kind: "cite", id: "api570_table1", resolved: true }]);
   });
+
+  it("WR-05: a malformed charset id ([[cite:FOO]]) is an UNRESOLVED cite token — never plain text", () => {
+    // Historically tokenized as plain TEXT and rendered verbatim (machinery
+    // reaching the reader). The widened grammar makes it a zero-glyph cite.
+    expect(tokenize("x [[cite:FOO]] y")).toEqual([
+      { kind: "text", value: "x " },
+      { kind: "cite", id: "FOO", resolved: false },
+      { kind: "text", value: " y" },
+    ]);
+  });
+
+  it("WR-05: an empty id ([[cite:]]) is an UNRESOLVED cite token", () => {
+    expect(tokenize("x [[cite:]] y")).toEqual([
+      { kind: "text", value: "x " },
+      { kind: "cite", id: "", resolved: false },
+      { kind: "text", value: " y" },
+    ]);
+  });
 });
 
 describe("tokenize — adjacency", () => {
@@ -70,6 +88,13 @@ describe("safeTailHold — client chunk-boundary helper", () => {
     expect(safeTailHold("ok [[cite:api")).toBe("ok ");
     expect(safeTailHold("ok [[cite:api570_7_2")).toBe("ok ");
     expect(safeTailHold("ok [[cite:")).toBe("ok ");
+  });
+
+  it("WR-05: strips a trailing partial with a non-grammar charset in flight", () => {
+    // A streamed `[[cite:FO` must hold back too — otherwise machinery text
+    // flashes mid-stream for malformed ids.
+    expect(safeTailHold("ok [[cite:FO")).toBe("ok ");
+    expect(safeTailHold("ok [[cite:F00_bar")).toBe("ok ");
   });
 
   it("leaves complete prose and closed tokens unchanged", () => {

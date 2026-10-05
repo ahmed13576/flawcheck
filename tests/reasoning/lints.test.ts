@@ -201,6 +201,18 @@ describe("citationAllowlistLint", () => {
       citationAllowlistLint("pressure design [[cite:asme_b31_3_304_1_2]]", reading.citations),
     ).toBe(false);
   });
+
+  it("WR-05: hard-rejects malformed cite machinery the strict grammar never matched", () => {
+    // A digit-free malformed id historically passed ALL four lints (no token
+    // was recognized) and reached the reader as raw machinery text.
+    expect(citationAllowlistLint("prose [[cite:FOO]] end", reading.citations)).toBe(false);
+    expect(citationAllowlistLint("prose [[cite:]] end", reading.citations)).toBe(false);
+    // Valid tokens are stripped before the machinery scan — prose containing
+    // a closed valid token still passes.
+    expect(
+      citationAllowlistLint("life [[cite:api570_7_2]] and nothing else", reading.citations),
+    ).toBe(true);
+  });
 });
 
 /* ------------------------------------------------------------------ */

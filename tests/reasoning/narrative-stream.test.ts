@@ -21,6 +21,7 @@ const METADATA = {
   designCode: "ASME B31.3 — 2024 Edition" as const,
   pipeClass: 2 as const,
   gaugeUncertainty: 0.1,
+  metadataUnit: "mm" as const, // CR-03: strict schema carries the declared unit
   pressureUnit: "MPa" as const,
   designPressure: 3.5,
   allowableStress: 138,
@@ -224,6 +225,27 @@ describe("createNarrativeStore", () => {
     expect(entry?.status).toBe("error");
     expect(entry?.errorReason).toBe(EXTRACTION_SKIPPED_REASON);
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it("WR-04: EOF without a terminal frame marks the entry errored — never a truncated complete", async () => {
+    // Only delta frames, then EOF ([DONE] is the sentinel, not a terminal
+    // frame — parseNarrativeFrame returns null for it). The historical bug
+    // promoted the truncated text to status "complete".
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        sseResponse([
+          JSON.stringify({ type: "delta", text: "The measured wall thickness is 6.50 mm. " }),
+        ]),
+      ),
+    );
+    const store = createNarrativeStore();
+    const key = narrativeKey("E1", "cml", "r-1");
+    store.open(key, payload(), { allowNarration: true });
+    await settle();
+    const entry = store.get(key);
+    expect(entry?.status).toBe("error");
+    expect(entry?.errorReason).toBe("narrative stream ended without a terminal frame");
   });
 
   it("chunk-boundary safety: a [[cite: token split across deltas never renders partially", async () => {

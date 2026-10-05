@@ -78,6 +78,14 @@ const MetadataSliceSchema = z.object({
   designCode: z.literal("ASME B31.3 — 2024 Edition"),
   pipeClass: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   gaugeUncertainty: z.number(),
+  /**
+   * CR-03: ComponentMetadata numerics arrive in the DECLARED metadata unit
+   * (the engine converts at eval entry — lib/calc/evaluate.ts). Without the
+   * unit, the reasoning layer mixed a possibly in/mils-denominated gauge
+   * uncertainty into canonical-mm arithmetic. Consumers convert via
+   * lib/calc's toMm BEFORE any arithmetic/allowlist/prompt use.
+   */
+  metadataUnit: z.enum(["mm", "in", "mils"]),
   pressureUnit: z.enum(["MPa", "psi"]),
   designPressure: z.number(),
   allowableStress: z.number(),
@@ -86,6 +94,9 @@ const MetadataSliceSchema = z.object({
   y: z.number(),
   formula: z.enum(["asme_b31_3_straight_pipe", "barlow_in_service"]),
 });
+
+/** Inferred shape of the metadata slice (ComponentMetadata + metadataUnit). */
+export type MetadataSlice = z.infer<typeof MetadataSliceSchema>;
 
 /**
  * Campaign history slice consumed by 03-02's route / 03-03's request builder.

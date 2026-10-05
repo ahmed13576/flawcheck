@@ -136,6 +136,21 @@ describe("ReasoningPane — deterministic chain (UI-26/27)", () => {
     expect(markup).toContain("ACCEPT");
     expect(markup).toContain("t-actual 6.50 mm ≥ t-required + 0.10 mm gauge uncertainty");
   });
+
+  it("CR-03: converts the declared-unit gauge uncertainty to mm in LIMIT and verdict basis", () => {
+    // metadataUnit "in" with uncertainty 0.01 → 0.25 mm canonical (0.01 in =
+    // 0.254 mm); the historical bug labeled the raw 0.01 as "mm".
+    const markup = renderToStaticMarkup(
+      createElement(ReasoningPane, {
+        reading: READING,
+        metadata: { ...METADATA, gaugeUncertainty: 0.01 },
+        metadataUnit: "in",
+        entry: FALLBACK_ENTRY,
+      }),
+    );
+    expect(markup).toContain("± 0.25 mm gauge uncertainty");
+    expect(markup).not.toContain("± 0.01 mm gauge uncertainty");
+  });
 });
 
 describe("ReasoningPane — narrative states", () => {
@@ -219,6 +234,18 @@ describe("ReasoningPane — citation allowlist enforcement (UI-34/35)", () => {
     // The raw machinery text never renders (the chain's chips render record
     // labels, not token syntax).
     expect(markup).not.toContain("[[cite:");
+  });
+
+  it("WR-05: a malformed-charset id ([[cite:FOO]]) renders zero glyphs + the audit stamp", () => {
+    // Historically `[[cite:FOO]]` tokenized as plain TEXT and printed
+    // verbatim — machinery text on the safety surface.
+    const markup = pane({
+      status: "complete",
+      text: "Narrative with [[cite:FOO]] malformed token.",
+    });
+    expect(markup).not.toContain("[[cite:");
+    expect(markup).toContain("Unresolved citation blocked:");
+    expect(markup).toContain("FOO");
   });
 });
 
@@ -342,5 +369,40 @@ describe("narrativeRequestBody — tracer glue body contract", () => {
     });
     const { NarrativeRequestSchema } = await import("@/lib/reasoning/schemas");
     expect(NarrativeRequestSchema.safeParse(body).success).toBe(true);
+  });
+
+  it("CR-01: carries the provider extraction pack + the reading's history when supplied", async () => {
+    const { narrativeRequestBody } = await import("@/components/wizard/results-table");
+    const pack = {
+      componentContext: { serviceDescription: "Cooling water line, carbon steel." },
+      notableFacts: ["Coating intact."],
+      ptmtNotesSummary: null,
+      cautions: [],
+    };
+    const history = { tInitialMm: 9.5, tPreviousMm: 9.2, dtLtYears: 10, dtStYears: null };
+    const body = narrativeRequestBody(READING, METADATA, "2026-09-27T14:32:00Z", {
+      extraction: pack,
+      history,
+    });
+    expect(body.extraction).toEqual(pack);
+    expect(body.history).toEqual(history);
+    // The enabled route's strict schema must accept the wired body (the
+    // Pitfall-5 guard 422s null-pack enabled calls — CR-01's dead path).
+    const { NarrativeRequestSchema } = await import("@/lib/reasoning/schemas");
+    expect(NarrativeRequestSchema.safeParse(body).success).toBe(true);
+  });
+});
+
+describe("WR-01 — one narrative store app-wide (provider-owned)", () => {
+  it("ResultsTable consumes useReasoning() and creates NO module-level second store", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(
+      new URL("../../components/wizard/results-table.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(src).toContain("useReasoning()");
+    expect(src).not.toMatch(/createNarrativeStore/);
+    // The UI-41 gate comes from the context — never hardcoded per call site.
+    expect(src).not.toContain("allowNarration: true");
   });
 });

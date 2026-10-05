@@ -113,6 +113,7 @@ describe("PipelineStatusBar markup", () => {
         designCode: "ASME B31.3 — 2024 Edition",
         pipeClass: 2,
         gaugeUncertainty: 0.1,
+        metadataUnit: "mm", // CR-03
         pressureUnit: "MPa",
         designPressure: 3.5,
         allowableStress: 138,
@@ -130,6 +131,12 @@ describe("PipelineStatusBar markup", () => {
       createElement(PipelineStatusBar, {
         extractionOverride: {
           state: "complete",
+          pack: {
+            componentContext: { serviceDescription: "Cooling water line, carbon steel." },
+            notableFacts: ["Coating intact."],
+            ptmtNotesSummary: null,
+            cautions: [],
+          },
           usage: { promptTokens: 790, completionTokens: 550, latencyMs: 3448, model: MODEL },
         },
       }),

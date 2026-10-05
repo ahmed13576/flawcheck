@@ -303,7 +303,7 @@ export async function consumeNarrativeStream(
     buffer += decoder.decode(value, { stream: true });
     // safeTailHold: never release a trailing partial `[[cite:` token (R3)
     const safe = safeTailHold(buffer);
-    let releasable = safe;
+    const releasable = safe;
     buffer = buffer.slice(safe.length);
     const parts = releasable.split("\n\n");
     const trailing = parts.pop() ?? "";
@@ -327,6 +327,14 @@ export async function consumeNarrativeStream(
         break;
       }
     }
+  }
+  if (!settled) {
+    // WR-04: EOF without a terminal frame (proxy/dev-server kill, upstream
+    // crash between deltas and the terminal) is a TRUNCATED narrative — it
+    // must never be promoted to "complete" and rendered as a finished
+    // product. The store's onError marks the entry errored; onDone is a no-op
+    // for error entries, so the truncated text can never settle as complete.
+    handlers.onError("narrative stream ended without a terminal frame");
   }
   handlers.onDone();
 }

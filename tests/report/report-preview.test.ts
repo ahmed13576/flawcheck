@@ -227,7 +227,10 @@ describe("FS-12 clause citation invariant (allowlist renderer)", () => {
     expect(lines[1].text).toContain(
       "is below the calculated required thickness and requires disposition before continued service.",
     );
-    expect(lines[1].citationId).toBe("asme_b31_3_304_1_2");
+    // WR-08: the conclusion cites the reading's OWN engine-emitted citation
+    // (the governing t-required branch varies) — the old pin asserted the
+    // hardcoded pressure-design clause the deep review flagged as a defect.
+    expect(lines[1].citationId).toBe("api570_7_1_2_lt");
     expect(lines[2].text).toBe(
       "The linear MT indication requires Level 2/3 inspector evaluation.",
     );
