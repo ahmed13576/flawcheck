@@ -13,7 +13,7 @@ FlawCheck ships as a five-phase vertical build for the Nebius x NVIDIA hackathon
 
 - [x] **Phase 1: Platform Spike & App Skeleton** - Prove Nebius Token Factory connectivity, startup-validated model routing, and the validated-call pattern before any feature depends on them
 - [x] **Phase 2: Ingestion & Deterministic Calc Engine** - Raw data in, deterministic verdicts out: CSV preview, metadata, PT/MT notes, and a pure unit-tested calc engine with golden fixtures
-- [ ] **Phase 3: LLM Reasoning & Citation Layer** - Streamed, clause-cited acceptance narratives around precomputed verdicts; the LLM never computes and can only cite the vetted allowlist
+- [x] **Phase 3: LLM Reasoning & Citation Layer** - Streamed, clause-cited acceptance narratives around precomputed verdicts; the LLM never computes and can only cite the vetted allowlist
 - [ ] **Phase 4: Report Rendering** - Evaluations become a defensible PDF report with sign-off and disclaimer baked in, plus a guaranteed print-CSS fallback
 - [ ] **Phase 5: Demo Hardening, Deployment & Submission** - Cached one-click demo with Live toggle, abuse guarding, Tavily lookup, public deploy, and the video/repo deliverables
 
@@ -94,8 +94,34 @@ Plans:
   4. PT/MT indications are evaluated against the builder's structured criteria config (L2 ground truth) with per-indication verdicts the narrative references
   5. A status line with model badges shows which Nemotron model (plus tokens/cost) handled each pipeline step
 
-**Plans**: TBD
+**Plans**: 2/7 plans executed
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+
+- [x] 03-00-PLAN.md — Flowstep GUI integration wave 1: 5-package install checkpoint + phase-start ref, oklch token system + ui primitives, Screen 1-2 restyle with functional parity (six mapping targets kept), 25 MB cap, UNINSTALL Phase 3 ledger, FS-01..FS-08 pins
+
+**Wave 2**
+
+- [x] 03-00b-PLAN.md — Flowstep GUI integration wave 2: Screen 3 restyle (real-data KPI cards, tabs/search/legend, sticky CML+Verdict columns), locked /report preview (Screen 4), FS-01..FS-12 test pins
+
+**Wave 3**
+
+- [ ] 03-01-PLAN.md — Tracer: fallback-first cited reasoning slice end-to-end (tokenizer + fallback + narrative route frame protocol + CitationChip/ReasoningPane + 11-column sticky table) on the Flowstep-restyled screens
+
+**Wave 4** *(parallel)*
+
+- [ ] 03-02-PLAN.md — LLM server layer: Lightning extraction route + Super-120B streamed narrative with sentence-guard + four lints + usage capture + live-gated fixture proof
+- [ ] 03-03-PLAN.md — Client streaming layer: narrative store (evaluatedAt-keyed cache, abort, FIFO cap) + store-backed pane UX
+
+**Wave 5**
+
+- [ ] 03-04-PLAN.md — Screen 3 integration: ReasoningProvider + Pipeline status bar + extraction-failure banner + PT/MT panes + re-evaluation reset (integrated into the 03-00/03-00b-restyled components)
+
+**Wave 6**
+
+- [ ] 03-05-PLAN.md — Phase verification wrap: offline e2e fallback-mode gates, purity/grep/dependency-ledger invariants (phase-start-ref byte-identity), UNINSTALL verification, UI-25..48 + FS-01..FS-12 + SC1-5 coverage summary
 
 ### Phase 4: Report Rendering
 
@@ -136,6 +162,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
 | 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) |
-| 3. LLM Reasoning & Citation Layer | 0/TBD | Not started | - |
+| 3. LLM Reasoning & Citation Layer | 7/7 | Complete (verified 52/52 + enabled-path walkthrough, 2026-10-05) |  |
 | 4. Report Rendering | 0/TBD | Not started | - |
 | 5. Demo Hardening, Deployment & Submission | 0/TBD | Not started | - |

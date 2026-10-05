@@ -3,7 +3,8 @@
 /**
  * Segmented unit control — UI-SPEC metadata form: the global mm | in | mils
  * selector (default mm) and the OQ1 MPa | psi pressure selector are both
- * segmented controls. Buttons carry aria-pressed; the group is labelled.
+ * segmented controls, tokenized per the Flowstep mock in 03-00 (active = orange
+ * primary). Buttons carry aria-pressed; the group is labelled.
  */
 export function UnitSegmented({
   options,
@@ -17,7 +18,7 @@ export function UnitSegmented({
   ariaLabel: string;
 }) {
   return (
-    <div role="group" aria-label={ariaLabel} className="inline-flex rounded border border-[#262626]">
+    <div role="group" aria-label={ariaLabel} className="inline-flex rounded-lg border border-border p-1">
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -26,10 +27,10 @@ export function UnitSegmented({
             type="button"
             aria-pressed={active}
             onClick={() => onChange(option.value)}
-            className={`px-3 py-1.5 text-sm font-semibold first:rounded-l last:rounded-r ${
+            className={`rounded-md px-3 py-1 text-sm font-medium ${
               active
-                ? "bg-[#2563eb] text-white"
-                : "bg-transparent text-[#a3a3a3] hover:text-[#ededed]"
+                ? "bg-primary text-primary-foreground"
+                : "bg-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {option.label}

@@ -15,6 +15,6 @@ if (existsSync(envPath)) {
 }
 
 export default defineConfig({
-  test: { environment: "node", include: ["tests/**/*.test.ts"] },
+  test: { environment: "node", include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"] },
   resolve: { alias: { "@": path.resolve(__dirname, ".") } },
 });

@@ -24,11 +24,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Reasoning
 
-- [ ] **REAS-01**: Lightning extracts/structures readings and notes into validated JSON (schema + Zod + one bounded retry)
-- [ ] **REAS-02**: Super-120B produces acceptance narrative around precomputed values — it never computes
-- [ ] **REAS-03**: Acceptance decisions cite clause IDs only from the builder-vetted, edition-pinned allowlist (renderer-enforced)
-- [ ] **REAS-04**: User sees a visible reasoning chain (inputs → clause → limit → verdict) per decision
-- [ ] **REAS-05**: PT/MT indications are evaluated against the builder's structured criteria config (L2 ground truth)
+- [x] **REAS-01**: Lightning extracts/structures readings and notes into validated JSON (schema + Zod + one bounded retry)
+- [x] **REAS-02**: Super-120B produces acceptance narrative around precomputed values — it never computes
+- [x] **REAS-03**: Acceptance decisions cite clause IDs only from the builder-vetted, edition-pinned allowlist (renderer-enforced)
+- [x] **REAS-04**: User sees a visible reasoning chain (inputs → clause → limit → verdict) per decision
+- [x] **REAS-05**: PT/MT indications are evaluated against the builder's structured criteria config (L2 ground truth)
 
 ### Report
 
@@ -42,7 +42,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLAT-02**: LLM responses stream (SSE); structured output enforced (`json_object` + Zod + one bounded retry)
 - [ ] **PLAT-03**: Tavily code-edition/errata lookup runs post-acceptance, cached, degrades gracefully — never blocks the acceptance flow
 - [ ] **PLAT-04**: Public demo is abuse-guarded (per-IP rate limit, token caps, unguessable demo path)
-- [ ] **PLAT-05**: Model badges show which Nemotron model handled each step
+- [x] **PLAT-05**: Model badges show which Nemotron model handled each step
 
 ### Demo & Submission
 
@@ -97,12 +97,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CALC-02 | Phase 2 | Complete |
 | CALC-03 | Phase 2 | Complete |
 | CALC-04 | Phase 2 | Complete |
-| REAS-01 | Phase 3 | Pending |
-| REAS-02 | Phase 3 | Pending |
-| REAS-03 | Phase 3 | Pending |
-| REAS-04 | Phase 3 | Pending |
-| REAS-05 | Phase 3 | Pending |
-| PLAT-05 | Phase 3 | Pending |
+| REAS-01 | Phase 3 | Complete |
+| REAS-02 | Phase 3 | Complete |
+| REAS-03 | Phase 3 | Complete |
+| REAS-04 | Phase 3 | Complete |
+| REAS-05 | Phase 3 | Complete |
+| PLAT-05 | Phase 3 | Complete |
 | REPT-01 | Phase 4 | Pending |
 | REPT-02 | Phase 4 | Pending |
 | REPT-03 | Phase 4 | Pending |

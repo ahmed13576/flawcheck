@@ -27,6 +27,7 @@ import { groupByCml } from "@/lib/ingest/group";
 import {
   assertFileBytes,
   buildParsedRows,
+  MAX_FILE_BYTES,
   parseNumericCell,
   rowIssues,
 } from "@/lib/ingest/validate";
@@ -430,7 +431,7 @@ export function hasBlockers(blockers: Blockers): boolean {
 // --- ingest pipeline (shared by parse-file and confirm-replace) ----------------
 
 function ingestCsv(state: WizardState, filename: string, content: string): WizardState {
-  // T-02-06: the 5 MB cap fires BEFORE tokenize — a huge file fails loudly.
+  // T-02-06: the byte cap (25 MB since 03-00) fires BEFORE tokenize — a huge file fails loudly.
   try {
     assertFileBytes(content.length);
   } catch (error) {
@@ -616,7 +617,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
           ingestError: {
             kind: "too-large",
             filename: action.filename,
-            message: `File is too large (${mb.toFixed(1)} MB). The limit is 5 MB.`,
+            message: `File is too large (${mb.toFixed(1)} MB). The limit is ${MAX_FILE_BYTES / (1024 * 1024)} MB.`,
           },
         },
       };

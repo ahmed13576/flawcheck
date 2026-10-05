@@ -1,0 +1,38 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": null,
+  "phases": [
+    {
+      "number": "1",
+      "name": "Platform Spike & App Skeleton",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "Ingestion & Deterministic Calc Engine",
+      "status": "complete"
+    },
+    {
+      "number": "3",
+      "name": "LLM Reasoning & Citation Layer",
+      "status": "in_progress"
+    },
+    {
+      "number": "4",
+      "name": "Report Rendering",
+      "status": "pending"
+    },
+    {
+      "number": "5",
+      "name": "Demo Hardening, Deployment & Submission",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 3 of 5 · 20% · executing"
+  },
+  "updated_at": "2026-09-28T05:58:39.702Z"
+}

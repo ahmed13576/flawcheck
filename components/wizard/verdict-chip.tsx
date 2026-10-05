@@ -29,6 +29,15 @@ export function VerdictChip({ verdict }: { verdict: Verdict }) {
 }
 
 /**
+ * Verdict TEXT source for non-chip surfaces (the /report document, 03-00b
+ * Task 2). Same ACCEPT/RE-CHECK/FAIL strings as the chip — never a new
+ * mapping; chip TEXT is the semantics (a11y floor 5).
+ */
+export function verdictLabel(verdict: Verdict): string {
+  return VERDICT_CHIP_CLASSES[verdict].label;
+}
+
+/**
  * Data-quality flag chip — rounded-rect base (distinct from the verdict pill,
  * Flag Chip Contract): OUTLIER and MEASUREMENT INCONSISTENCY amber,
  * INSUFFICIENT HISTORY gray. immediate_inspection has no chip — its locked

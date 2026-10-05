@@ -2,10 +2,13 @@
 
 /**
  * Screen 2 — Data Review & Component Metadata (UI-SPEC Screen Layout
- * Contract): session summary bar, column mapping panel, paginated parsed-row
- * table, metadata sections (children), and the sticky footer action bar with
- * the validation summary + Run Evaluation gate. State is preserved by
- * construction (back-navigation never clears the store).
+ * Contract), restyled per the Flowstep Screen 2 mock (03-00): hero card with
+ * status chips (readings parsed / attention items / Sample data), the mapping
+ * + parsed-rows + metadata + PT/MT cards (children), and the sticky footer
+ * action bar: Back to ingest · step status · live blocker summary · Run
+ * evaluation. State is preserved by construction (back-navigation never clears
+ * the store). The blocker summary text (aria-live) and the Run Evaluation gate
+ * are byte-identical to the Phase-2 contract.
  */
 import { useCallback, type ReactNode } from "react";
 import { blockingChecks, hasBlockers } from "@/lib/wizard/reducer";
@@ -46,6 +49,11 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
   const { state, dispatch } = useWizard();
   const blockers = blockingChecks(state);
   const gated = hasBlockers(blockers);
+  const attentionItems =
+    blockers.rowErrors +
+    blockers.unmappedRequired.length +
+    blockers.metadataProblems.length +
+    (blockers.unitsUndeclared ? 1 : 0);
 
   const handleMap = useCallback(
     (field: TargetField, header: string | null) =>
@@ -68,20 +76,37 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
 
   return (
     <section aria-label="Screen 2 — Review & Metadata">
-      <h1 tabIndex={-1} data-screen-heading className="text-xl font-semibold">
-        Review & metadata
-      </h1>
-
-      <div className="mt-6 rounded-lg border border-[#262626] bg-[#171717] p-4 text-sm">
-        <span className="font-semibold">{state.source.filename || "Loaded data"}</span>
-        <span className="text-[#a3a3a3]"> · </span>
-        <span>{state.csv.rowCount.toLocaleString("en-US")} rows</span>
-        <span className="text-[#a3a3a3]"> · </span>
-        <span>CSV thickness unit: {state.units.csvThickness}</span>
-        {state.source.isDemo && (
-          <span className="ml-2 inline-flex h-6 items-center rounded border border-gray-600 px-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-            sample data
+      <div className="rounded-2xl border border-border bg-card p-8">
+        <h1
+          tabIndex={-1}
+          data-screen-heading
+          className="text-2xl font-semibold tracking-tight"
+        >
+          Review your inspection setup
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Everything looks ready for evaluation. Take a moment to confirm the highlighted
+          assumptions.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+            {state.csv.rowCount.toLocaleString("en-US")} readings parsed
           </span>
+          {attentionItems > 0 && (
+            <span className="rounded-full bg-primary/15 px-3 py-1 text-xs text-primary">
+              {attentionItems} attention {attentionItems === 1 ? "item" : "items"}
+            </span>
+          )}
+          {state.source.isDemo && (
+            <span className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+              Sample data
+            </span>
+          )}
+        </div>
+        {state.source.filename && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Register: {state.source.filename} · CSV thickness unit: {state.units.csvThickness}
+          </p>
         )}
       </div>
 
@@ -105,30 +130,45 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
         {children}
       </div>
 
-      <div className="sticky bottom-0 mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#262626] bg-[#0a0a0a] px-1 py-3">
-        <p aria-live="polite" className="text-sm text-[#a3a3a3]">
-          {blockerSummary({
-            rowErrors: blockers.rowErrors,
-            unmapped: blockers.unmappedRequired.length,
-            metadataProblems: blockers.metadataProblems.length,
-            unitsUndeclared: blockers.unitsUndeclared,
-          })}
-        </p>
+      <div className="sticky bottom-0 mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card/95 px-1 py-3 backdrop-blur-sm">
         <button
           type="button"
-          disabled={gated || state.ui.evaluating}
-          onClick={() => {
-            dispatch({ type: "evaluation-start" });
-            // Yield a frame so Evaluating… paints before the sync compute.
-            setTimeout(() => dispatch({ type: "run-evaluation" }), 30);
-          }}
-          className="rounded bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+          onClick={() => dispatch({ type: "set-screen", screen: 1 })}
+          className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
-          {state.ui.evaluating ? "Evaluating…" : "Run Evaluation"}
+          Back to ingest
         </button>
+        <span className="hidden text-xs text-muted-foreground lg:inline">
+          Step 2 of 4 · Review complete when required fields are resolved
+        </span>
+        <div className="flex flex-wrap items-center gap-4">
+          <p
+            aria-live="polite"
+            className="rounded-lg bg-primary/10 px-4 py-2 text-sm text-primary"
+          >
+            {blockerSummary({
+              rowErrors: blockers.rowErrors,
+              unmapped: blockers.unmappedRequired.length,
+              metadataProblems: blockers.metadataProblems.length,
+              unitsUndeclared: blockers.unitsUndeclared,
+            })}
+          </p>
+          <button
+            type="button"
+            disabled={gated || state.ui.evaluating}
+            onClick={() => {
+              dispatch({ type: "evaluation-start" });
+              // Yield a frame so Evaluating… paints before the sync compute.
+              setTimeout(() => dispatch({ type: "run-evaluation" }), 30);
+            }}
+            className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {state.ui.evaluating ? "Evaluating…" : "Run evaluation"}
+          </button>
+        </div>
       </div>
       {state.ui.evaluationError && (
-        <p role="alert" className="mt-2 text-sm text-[#f87171]">
+        <p role="alert" className="mt-2 text-sm text-fail">
           Evaluation failed: {state.ui.evaluationError}. Check the review table and try again.
         </p>
       )}

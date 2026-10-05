@@ -4,9 +4,11 @@
  * Wizard root — header chrome (FlawCheck / NDT Inspection Copilot), step
  * indicator, demo provenance banner (UI-21: persists on Screens 2-3), and the
  * three screens. Focus moves to the new screen's <h1> after transitions
- * (UI-22, a11y floor 8).
+ * (UI-22, a11y floor 8). 03-00b: auto-writes the session-only report snapshot
+ * whenever results exist so /report (Task 2) is reviewable by direct URL.
  */
 import { useCallback, useEffect, useMemo } from "react";
+import { ShieldCheck } from "lucide-react";
 import { StepIndicator } from "@/components/wizard/step-indicator";
 import { WizardProvider, useWizard } from "@/components/wizard/wizard-context";
 import { ScreenIngest } from "@/components/wizard/screen-ingest";
@@ -16,12 +18,16 @@ import { MetadataForm } from "@/components/wizard/metadata-form";
 import { PtmtEntry } from "@/components/wizard/ptmt-entry";
 import { ConfirmDialog } from "@/components/wizard/confirm-dialog";
 import { metadataProblems, type MetadataDraftField } from "@/lib/wizard/reducer";
+import {
+  buildReportSnapshot,
+  writeReportSnapshot,
+} from "@/lib/report/session-snapshot";
 
 function DemoBanner() {
   return (
     <div
       role="status"
-      className="mb-4 rounded-lg border border-[#262626] bg-[#171717] px-4 py-2 text-sm"
+      className="mb-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary"
     >
       Demo scenario loaded — Zenodo record 16780668 subset (sample data)
     </div>
@@ -56,15 +62,32 @@ function WizardRoot() {
     }
   }, [ui.screen, state.csv.rowCount, dispatch]);
 
+  // 03-00b Task 1: auto-write the report snapshot whenever evaluation results
+  // exist, so the locked /report route (Task 2) is reviewable by direct URL
+  // (Screen 4 mock: "You can review the full layout now"). Session-only —
+  // sessionStorage key flawcheck:report-snapshot:v1; nothing durable, nothing
+  // transmitted. The snapshot is rebuilt only when a new evaluation replaces
+  // the results object (metadata/notes are frozen by the time results exist).
+  const results = state.results;
+  useEffect(() => {
+    if (!results) return;
+    const snapshot = buildReportSnapshot(state, state.ui.evaluatedAt);
+    if (snapshot) writeReportSnapshot(snapshot);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results]);
+
   return (
     <div
       className={`mx-auto w-full px-4 py-8 ${
         ui.screen === 3 ? "max-w-6xl" : "max-w-4xl"
       }`}
     >
-      <header className="flex flex-wrap items-baseline gap-x-3">
-        <span className="text-xl font-semibold">FlawCheck</span>
-        <span className="text-sm text-[#a3a3a3]">NDT Inspection Copilot</span>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <span className="flex items-center gap-2">
+          <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
+          <span className="text-base font-semibold">FlawCheck</span>
+        </span>
+        <span className="text-sm text-muted-foreground">NDT Inspection Copilot</span>
       </header>
       <div className="mt-4">
         <StepIndicator current={ui.screen} />

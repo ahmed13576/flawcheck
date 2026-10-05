@@ -75,3 +75,56 @@ checkpoint required). Zero install tasks ran in any Phase 2 plan; `node_modules`
 unchanged by Phase 2. CSV transform tooling for the demo fixture used the system Python
 3 stdlib (csv/json/zipfile) outside the repo dependency surface, and the fixture zip
 stayed in gitignored `scratch/`.
+
+---
+
+## Phase 3 — Flowstep GUI Integration
+
+**Date:** 2026-09-27
+**Approval:** user-directed Flowstep design adoption ("incorporate all the 4 screens
+according to this new design without breaking functionality" — 03-CONTEXT Flowstep
+addendum, 2026-09-27) + blocking human-verify checkpoint (03-00 Task 1, gate
+`blocking-human`, ratified by orchestrator 2026-09-27 after two install-approval
+prompts with no objection recorded). This is the phase's ONLY install task; any
+package beyond these five requires a NEW user checkpoint. Versions pinned verbatim
+from `flowstep-gui/Screen-1/package.json`.
+**node_modules footprint at install time:** 39K (class-variance-authority) +
+23K (clsx) + 43M (lucide-react, icon set) + 1.1M (tailwind-merge) + 56K
+(tw-animate-css) ≈ 44.2M added.
+
+### Registry verification findings (npm view, 2026-09-27, read-only)
+
+| Package @ range | Resolves to | Maintainer | Repo / Homepage | License | Finding |
+|---|---|---|---|---|---|
+| class-variance-authority@^0.7.1 | 0.7.1 | joebell93 (Joe Bell — cva's actual author) | github.com/joe-bell/cva | Apache-2.0 | Legitimate, canonical repo |
+| clsx@^2.1.1 | 2.1.1 | lukeed (Luke Edwards) | github.com/lukeed/clsx | MIT | Legitimate, canonical repo |
+| lucide-react@^0.562.0 | 0.562.0 | ericfennis (Lucide creator) | lucide.dev | ISC | Legitimate, canonical repo |
+| tailwind-merge@^3.4.0 | 3.7.0 | dcas (dcastil) | github.com/dcastil/tailwind-merge | MIT | Legitimate, canonical repo |
+| tw-animate-css@^1.4.0 | 1.4.0 | wombosvideo | github.com/Wombosvideo/tw-animate-css | MIT | Legitimate, canonical repo |
+
+No typosquat flags — every package name matches its canonical repository and the
+well-known maintainer expected for it. `npm ls` reports 0 vulnerabilities.
+Note: `tailwind-merge` resolved to 3.7.0 within the ^3.4.0 range.
+
+### Production dependencies (direct)
+
+| Package | Version |
+|---------|---------|
+| class-variance-authority | ^0.7.1 (resolved 0.7.1) |
+| clsx | ^2.1.1 (resolved 2.1.1) |
+| lucide-react | ^0.562.0 (resolved 0.562.0) |
+| tailwind-merge | ^3.4.0 (resolved 3.7.0) |
+| tw-animate-css | ^1.4.0 (resolved 1.4.0) |
+
+### Exact removal commands
+
+```bash
+# 1. Uninstall the five Flowstep design packages (from repo root)
+npm uninstall class-variance-authority clsx lucide-react tailwind-merge tw-animate-css
+
+# 2. (Optional) remove the design-system files Phase 3 added — see git history of build/phase-3
+#    lib/utils.ts  components/ui/  (primitives)
+#    Flowstep token blocks in app/globals.css and the restyled wizard components
+
+# 3. Delete this phase's section from UNINSTALL.md
+```
