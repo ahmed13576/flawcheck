@@ -16,32 +16,26 @@
  * report render DISABLED, zero PDF generation, zero print CSS.
  */
 import { LockKeyhole } from "lucide-react";
-import { criteria } from "@/lib/calc/criteria";
 import { formatFixed } from "@/lib/wizard/format";
 import { flagChipFor, verdictLabel } from "@/components/wizard/verdict-chip";
 import type { ReadingResult, Verdict } from "@/lib/ingest/session";
 import type { ReportSnapshot } from "@/lib/report/session-snapshot";
+// 04-01: the pure presentation derivations moved to the shared content seam
+// (lib/report/content.ts — one source of truth, two renderers: this HTML
+// document and the plan 04-02 server PDF renderer). Re-exported here so the
+// existing test imports keep resolving (a move plus re-export — no deletions).
+import {
+  REINSPECTION_CITATION_ID,
+  buildConclusions,
+  citationRef,
+  earliestNextInspection,
+} from "@/lib/report/content";
 
-type CitationRecord = (typeof criteria.citations)[number];
-const CITATION_RECORDS = criteria.citations as readonly CitationRecord[];
-
-/**
- * Allowlist renderer (citation invariant): the ref string is composed ONLY
- * from the citations.json record fields (code, clause) — cite-don't-quote.
- * An unknown id renders ZERO glyphs.
- * Exported pure for the node test-suite.
- */
-export function citationRef(id: string): string {
-  const record = CITATION_RECORDS.find((c) => c.id === id);
-  return record ? `${record.code} §${record.clause}` : "";
-}
-
-/**
- * The engine emits this id whenever a dated next-inspection is set
- * (lib/calc/evaluate.ts). The clause STRING is never hardcoded — it is
- * rendered from the citations.json record fields via citationRef().
- */
-const REINSPECTION_CITATION_ID = "api570_6_3_3_halflife";
+export {
+  buildConclusions,
+  citationRef,
+  earliestNextInspection,
+} from "@/lib/report/content";
 
 /** Verdict tone in the light document — token classes, never raw hex. */
 function verdictTextClass(verdict: Verdict): string {
@@ -54,70 +48,6 @@ function cmlName(reading: ReadingResult): string {
   return reading.cml
     ? `${reading.cml} — ${reading.location}`
     : reading.location;
-}
-
-export interface ConclusionLine {
-  text: string;
-  citationId: string | null;
-}
-
-/**
- * Phase-3 placeholder conclusions (Phase 4 replaces this list with
- * narrative-driven conclusions): one deterministic line per non-ACCEPT
- * reading and per non-ACCEPT indication, each ending with the clause ref
- * from the citations.json record for an engine-emitted citation id (null id
- * or unknown id → no clause glyphs). Exported pure for the node test-suite.
- */
-export function buildConclusions(snapshot: ReportSnapshot): ConclusionLine[] {
-  const lines: ConclusionLine[] = [];
-  for (const reading of snapshot.readings) {
-    if (reading.verdict === "accept") continue;
-    const name = reading.cml ?? reading.location;
-    if (reading.verdict === "reject") {
-      // WR-08: cite the reading's OWN engine-emitted citation (the governing
-      // t-required branch varies) — pressure-design clause only as fallback.
-      const engineCite =
-        reading.citations.find((id) => citationRef(id) !== "") ?? null;
-      const citeId =
-        engineCite ??
-        (citationRef("asme_b31_3_304_1_2") !== "" ? "asme_b31_3_304_1_2" : null);
-      lines.push({
-        text: `${name} is below the calculated required thickness and requires disposition before continued service.`,
-        citationId: citeId,
-      });
-    } else {
-      const cite = reading.citations.find((id) => citationRef(id) !== "") ?? null;
-      lines.push({
-        text: `${name} requires inspector re-check — data quality or the band boundary must be confirmed before acceptance.`,
-        citationId: cite,
-      });
-    }
-  }
-  for (const indication of snapshot.indications) {
-    if (indication.verdict === "accept") continue;
-    const action =
-      indication.verdict === "reject"
-        ? "requires Level 2/3 inspector evaluation"
-        : "requires inspector review before disposition";
-    lines.push({
-      text: `The ${indication.morphology} ${indication.method} indication ${action}.`,
-      citationId: citationRef(indication.citationId) !== "" ? indication.citationId : null,
-    });
-  }
-  return lines;
-}
-
-/**
- * Earliest dated next-inspection across the session's readings (ISO strings
- * sort lexicographically). Immediate-inspection readings keep
- * nextInspection null (G14) and never contribute a date. Exported pure.
- */
-export function earliestNextInspection(snapshot: ReportSnapshot): string | null {
-  const dates = snapshot.readings
-    .map((r) => r.nextInspection?.date ?? null)
-    .filter((d): d is string => d !== null)
-    .sort();
-  return dates[0] ?? null;
 }
 
 const PAPER_TD = "border-t border-border px-2 py-3 align-top";

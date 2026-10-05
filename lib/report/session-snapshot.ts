@@ -18,6 +18,19 @@ import type {
 
 export const REPORT_SNAPSHOT_KEY = "flawcheck:report-snapshot:v1";
 
+/**
+ * Inspector sign-off — 04-01 Task 1. Exactly four fields, all required for a
+ * complete sign-off (the /report gate checks all four non-empty). Stored on
+ * the snapshot under the optional `signOff` key, session-scope only (locked
+ * decision: sessionStorage alongside the snapshot, no server persistence).
+ */
+export interface ReportSignOff {
+  name: string;
+  certification: string;
+  date: string;
+  signature: string;
+}
+
 export interface ReportSnapshot {
   evaluatedAt: string;
   sourceName: string;
@@ -27,6 +40,8 @@ export interface ReportSnapshot {
   readings: ReadingResult[];
   indications: EvaluationResults["indications"];
   notes: string;
+  /** 04-01: optional validated sign-off; corrupt shapes degrade to absent. */
+  signOff?: ReportSignOff | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -49,6 +64,27 @@ function parseSnapshot(raw: unknown): ReportSnapshot | null {
     if (typeof summary[key] !== "number" || !Number.isFinite(summary[key])) return null;
   }
   if (!Array.isArray(readings) || !Array.isArray(indications)) return null;
+  // 04-01: signOff — keep only when all four fields are non-empty strings;
+  // anything else (missing key, null, wrong type, empty field) DEGRADES to
+  // absent while the rest of the snapshot stays valid. Never throws.
+  const rawSignOff = raw.signOff;
+  if (isRecord(rawSignOff)) {
+    const { name, certification, date, signature } = rawSignOff;
+    const fields = [name, certification, date, signature];
+    if (fields.every((f) => typeof f === "string" && f.length > 0)) {
+      return {
+        evaluatedAt,
+        sourceName,
+        units: { csvThickness, metadata: metadataUnit },
+        metadata: metadata as unknown as ComponentMetadata,
+        summary: summary as EvaluationResults["summary"],
+        readings: readings as ReadingResult[],
+        indications: indications as EvaluationResults["indications"],
+        notes,
+        signOff: { name, certification, date, signature } as ReportSignOff,
+      };
+    }
+  }
   return {
     evaluatedAt,
     sourceName,
@@ -59,6 +95,18 @@ function parseSnapshot(raw: unknown): ReportSnapshot | null {
     indications: indications as EvaluationResults["indications"],
     notes,
   };
+}
+
+/**
+ * Pure read-modify-write helper (04-01): returns a NEW snapshot object with
+ * the sign-off applied — the /report page persists sign-off edits through
+ * this. Never mutates the input snapshot.
+ */
+export function withSignOff(
+  snapshot: ReportSnapshot,
+  signOff: ReportSignOff,
+): ReportSnapshot {
+  return { ...snapshot, signOff: { ...signOff } };
 }
 
 /**
