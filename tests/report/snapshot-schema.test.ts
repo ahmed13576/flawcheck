@@ -101,7 +101,7 @@ describe("ReportPdfRequestSchema (WR-10 closure)", () => {
     if (parsed.success) {
       expect(parsed.data.snapshot.readings[0].crLtMmYr).toBe(0.3);
       expect(parsed.data.snapshot.signOff?.name).toBe("Mohammed Ahmed");
-      expect(parsed.data.audit.steps).toHaveLength(2);
+      expect(parsed.data.audit?.steps).toHaveLength(2);
     }
   });
 
