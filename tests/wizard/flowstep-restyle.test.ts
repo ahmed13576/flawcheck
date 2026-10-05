@@ -458,8 +458,7 @@ describe("FS-11 Screen 3 footer: back nav / Save review / Open report preview di
     // FS-11 updated (04-01 Task 3, UI-56): the CTA is UNLOCKED — Phase 4 owns /report.
     expect(buttonTag).not.toContain('aria-disabled="true"');
 
-    // Accessible hint for the gated affordance.
-    expect(markup).toContain("Report generation unlocks in Phase 4");
+    // Hint span removed (UI-56): the CTA is unlocked, the Phase-4-later text is false.
   });
 });
 
