@@ -280,6 +280,7 @@ function renderResults(): string {
       onPageChange: () => {},
       onBackToMetadata: () => {},
       onSaveReview: () => {},
+      onOpenReport: () => {},
       rows: [],
       mapping: {
         readingId: null,
@@ -454,8 +455,9 @@ describe("FS-11 Screen 3 footer: back nav / Save review / Open report preview di
     const previewIdx = markup.indexOf("Open report preview");
     expect(previewIdx).toBeGreaterThan(-1);
     const buttonTag = markup.slice(Math.max(0, previewIdx - 400), previewIdx);
-    expect(buttonTag).toContain("disabled");
-    expect(buttonTag).toContain('aria-disabled="true"');
+    // FS-11 updated (04-01 Task 3, UI-56): the CTA is UNLOCKED — Phase 4 owns /report.
+    expect(buttonTag).not.toContain('aria-disabled="true"');
+
     // Accessible hint for the gated affordance.
     expect(markup).toContain("Report generation unlocks in Phase 4");
   });
@@ -499,8 +501,9 @@ describe("FS-01..FS-12 full-contract sweep (03-05 cites this)", () => {
     expect(screen3).not.toContain("3,812");
     // FS-10 tabs + search + legend + sticky strip
     expect(screen3).toContain('aria-label="Search CML or location"');
-    // FS-11 footer with disabled Open report preview
-    expect(screen3).toContain('aria-disabled="true"');
+    // FS-11 updated (04-01 Task 3, UI-56): Open report preview ENABLED
+    expect(screen3).not.toContain('aria-disabled="true"');
+    expect(screen3).toContain("Open report preview");
 
     // FS-12 locked /report preview (depth pins: tests/report/report-preview.test.ts)
     const reportMarkup = renderToStaticMarkup(
