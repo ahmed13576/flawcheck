@@ -13,7 +13,7 @@ FlawCheck ships as a five-phase vertical build for the Nebius x NVIDIA hackathon
 
 - [x] **Phase 1: Platform Spike & App Skeleton** - Prove Nebius Token Factory connectivity, startup-validated model routing, and the validated-call pattern before any feature depends on them
 - [x] **Phase 2: Ingestion & Deterministic Calc Engine** - Raw data in, deterministic verdicts out: CSV preview, metadata, PT/MT notes, and a pure unit-tested calc engine with golden fixtures
-- [ ] **Phase 3: LLM Reasoning & Citation Layer** - Streamed, clause-cited acceptance narratives around precomputed verdicts; the LLM never computes and can only cite the vetted allowlist
+- [x] **Phase 3: LLM Reasoning & Citation Layer** - Streamed, clause-cited acceptance narratives around precomputed verdicts; the LLM never computes and can only cite the vetted allowlist
 - [ ] **Phase 4: Report Rendering** - Evaluations become a defensible PDF report with sign-off and disclaimer baked in, plus a guaranteed print-CSS fallback
 - [ ] **Phase 5: Demo Hardening, Deployment & Submission** - Cached one-click demo with Live toggle, abuse guarding, Tavily lookup, public deploy, and the video/repo deliverables
 
@@ -162,6 +162,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
 | 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) |
-| 3. LLM Reasoning & Citation Layer | 2/7 | In Progress|  |
+| 3. LLM Reasoning & Citation Layer | 7/7 | Complete (verified 52/52 + enabled-path walkthrough, 2026-10-05) |  |
 | 4. Report Rendering | 0/TBD | Not started | - |
 | 5. Demo Hardening, Deployment & Submission | 0/TBD | Not started | - |
