@@ -21,15 +21,25 @@ export type Segment =
   | { kind: "cite"; id: string; resolved: boolean }
   | { kind: "incomplete" };
 
-/** Single grammar: ids constrained to [a-z0-9_]+ (all 15 allowlist ids match). */
-const CITE_TOKEN = /\[\[cite:([a-z0-9_]+)\]\]/g;
-/** Trailing partial open — the chunk-boundary case. */
-const PARTIAL_TAIL = /\[\[cite:[a-z0-9_]*$/;
+/**
+ * WR-05: ANY literal `[[cite:…]]` shape is a citation token. The strict id
+ * grammar ([a-z0-9_]+) decided RESOLUTION historically — a malformed id like
+ * `[[cite:FOO]]` or `[[cite:]]` fell through as plain TEXT and reached the
+ * reader as machinery. Widening the token charset keeps the strict grammar as
+ * the ALLOWLIST decision only: a malformed id resolves false → zero glyphs +
+ * the audit stamp, never machinery text.
+ */
+const CITE_TOKEN = /\[\[cite:([^\]\n]*)\]\]/g;
+/** Trailing partial open — the chunk-boundary case (any id charset). */
+const PARTIAL_TAIL = /\[\[cite:[^\]\n]*$/;
 
 export function tokenize(narrative: string): Segment[] {
   const segments: Segment[] = [];
   let last = 0;
-  for (const match of narrative.matchAll(CITE_TOKEN)) {
+  // Local fresh regex — shared global regex state corrupts matchAll.
+  // WR-05 widened charset: ANY [[cite:…]] shape is a citation token; a
+  // malformed id resolves false → zero glyphs + audit stamp, never machinery.
+  for (const match of narrative.matchAll(/\[\[cite:([^\]\n]*)\]\]/g)) {
     const idx = match.index ?? 0;
     if (idx > last) {
       segments.push({ kind: "text", value: narrative.slice(last, idx) });

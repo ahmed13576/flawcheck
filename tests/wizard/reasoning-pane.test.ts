@@ -235,6 +235,18 @@ describe("ReasoningPane — citation allowlist enforcement (UI-34/35)", () => {
     // labels, not token syntax).
     expect(markup).not.toContain("[[cite:");
   });
+
+  it("WR-05: a malformed-charset id ([[cite:FOO]]) renders zero glyphs + the audit stamp", () => {
+    // Historically `[[cite:FOO]]` tokenized as plain TEXT and printed
+    // verbatim — machinery text on the safety surface.
+    const markup = pane({
+      status: "complete",
+      text: "Narrative with [[cite:FOO]] malformed token.",
+    });
+    expect(markup).not.toContain("[[cite:");
+    expect(markup).toContain("Unresolved citation blocked:");
+    expect(markup).toContain("FOO");
+  });
 });
 
 describe("ResultsTable — 11-column contract (UI-25, binding C1/C3)", () => {
