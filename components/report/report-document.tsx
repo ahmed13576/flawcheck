@@ -19,7 +19,9 @@ import { LockKeyhole } from "lucide-react";
 import { formatFixed } from "@/lib/wizard/format";
 import { flagChipFor, verdictLabel } from "@/components/wizard/verdict-chip";
 import type { ReadingResult, Verdict } from "@/lib/ingest/session";
-import type { ReportSnapshot } from "@/lib/report/session-snapshot";
+import type { ReportSnapshot, ReportSignOff } from "@/lib/report/session-snapshot";
+import type { ReportAudit } from "@/lib/report/audit";
+import { REPORT_UNIT_ASSUMPTION_COPY } from "@/lib/report/content";
 // 04-01: the pure presentation derivations moved to the shared content seam
 // (lib/report/content.ts — one source of truth, two renderers: this HTML
 // document and the plan 04-02 server PDF renderer). Re-exported here so the
@@ -57,17 +59,57 @@ function dateOnly(iso: string): string {
   return iso.slice(0, 10);
 }
 
+/** Empty sign-off base for controlled-field merges. */
+const EMPTY_SIGN_OFF: ReportSignOff = { name: "", certification: "", date: "", signature: "" };
+
+/**
+ * 04-03 sign-off gate — deliberately ALL FOUR fields (UI-SPEC region 2;
+ * UI-52's three-field condition is implied by it — do not "fix" to three).
+ * Exported pure for the node test-suite.
+ */
+export function isSignOffComplete(
+  signOff: ReportSignOff | null | undefined,
+): boolean {
+  if (!signOff) return false;
+  return (
+    signOff.name.trim().length > 0 &&
+    signOff.certification.trim().length > 0 &&
+    signOff.date.trim().length > 0 &&
+    signOff.signature.trim().length > 0
+  );
+}
+
 export function ReportDocument({
   snapshot,
   onBack,
   generatedAt,
+  signOff = null,
+  onSignOffChange,
+  audit = null,
+  onDownloadPdf,
+  onPrint,
+  pdfPending = false,
+  pdfError = null,
+  variant = "preview",
 }: {
   snapshot: ReportSnapshot;
   onBack?: () => void;
   /** ISO timestamp override (tests); defaults to the render wall clock. */
   generatedAt?: string;
+  /** 04-03: session sign-off (null → pending chip + empty form). */
+  signOff?: ReportSignOff | null;
+  onSignOffChange?: (next: ReportSignOff) => void;
+  audit?: ReportAudit | null;
+  onDownloadPdf?: () => void;
+  onPrint?: () => void;
+  pdfPending?: boolean;
+  pdfError?: string | null;
+  /** "print" omits the preview banner + action footer (browser supplies chrome). */
+  variant?: "preview" | "print";
 }) {
   const generated = dateOnly(generatedAt ?? new Date().toISOString());
+  const gateOpen = isSignOffComplete(signOff);
+  const signOffName = signOff?.name ?? "";
   const unit = snapshot.units.metadata;
   const conclusions = buildConclusions(snapshot);
   const nextInspection = earliestNextInspection(snapshot);
@@ -76,18 +118,20 @@ export function ReportDocument({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       {/* Top banner — on the dark chrome, per the mock. */}
-      <section
-        className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-primary"
-        aria-label="Report preview ready"
-      >
-        <LockKeyhole className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium">Report preview ready</p>
-          <p className="text-xs text-muted-foreground">
-            Generation unlocks in Phase 4. You can review the full layout now.
-          </p>
-        </div>
-      </section>
+      {variant === "preview" ? (
+        <section
+          className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-primary"
+          aria-label="Report preview ready"
+        >
+          <LockKeyhole className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium">Report ready</p>
+            <p className="text-xs text-muted-foreground">
+              Sign off to enable PDF export and printing.
+            </p>
+          </div>
+        </section>
+      ) : null}
 
       {/* The warm paper document — light tokens under data-appearance="light". */}
       <article
@@ -103,8 +147,8 @@ export function ReportDocument({
                 FlawCheck Inspection Report
               </h1>
             </div>
-            <span className="whitespace-nowrap rounded-full border border-recheck/40 bg-card px-3 py-1.5 text-[11px] uppercase tracking-wide text-recheck">
-              Pending inspector sign-off
+            <span className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-wide ${gateOpen ? "border-accept/40 bg-card text-accept" : "border-recheck/40 bg-card text-recheck"}`}>
+              {gateOpen ? `SIGNED OFF — ${signOffName}` : "Pending inspector sign-off"}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-4 font-mono text-xs text-muted-foreground">
@@ -121,6 +165,12 @@ export function ReportDocument({
               <span>{dateOnly(snapshot.evaluatedAt)}</span>
             </div>
           </div>
+          <p className="font-mono text-[10px] text-muted-foreground">
+            {REPORT_UNIT_ASSUMPTION_COPY.replace("{csv}", snapshot.units.csvThickness).replace(
+              "{meta}",
+              snapshot.units.metadata,
+            )}
+          </p>
         </header>
 
         <section className="flex flex-col gap-4 border-b border-border pb-6">
@@ -282,40 +332,83 @@ export function ReportDocument({
           <h2 className="text-xl font-semibold tracking-tight">Inspector sign-off</h2>
           <div className="grid gap-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="inspector-name" className="text-xs">Name</label>
+              <label htmlFor="inspector-name" className="text-xs">
+                Name <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
               <input
                 id="inspector-name"
                 placeholder="Full name"
-                disabled
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                value={signOff?.name ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), name: e.target.value })
+                }
+                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="certification" className="text-xs">Certification</label>
+              <label htmlFor="certification" className="text-xs">
+                Certification <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
               <input
                 id="certification"
                 placeholder="Certification or license"
-                disabled
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                value={signOff?.certification ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), certification: e.target.value })
+                }
+                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="signoff-date" className="text-xs">Date</label>
+              <label htmlFor="signoff-date" className="text-xs">
+                Date <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
               <input
                 id="signoff-date"
+                type="date"
                 placeholder="YYYY-MM-DD"
-                disabled
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                value={signOff?.date ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), date: e.target.value })
+                }
+                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="signoff-signature" className="text-xs">
+                Signature <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
+              <textarea
+                id="signoff-signature"
+                placeholder="Sign after reviewing the findings."
+                rows={2}
+                value={signOff?.signature ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), signature: e.target.value })
+                }
+                className="rounded-lg border border-input bg-card px-3 py-2 outline-none"
               />
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-xs">Signature</span>
-            <div className="h-10 border-b border-border" aria-hidden="true" />
-            <span className="text-xs text-muted-foreground">
-              Sign after reviewing the findings.
-            </span>
-          </div>
+        </section>
+
+        <section className="flex flex-col gap-3 border-b border-border pb-6">
+          <h2 className="text-xl font-semibold tracking-tight">Audit appendix</h2>
+          <p className="font-mono text-xs break-all text-muted-foreground">
+            {`input hash: ${audit?.inputHash ?? "\u2014"}`}
+          </p>
+          {(audit?.steps ?? [
+            { step: "extraction", model: null, promptTokens: null, completionTokens: null, latencyMs: null },
+            { step: "narrative", model: null, promptTokens: null, completionTokens: null, latencyMs: null },
+          ]).map((step) => (
+            <p key={step.step} className="font-mono text-xs break-all text-muted-foreground">
+              {`${step.step}: ${step.model ?? "\u2014"} \u00b7 tokens ${step.promptTokens ?? "\u2014"}/${step.completionTokens ?? "\u2014"} \u00b7 ${step.latencyMs === null ? "\u2014" : `${(step.latencyMs / 1000).toFixed(1)} s`}`}
+            </p>
+          ))}
         </section>
 
         <footer className="border-t border-border pt-4 font-mono text-xs leading-5 text-muted-foreground">
@@ -325,7 +418,8 @@ export function ReportDocument({
         </footer>
       </article>
 
-      {/* Action footer — generation gated to Phase 4 (locked decision). */}
+      {/* Action footer — omitted in print variant (browser supplies chrome). */}
+      {variant === "preview" ? (
       <div className="flex items-center justify-between gap-4">
         <button
           type="button"
@@ -335,27 +429,35 @@ export function ReportDocument({
           Back to results
         </button>
         <div className="flex items-center gap-3">
+          {pdfError ? (
+            <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {pdfError}
+            </p>
+          ) : null}
           <button
             type="button"
-            disabled
-            aria-disabled="true"
-            className="h-10 cursor-not-allowed rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground opacity-50"
+            disabled={!gateOpen || pdfPending}
+            aria-busy={pdfPending || undefined}
+            onClick={onDownloadPdf}
+            className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             Download PDF
           </button>
           <button
             type="button"
-            disabled
-            aria-disabled="true"
-            className="h-10 cursor-not-allowed rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground opacity-50"
+            onClick={onPrint}
+            className="h-10 rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
           >
             Print report
           </button>
-          <span className="ml-2 text-xs text-muted-foreground">
-            Available after inspector sign-off
-          </span>
+          {!gateOpen ? (
+            <span className="text-xs text-muted-foreground">
+              Available after inspector sign-off
+            </span>
+          ) : null}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }
