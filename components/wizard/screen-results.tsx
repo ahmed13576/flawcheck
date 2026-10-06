@@ -201,6 +201,12 @@ export function ScreenResultsContent({
         rows={rows}
         mapping={mapping}
       >
+        <AuditWriter
+          evaluatedAt={evaluatedAt}
+          rows={rows}
+          mapping={mapping}
+          units={units}
+        />
         <StatusRegion />
         <div key={evaluatedAt ?? "none"} className="flex flex-col gap-6">
         <SummaryStrip summary={summary} />
@@ -355,6 +361,73 @@ export function ScreenResultsContent({
   );
 }
 
+/**
+ * Live audit writer (REPT-02, 04-01): keyed on (evaluatedAt, extraction,
+ * storeVersion) — writes the honest telemetry record to sessionStorage once
+ * extraction completes (or fails/disables, with null fields). Re-evaluation
+ * remounts the provider and rewrites the record; never a stale write.
+ */
+function AuditWriter({
+  evaluatedAt,
+  rows,
+  mapping,
+  units,
+}: {
+  evaluatedAt: string | null;
+  rows: ParsedRow[];
+  mapping: Record<TargetField, string | null>;
+  units: { csvThickness: Unit; metadata: Unit };
+}) {
+  const { store, extraction } = useReasoning();
+  useSyncExternalStore(
+    (cb) => store.subscribe(cb),
+    () => store.version(),
+    () => store.version(),
+  );
+  const inputHashRef = useRef<Promise<string> | null>(null);
+  useEffect(() => {
+    if (!evaluatedAt) return;
+    let cancelled = false;
+    const extractionTelemetry =
+      extraction.state === "complete"
+        ? {
+            promptTokens: extraction.usage.promptTokens,
+            completionTokens: extraction.usage.completionTokens,
+            latencyMs: extraction.usage.latencyMs,
+            model: extraction.usage.model,
+          }
+        : null;
+    const narrativeTelemetry =
+      store.narrativeModel() !== null
+        ? {
+            model: store.narrativeModel() as string,
+            promptTokens: store.totals().promptTokens,
+            completionTokens: store.totals().completionTokens,
+            latencyMs: store.totals().latencyMs,
+          }
+        : null;
+    if (!inputHashRef.current) {
+      inputHashRef.current = computeInputHash(rows, mapping, units);
+    }
+    inputHashRef.current.then((hash) => {
+      if (cancelled) return;
+      writeReportAudit({
+        evaluatedAt,
+        inputHash: hash,
+        steps: buildAuditSteps(extractionTelemetry, narrativeTelemetry),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // storeVersion via subscription drives re-writes on narrative completion
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evaluatedAt, extraction, store.version()]);
+
+  return null; // writes only — renders nothing
+}
+
+/** Status bar + extraction-failure banner (consumes the provider). */
 /** Status bar + extraction-failure banner (consumes the provider). */
 function StatusRegion() {
   const { extraction } = useReasoning();

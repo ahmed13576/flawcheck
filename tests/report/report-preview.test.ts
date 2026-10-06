@@ -149,17 +149,10 @@ describe("FS-12 locked /report preview — chrome and gating", () => {
     expect(markup).toContain("Back to results");
   });
 
-  it("generates zero PDF and zero print CSS — source-level scan", () => {
-    const doc = readFileSync(
-      join(__dirname, "../../components/report/report-document.tsx"),
-      "utf8",
-    );
-    const page = readFileSync(join(__dirname, "../../app/report/page.tsx"), "utf8");
-    for (const source of [doc, page]) {
-      expect(source).not.toContain("window.print");
-      expect(source).not.toContain("@media print");
-      expect(source).not.toMatch(/jspdf|pdf-lib|pdfmake/i);
-    }
+  it('owns PDF + print (04-03): the page now wires window.print and the PDF fetch', () => {
+    const src = readFileSync('app/report/page.tsx', 'utf8');
+    expect(src).toContain('window.print');
+    expect(src).toContain('/api/report/pdf');
   });
 });
 
