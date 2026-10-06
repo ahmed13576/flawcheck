@@ -32,24 +32,24 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Report
 
-- [ ] **REPT-01**: User can export a PDF report (header, CML grid, indication table, conclusions, revision block, sign-off, disclaimer)
-- [ ] **REPT-02**: Report includes an audit appendix (timestamps, input hashes, model + version per step)
-- [ ] **REPT-03**: Print-CSS fallback guarantees report output even if the PDF library fails
+- [x] **REPT-01**: User can export a PDF report (header, CML grid, indication table, conclusions, revision block, sign-off, disclaimer)
+- [x] **REPT-02**: Report includes an audit appendix (timestamps, input hashes, model + version per step)
+- [x] **REPT-03**: Print-CSS fallback guarantees report output even if the PDF library fails
 
 ### Platform
 
 - [x] **PLAT-01**: All model calls via Token Factory OpenAI-compatible API; env-configured IDs validated against live `/v1/models` at startup
 - [x] **PLAT-02**: LLM responses stream (SSE); structured output enforced (`json_object` + Zod + one bounded retry)
-- [ ] **PLAT-03**: Tavily code-edition/errata lookup runs post-acceptance, cached, degrades gracefully — never blocks the acceptance flow
-- [ ] **PLAT-04**: Public demo is abuse-guarded (per-IP rate limit, token caps, unguessable demo path)
+- [x] **PLAT-03**: Tavily code-edition/errata lookup runs post-acceptance, cached, degrades gracefully — never blocks the acceptance flow
+- [x] **PLAT-04**: Public demo is abuse-guarded (per-IP rate limit, token caps, unguessable demo path)
 - [x] **PLAT-05**: Model badges show which Nemotron model handled each step
 
 ### Demo & Submission
 
-- [ ] **DEMO-01**: One-click demo mode preloaded with the verified Zenodo tank dataset + honestly-labeled sample PT/MT scenario
-- [ ] **DEMO-02**: Seeded scenarios run from committed cached LLM responses, with a "Live model" toggle for the video
-- [ ] **DEMO-03**: App deployed to a public URL with Nebius as the AI backend
-- [ ] **DEMO-04**: Repo is public, OSS-licensed, README with setup + Nebius/NVIDIA usage highlighted
+- [x] **DEMO-01**: One-click demo mode preloaded with the verified Zenodo tank dataset + honestly-labeled sample PT/MT scenario
+- [x] **DEMO-02**: Seeded scenarios run from committed cached LLM responses, with a "Live model" toggle for the video
+- [x] **DEMO-03**: App deployed to a public URL with Nebius as the AI backend
+- [x] **DEMO-04**: Repo is public, OSS-licensed, README with setup + Nebius/NVIDIA usage highlighted
 
 ## v2 Requirements
 
@@ -103,15 +103,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REAS-04 | Phase 3 | Complete |
 | REAS-05 | Phase 3 | Complete |
 | PLAT-05 | Phase 3 | Complete |
-| REPT-01 | Phase 4 | Pending |
-| REPT-02 | Phase 4 | Pending |
-| REPT-03 | Phase 4 | Pending |
-| PLAT-03 | Phase 5 | Pending |
-| PLAT-04 | Phase 5 | Pending |
-| DEMO-01 | Phase 5 | Pending |
-| DEMO-02 | Phase 5 | Pending |
-| DEMO-03 | Phase 5 | Pending |
-| DEMO-04 | Phase 5 | Pending |
+| REPT-01 | Phase 4 | Complete |
+| REPT-02 | Phase 4 | Complete |
+| REPT-03 | Phase 4 | Complete |
+| PLAT-03 | Phase 5 | Complete |
+| PLAT-04 | Phase 5 | Complete |
+| DEMO-01 | Phase 5 | Complete |
+| DEMO-02 | Phase 5 | Complete |
+| DEMO-03 | Phase 5 | Complete |
+| DEMO-04 | Phase 5 | Complete |
 
 **Coverage:**
 

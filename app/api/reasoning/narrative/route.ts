@@ -38,6 +38,8 @@ import {
 import { runFinalLints, sentenceRelayCutoff, numericConsistency } from "@/lib/reasoning/lints";
 import { NarrativeRequestSchema, isLlmDisabled } from "@/lib/reasoning/schemas";
 
+import { checkRateLimit, clientIp, rateLimitedResponse } from "@/lib/api/rate-limit";
+
 export const runtime = "nodejs";
 
 export { isLlmDisabled };
@@ -48,6 +50,8 @@ function citationCorpus(): string[] {
 }
 
 export async function POST(req: Request) {
+  const rl = checkRateLimit(clientIp(req));
+  if (!rl.allowed) return rateLimitedResponse(rl.retryAfterSeconds);
   // Parse-boundary validation (ASVS V5): reject bad bodies BEFORE anything.
   let body: unknown;
   try {
