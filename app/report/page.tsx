@@ -6,7 +6,9 @@
  * wires the full ReportDocument contract: sign-off persistence (sessionStorage
  * via withSignOff), Download PDF (POST /api/report/pdf → blob download), Print
  * (window.print — the same document, print CSS hides chrome), and the audit
- * record from Screen 3's writer.
+ * record from Screen 3's writer. After load it also fires the PLAT-03
+ * post-acceptance Tavily code-edition lookup (GET /api/tavily) — degrade-to-
+ * hidden: absent key, timeout, or failure renders no block, never an error.
  */
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -59,6 +61,34 @@ export default function ReportPage() {
   const [signOff, setSignOff] = useState<ReportSignOff | null>(() => readSignOff());
   const [pdfPending, setPdfPending] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [codeEditionSources, setCodeEditionSources] = useState<
+    Array<{ title: string; url: string }> | null
+  >(null);
+
+  // PLAT-03: one post-acceptance lookup per report view. Deps are the two
+  // stable identity strings (the snapshot object itself is re-read per render).
+  const designCode = snapshot?.metadata.designCode ?? null;
+  const evaluatedAt = snapshot?.evaluatedAt ?? null;
+  useEffect(() => {
+    if (!designCode || !evaluatedAt) return;
+    let disposed = false;
+    fetch(
+      `/api/tavily?designCode=${encodeURIComponent(designCode)}&evaluatedAt=${encodeURIComponent(evaluatedAt)}`,
+    )
+      .then((res) => (res.ok ? (res.json() as Promise<unknown>) : null))
+      .then((json) => {
+        if (disposed || !json || typeof json !== "object") return;
+        const results = (json as { results?: Array<{ title: string; url: string }> })
+          .results;
+        if (results && results.length > 0) setCodeEditionSources(results);
+      })
+      .catch(() => {
+        // degrade silently — the lookup must never block the report
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [designCode, evaluatedAt]);
 
   useEffect(() => {
     if (!hasSnapshot) {
@@ -122,6 +152,7 @@ export default function ReportPage() {
         signOff={signOff}
         onSignOffChange={changeSignOff}
         audit={audit}
+        codeEditionSources={codeEditionSources}
         onDownloadPdf={downloadPdf}
         onPrint={printReport}
         pdfPending={pdfPending}

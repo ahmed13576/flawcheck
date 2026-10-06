@@ -86,6 +86,7 @@ export function ReportDocument({
   signOff = null,
   onSignOffChange,
   audit = null,
+  codeEditionSources = null,
   onDownloadPdf,
   onPrint,
   pdfPending = false,
@@ -100,6 +101,8 @@ export function ReportDocument({
   signOff?: ReportSignOff | null;
   onSignOffChange?: (next: ReportSignOff) => void;
   audit?: ReportAudit | null;
+  /** PLAT-03: Tavily post-acceptance code-edition sources (null → no block). */
+  codeEditionSources?: Array<{ title: string; url: string }> | null;
   onDownloadPdf?: () => void;
   onPrint?: () => void;
   pdfPending?: boolean;
@@ -151,7 +154,7 @@ export function ReportDocument({
               {gateOpen ? `SIGNED OFF — ${signOffName}` : "Pending inspector sign-off"}
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-4 font-mono text-xs text-muted-foreground">
+          <div className="grid grid-cols-4 gap-4 font-mono text-xs text-muted-foreground">
             <div>
               <span className="block text-[10px] uppercase tracking-wide">Generated</span>
               <span>{generated}</span>
@@ -163,6 +166,10 @@ export function ReportDocument({
             <div>
               <span className="block text-[10px] uppercase tracking-wide">Evaluation date</span>
               <span>{dateOnly(snapshot.evaluatedAt)}</span>
+            </div>
+            <div>
+              <span className="block text-[10px] uppercase tracking-wide">Revision</span>
+              <span>Rev 0</span>
             </div>
           </div>
           <p className="font-mono text-[10px] text-muted-foreground">
@@ -409,6 +416,27 @@ export function ReportDocument({
               {`${step.step}: ${step.model ?? "\u2014"} \u00b7 tokens ${step.promptTokens ?? "\u2014"}/${step.completionTokens ?? "\u2014"} \u00b7 ${step.latencyMs === null ? "\u2014" : `${(step.latencyMs / 1000).toFixed(1)} s`}`}
             </p>
           ))}
+          {codeEditionSources && codeEditionSources.length > 0 ? (
+            <div className="mt-2 flex flex-col gap-1.5">
+              <p className="font-mono text-[10px] uppercase tracking-wide">
+                Code edition sources (post-acceptance lookup)
+              </p>
+              <ul className="flex list-disc flex-col gap-1 pl-5 text-sm">
+                {codeEditionSources.map((source) => (
+                  <li key={source.url}>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary underline underline-offset-2"
+                    >
+                      {source.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
 
         <footer className="border-t border-border pt-4 font-mono text-xs leading-5 text-muted-foreground">

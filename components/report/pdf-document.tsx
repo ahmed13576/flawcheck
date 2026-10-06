@@ -93,6 +93,9 @@ export function buildPdfDocument(
           <Text style={styles.metaRow}>GENERATED {dateOnly(new Date().toISOString())}</Text>
           <Text style={styles.metaRow}>SOURCE {snapshot.sourceName}</Text>
           <Text style={styles.metaRow}>EVALUATION DATE {dateOnly(snapshot.evaluatedAt)}</Text>
+          <Text style={styles.metaRow}>
+            {`REV 0 · REPORT ID ${audit?.inputHash ? audit.inputHash.slice(0, 12) : "—"}`}
+          </Text>
         </View>
 
         <Text style={styles.sectionLabel}>Component context</Text>
