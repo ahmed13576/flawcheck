@@ -15,7 +15,7 @@ FlawCheck ships as a five-phase vertical build for the Nebius x NVIDIA hackathon
 - [x] **Phase 2: Ingestion & Deterministic Calc Engine** - Raw data in, deterministic verdicts out: CSV preview, metadata, PT/MT notes, and a pure unit-tested calc engine with golden fixtures
 - [x] **Phase 3: LLM Reasoning & Citation Layer** - Streamed, clause-cited acceptance narratives around precomputed verdicts; the LLM never computes and can only cite the vetted allowlist
 - [x] **Phase 4: Report Rendering** - Evaluations become a defensible PDF report with sign-off and disclaimer baked in, plus a guaranteed print-CSS fallback
-- [ ] **Phase 5: Demo Hardening, Deployment & Submission** - Cached one-click demo with Live toggle, abuse guarding, Tavily lookup, public deploy, and the video/repo deliverables
+- [x] **Phase 5: Demo Hardening, Deployment & Submission** - Cached one-click demo with Live toggle, abuse guarding, Tavily lookup, public deploy, and the video/repo deliverables
 
 ## Phase Details
 
