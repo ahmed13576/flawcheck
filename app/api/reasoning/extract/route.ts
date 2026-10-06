@@ -29,9 +29,13 @@ import {
   isLlmDisabled,
 } from "@/lib/reasoning/schemas";
 
+import { checkRateLimit, clientIp, rateLimitedResponse } from "@/lib/api/rate-limit";
+
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const rl = checkRateLimit(clientIp(req));
+  if (!rl.allowed) return rateLimitedResponse(rl.retryAfterSeconds);
   let body: unknown;
   try {
     body = await req.json();

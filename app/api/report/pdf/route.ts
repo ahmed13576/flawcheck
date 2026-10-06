@@ -11,6 +11,8 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { buildPdfDocument } from "@/components/report/pdf-document";
 import { ReportPdfRequestSchema } from "@/lib/report/snapshot-schema";
 
+import { checkRateLimit, clientIp, rateLimitedResponse } from "@/lib/api/rate-limit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,8 @@ function errorJson(message: string, status: number): Response {
 }
 
 export async function POST(req: Request) {
+  const rl = checkRateLimit(clientIp(req));
+  if (!rl.allowed) return rateLimitedResponse(rl.retryAfterSeconds);
   const raw = await req.text();
   if (raw.length > MAX_BODY_BYTES) {
     return errorJson("request body exceeds the 25 MB ceiling", 400);
