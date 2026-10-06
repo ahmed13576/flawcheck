@@ -1,8 +1,9 @@
 /**
- * Per-IP rate limiter — 05-02 (PLAT-04): in-memory token bucket, 20 req/min
- * per IP. Returns 429 + Retry-After when exceeded. Session-scoped (resets on
- * server restart) — sufficient for the hackathon demo; Phase 5 post-ship would
- * use a durable store.
+ * Per-IP rate limiter — 05-02 (PLAT-04): in-memory fixed-window limiter,
+ * 20 req/min per IP (a 60 s window that resets the count; not a token
+ * bucket — header corrected by the final milestone review). Returns 429 +
+ * Retry-After when exceeded. Session-scoped (resets on server restart) —
+ * sufficient for the hackathon demo; post-ship would use a durable store.
  */
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 20;

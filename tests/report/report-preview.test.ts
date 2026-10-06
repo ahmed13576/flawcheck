@@ -272,3 +272,33 @@ describe("FS-12 sign-off is non-functional in Phase 3", () => {
     expect(markup).toContain("Audit appendix");
   });
 });
+
+describe("final-milestone-review additions — Rev 0 header (REPT-01) + PLAT-03 sources", () => {
+  it("renders the Rev 0 revision cell in the report header", () => {
+    const markup = renderReport();
+    expect(markup).toContain("Revision");
+    expect(markup).toContain("Rev 0");
+  });
+
+  it("renders no code-edition block when the Tavily lookup degrades to null", () => {
+    const markup = renderReport();
+    expect(markup).not.toContain("Code edition sources");
+  });
+
+  it("renders the code-edition source links when the lookup returns results (PLAT-03)", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ReportDocument, {
+        snapshot: FIXTURE_SNAPSHOT,
+        generatedAt: "2026-09-27T09:00:00Z",
+        codeEditionSources: [
+          { title: "ASME B31.3 editions", url: "https://example.com/b31-3" },
+          { title: "API 570 errata", url: "https://example.com/api-570" },
+        ],
+      }),
+    );
+    expect(markup).toContain("Code edition sources (post-acceptance lookup)");
+    expect(markup).toContain('href="https://example.com/b31-3"');
+    expect(markup).toContain("ASME B31.3 editions");
+    expect(markup).toContain('rel="noreferrer"');
+  });
+});
