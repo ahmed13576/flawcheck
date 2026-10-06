@@ -9,17 +9,19 @@
  * table's page via the existing set-page action), sticky summary strip, the
  * results table with the sticky CML+Verdict cluster, PT/MT "Recommended next
  * step" triage cards, mono footnotes, and the footer nav with "Open report
- * preview" DISABLED (Phase 4 owns generation). Zero-result edge (UI-15) and
- * the demo provenance banner (UI-21, wizard root) are preserved; focus lands
- * on this screen's heading (UI-22).
+ * preview" ENABLED (04-01 Task 3, UI-56: the CTA unlocks — it routes to
+ * /report). Zero-result edge (UI-15) and the demo provenance banner (UI-21,
+ * wizard root) are preserved; focus lands on this screen's heading (UI-22).
  *
  * ScreenResultsContent is the pure presentational layer (node-testable — the
  * FS-09..FS-11 pins render it directly); ScreenResults wires the wizard
- * context, the report-snapshot auto-write/Save-review path, and pagination
- * dispatch. Every dispatch, data-* hook, and aria pattern from Phase 2 is
- * byte-identical.
+ * context, the report-snapshot auto-write/Save-review path, pagination
+ * dispatch, and the /report navigation. The live audit writer (REPT-02,
+ * 04-01) renders inside the ReasoningProvider so telemetry is resolved from
+ * the REAL extraction state + narrative store — never fabricated (UI-54).
  */
-import { useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Search } from "lucide-react";
 import { useWizard } from "@/components/wizard/wizard-context";
 import { SummaryStrip } from "@/components/wizard/summary-strip";
@@ -33,6 +35,14 @@ import {
   buildReportSnapshot,
   writeReportSnapshot,
 } from "@/lib/report/session-snapshot";
+import {
+  buildAuditSteps,
+  computeInputHash,
+  writeReportAudit,
+  type AuditTelemetry,
+  type ReportAudit,
+} from "@/lib/report/audit";
+import { REPORT_UNIT_ASSUMPTION_COPY } from "@/lib/report/content";
 import type {
   ComponentMetadata,
   EvaluationResults,
@@ -42,9 +52,6 @@ import type {
   Unit,
 } from "@/lib/ingest/session";
 import type { TargetField } from "@/lib/ingest/session";
-
-const UNIT_ASSUMPTION_COPY =
-  "Units: CSV thickness in {csv}, metadata in {meta}. All values converted to mm (canonical).";
 
 export type ResultsTab = "all" | "attention";
 
@@ -121,6 +128,7 @@ export interface ScreenResultsContentProps {
   onPageChange: (page: number) => void;
   onBackToMetadata: () => void;
   onSaveReview: () => void;
+  onOpenReport: () => void;
   /** Session slices for the reasoning provider (03-04): extraction input +
    * groupByCml history seam. */
   rows: ParsedRow[];
@@ -140,6 +148,7 @@ export function ScreenResultsContent({
   onPageChange,
   onBackToMetadata,
   onSaveReview,
+  onOpenReport,
   rows,
   mapping,
   notes,
@@ -192,6 +201,12 @@ export function ScreenResultsContent({
         rows={rows}
         mapping={mapping}
       >
+        <AuditWriter
+          evaluatedAt={evaluatedAt}
+          rows={rows}
+          mapping={mapping}
+          units={units}
+        />
         <StatusRegion />
         <div key={evaluatedAt ?? "none"} className="flex flex-col gap-6">
         <SummaryStrip summary={summary} />
@@ -306,7 +321,7 @@ export function ScreenResultsContent({
           aria-label="Evaluation completion"
         >
           <span>
-            {UNIT_ASSUMPTION_COPY.replace("{csv}", units.csvThickness).replace(
+            {REPORT_UNIT_ASSUMPTION_COPY.replace("{csv}", units.csvThickness).replace(
               "{meta}",
               units.metadata,
             )}
@@ -335,16 +350,7 @@ export function ScreenResultsContent({
             <Button variant="outline" size="sm" onClick={handleSave}>
               Save review
             </Button>
-            <span id="report-preview-hint" className="sr-only">
-              Report generation unlocks in Phase 4
-            </span>
-            <Button
-              size="sm"
-              disabled
-              aria-disabled="true"
-              aria-describedby="report-preview-hint"
-              className="cursor-not-allowed"
-            >
+            <Button size="sm" onClick={onOpenReport}>
               Open report preview
             </Button>
           </div>
@@ -355,6 +361,73 @@ export function ScreenResultsContent({
   );
 }
 
+/**
+ * Live audit writer (REPT-02, 04-01): keyed on (evaluatedAt, extraction,
+ * storeVersion) — writes the honest telemetry record to sessionStorage once
+ * extraction completes (or fails/disables, with null fields). Re-evaluation
+ * remounts the provider and rewrites the record; never a stale write.
+ */
+function AuditWriter({
+  evaluatedAt,
+  rows,
+  mapping,
+  units,
+}: {
+  evaluatedAt: string | null;
+  rows: ParsedRow[];
+  mapping: Record<TargetField, string | null>;
+  units: { csvThickness: Unit; metadata: Unit };
+}) {
+  const { store, extraction } = useReasoning();
+  useSyncExternalStore(
+    (cb) => store.subscribe(cb),
+    () => store.version(),
+    () => store.version(),
+  );
+  const inputHashRef = useRef<Promise<string> | null>(null);
+  useEffect(() => {
+    if (!evaluatedAt) return;
+    let cancelled = false;
+    const extractionTelemetry =
+      extraction.state === "complete"
+        ? {
+            promptTokens: extraction.usage.promptTokens,
+            completionTokens: extraction.usage.completionTokens,
+            latencyMs: extraction.usage.latencyMs,
+            model: extraction.usage.model,
+          }
+        : null;
+    const narrativeTelemetry =
+      store.narrativeModel() !== null
+        ? {
+            model: store.narrativeModel() as string,
+            promptTokens: store.totals().promptTokens,
+            completionTokens: store.totals().completionTokens,
+            latencyMs: store.totals().latencyMs,
+          }
+        : null;
+    if (!inputHashRef.current) {
+      inputHashRef.current = computeInputHash(rows, mapping, units);
+    }
+    inputHashRef.current.then((hash) => {
+      if (cancelled) return;
+      writeReportAudit({
+        evaluatedAt,
+        inputHash: hash,
+        steps: buildAuditSteps(extractionTelemetry, narrativeTelemetry),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // storeVersion via subscription drives re-writes on narrative completion
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evaluatedAt, extraction, store.version()]);
+
+  return null; // writes only — renders nothing
+}
+
+/** Status bar + extraction-failure banner (consumes the provider). */
 /** Status bar + extraction-failure banner (consumes the provider). */
 function StatusRegion() {
   const { extraction } = useReasoning();
@@ -377,6 +450,7 @@ function StatusRegion() {
 
 export function ScreenResults() {
   const { state, dispatch } = useWizard();
+  const router = useRouter();
   const results = state.results;
 
   if (!results || results.readings.length === 0) {
@@ -413,6 +487,7 @@ export function ScreenResults() {
       onPageChange={(page) => dispatch({ type: "set-page", page })}
       onBackToMetadata={() => dispatch({ type: "set-screen", screen: 2 })}
       onSaveReview={handleSaveReview}
+      onOpenReport={() => router.push("/report")}
       rows={state.rows}
       mapping={state.mapping}
       notes={state.ptmt.notes}

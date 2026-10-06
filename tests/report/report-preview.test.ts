@@ -123,10 +123,8 @@ function renderReport(): string {
 describe("FS-12 locked /report preview — chrome and gating", () => {
   it("renders the exact preview banner and the light appearance attribute", () => {
     const markup = renderReport();
-    expect(markup).toContain("Report preview ready");
-    expect(markup).toContain(
-      "Generation unlocks in Phase 4. You can review the full layout now.",
-    );
+    expect(markup).toContain("Report ready");
+    expect(markup).toContain("Sign off to enable PDF export and printing.");
     expect(markup).toContain('data-appearance="light"');
     expect(markup).toContain("Printable inspection report");
   });
@@ -151,17 +149,10 @@ describe("FS-12 locked /report preview — chrome and gating", () => {
     expect(markup).toContain("Back to results");
   });
 
-  it("generates zero PDF and zero print CSS — source-level scan", () => {
-    const doc = readFileSync(
-      join(__dirname, "../../components/report/report-document.tsx"),
-      "utf8",
-    );
-    const page = readFileSync(join(__dirname, "../../app/report/page.tsx"), "utf8");
-    for (const source of [doc, page]) {
-      expect(source).not.toContain("window.print");
-      expect(source).not.toContain("@media print");
-      expect(source).not.toMatch(/jspdf|pdf-lib|pdfmake/i);
-    }
+  it('owns PDF + print (04-03): the page now wires window.print and the PDF fetch', () => {
+    const src = readFileSync('app/report/page.tsx', 'utf8');
+    expect(src).toContain('window.print');
+    expect(src).toContain('/api/report/pdf');
   });
 });
 
@@ -267,16 +258,17 @@ describe("FS-12 clause citation invariant (allowlist renderer)", () => {
 });
 
 describe("FS-12 sign-off is non-functional in Phase 3", () => {
-  it("renders the disabled Name/Certification/Date inputs and the sign-off hint", () => {
+  it("renders ENABLED Name/Certification/Date/Signature fields with required indicators (04-03)", () => {
     const markup = renderReport();
     expect(markup).toContain("Inspector sign-off");
-    for (const id of ["inspector-name", "certification", "signoff-date"]) {
-      const idx = markup.indexOf(`id="${id}"`);
-      expect(idx).toBeGreaterThan(-1);
-      // React SSR renders props in JSX order: id, placeholder, disabled, …
-      expect(markup.slice(idx, idx + 300)).toContain("disabled");
+    for (const id of ["inspector-name", "certification", "signoff-date", "signoff-signature"]) {
+      expect(markup).toContain(`id="${id}"`);
     }
-    expect(markup).toContain("Sign after reviewing the findings.");
-    expect(markup).toContain("This report is an engineering aid based on supplied measurements");
+    // required indicators + no disabled attrs on the form fields
+    expect(markup).toContain("text-destructive");
+    expect(markup).not.toContain('id="inspector-name" placeholder="Full name" disabled');
+    // unit assumption + audit appendix land in the document
+    expect(markup).toContain("All values converted to mm (canonical).");
+    expect(markup).toContain("Audit appendix");
   });
 });

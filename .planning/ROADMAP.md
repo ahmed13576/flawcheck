@@ -135,7 +135,21 @@ Plans:
   3. The print-CSS fallback renders the complete report even when the PDF route is disabled — proven by toggling the PDF path off and still getting a full printable report
   4. Every rendered report carries the unit assumption, "pending inspector sign-off" framing, and disclaimer consistently, with no verbatim ASME/API code text anywhere in the output
 
-**Plans**: TBD
+**Plans:** 4 plans
+
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Report session contract: sign-off persistence + pure content seam + audit telemetry (input hash, per-step usage) + Screen 3 CTA unlock with live audit writer
+
+**Wave 2** (parallel — zero file overlap)
+
+- [ ] 04-02-PLAN.md — PDF boundary: WR-10 full Zod snapshot schema + react-pdf 1:1 document + /api/report/pdf Node-runtime route (real buffer, 400 gate)
+- [ ] 04-03-PLAN.md — Unlocked report surface: sign-off gate + chip flip + audit appendix + /report actions + /report/print print-CSS fallback (PDF-route independent)
+
+**Wave 3**
+
+- [ ] 04-04-PLAN.md — Phase wrap: full-chain integration proof + standing gates + byte-identity/zero-install invariants + UI-49..58 / REPT-01..03 coverage sweep
+
 **UI hint**: yes
 
 ### Phase 5: Demo Hardening, Deployment & Submission
@@ -163,5 +177,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
 | 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) |
 | 3. LLM Reasoning & Citation Layer | 7/7 | Complete (verified 52/52 + enabled-path walkthrough, 2026-10-05) |  |
-| 4. Report Rendering | 0/TBD | Not started | - |
+| 4. Report Rendering | 0/4 | Not started | - |
 | 5. Demo Hardening, Deployment & Submission | 0/TBD | Not started | - |

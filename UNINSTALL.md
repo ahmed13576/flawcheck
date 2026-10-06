@@ -128,3 +128,10 @@ npm uninstall class-variance-authority clsx lucide-react tailwind-merge tw-anima
 
 # 3. Delete this phase's section from UNINSTALL.md
 ```
+
+---
+
+## Phase 4 — Report Rendering
+
+**Date:** 2026-10-05
+**Status:** no new packages — Phase 4 (report rendering: sign-off persistence, audit telemetry, the server PDF boundary on the already-installed `@react-pdf/renderer` 4.9.0, and the print-CSS fallback) ran with zero install tasks. `node_modules` is unchanged by Phase 4; `package.json` and `package-lock.json` are byte-identical to the phase-start ref (`.planning/phases/04-report-rendering/phase-start-ref.txt`).
