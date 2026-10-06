@@ -32,9 +32,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Report
 
-- [ ] **REPT-01**: User can export a PDF report (header, CML grid, indication table, conclusions, revision block, sign-off, disclaimer)
-- [ ] **REPT-02**: Report includes an audit appendix (timestamps, input hashes, model + version per step)
-- [ ] **REPT-03**: Print-CSS fallback guarantees report output even if the PDF library fails
+- [x] **REPT-01**: User can export a PDF report (header, CML grid, indication table, conclusions, revision block, sign-off, disclaimer)
+- [x] **REPT-02**: Report includes an audit appendix (timestamps, input hashes, model + version per step)
+- [x] **REPT-03**: Print-CSS fallback guarantees report output even if the PDF library fails
 
 ### Platform
 
@@ -103,9 +103,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REAS-04 | Phase 3 | Complete |
 | REAS-05 | Phase 3 | Complete |
 | PLAT-05 | Phase 3 | Complete |
-| REPT-01 | Phase 4 | Pending |
-| REPT-02 | Phase 4 | Pending |
-| REPT-03 | Phase 4 | Pending |
+| REPT-01 | Phase 4 | Complete |
+| REPT-02 | Phase 4 | Complete |
+| REPT-03 | Phase 4 | Complete |
 | PLAT-03 | Phase 5 | Pending |
 | PLAT-04 | Phase 5 | Pending |
 | DEMO-01 | Phase 5 | Pending |
