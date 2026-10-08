@@ -82,12 +82,25 @@ function WizardRoot() {
         ui.screen === 3 ? "max-w-6xl" : "max-w-4xl"
       }`}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <span className="flex items-center gap-2">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-3">
+        <div className="flex items-center gap-2">
           <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
           <span className="text-base font-semibold">FlawCheck</span>
-        </span>
-        <span className="text-sm text-muted-foreground">NDT Inspection Copilot</span>
+          <span className="mx-1 text-muted-foreground/50">·</span>
+          <span className="text-sm text-muted-foreground">NDT Inspection Copilot</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary">
+            <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+            Nebius Token Factory
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+            NVIDIA Nemotron-3.5
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+            ASME B31.3 · API 570
+          </span>
+        </div>
       </header>
       <div className="mt-4">
         <StepIndicator current={ui.screen} />
