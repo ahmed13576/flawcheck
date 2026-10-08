@@ -80,8 +80,7 @@
 [data-appearance="dark"] {
   /* Dark scheme for native controls — select popups render dark-on-dark. */
   color-scheme: dark;
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
+  --background: oklch(0.141 0.005 285.823);  --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
@@ -115,6 +114,16 @@
   --accept: #4ade80;
   --recheck: #fbbf24;
   --fail: #f87171;
+}
+
+/* Chromium on Windows themes the native select POPUP from the OS theme, not
+   from the page's color-scheme — color-scheme: dark alone left the option
+   list white with inherited light text. Force the option colors explicitly
+   (classic popup workaround) so the list is legible regardless of OS mode. */
+[data-appearance="dark"] select option,
+[data-appearance="dark"] select optgroup {
+  background-color: var(--card);
+  color: var(--card-foreground);
 }
 
 @theme inline {
