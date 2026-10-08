@@ -4,6 +4,10 @@ Turn raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into code-
 
 **Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackathons)** · Track: Best Apps and Agents
 
+![tests](https://img.shields.io/badge/tests-504%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16-black) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%20on%20Nebius-76b900)
+
+> **The invariant:** TypeScript computes every number — the LLM never touches arithmetic. Every verdict is deterministic, every citation is renderer-locked, every report is audit-stamped.
+
 ## What it does
 
 1. **Ingest** — Upload an ultrasonic thickness CSV (or load the pre-loaded demo scenario from real data)
@@ -17,7 +21,7 @@ Turn raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into code-
 ```bash
 # Prerequisites: Node.js ≥ 24, a Nebius API key (https://tokenfactory.nebius.com/)
 
-git clone https://github.com/YOUR_USERNAME/flawcheck.git
+git clone https://github.com/ahmed13576/flawcheck.git
 cd flawcheck
 npm install
 
@@ -64,12 +68,30 @@ Tavily performs a post-acceptance code-edition lookup (one basic search per eval
 ## Testing
 
 ```bash
-npm test          # 494+ hermetic tests (zero network, key-independent)
+npm test          # 504 hermetic tests (zero network, key-independent)
 npm run typecheck # strict TS
 npm run lint      # eslint (0 errors)
 npm run build     # production build
 FLAWCHECK_LIVE_LLM=1 npm test  # + live model tests (requires NEBIUS_API_KEY)
 ```
+
+## Deploy (Netlify)
+
+The app is a stock Next.js 16 project (Node-runtime API routes, SSE streaming, react-pdf on the server) — it deploys unchanged on Netlify via the official Next.js runtime:
+
+1. Push this repo to GitHub and import it in Netlify (build command `npm run build`, Netlify auto-detects Next).
+2. Set the environment variables in **Site configuration → Environment variables**:
+
+| Variable | Required | Value |
+|---|---|---|
+| `NEBIUS_API_KEY` | yes | your Token Factory key |
+| `NEBIUS_BASE_URL` | no | defaults to `https://api.tokenfactory.nebius.com/v1/` |
+| `NEBIUS_MODEL_REASONING` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |
+| `NEBIUS_MODEL_EXTRACTION` | no | defaults to `nvidia/Nemotron-3_5-Lightning` |
+| `TAVILY_API_KEY` | no | enables the code-edition source lookup |
+| `FLAWCHECK_DISABLE_LLM` | no | `1` = deterministic fallback mode, zero LLM calls |
+
+Without a Nebius key the app still runs end-to-end: every evaluation falls back to the deterministic engine (honest fallback, no fabricated data).
 
 ## Dataset
 
