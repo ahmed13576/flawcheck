@@ -15,9 +15,9 @@
  * Generation is gated to Phase 4 (locked decision): Download PDF / Print
  * report render DISABLED, zero PDF generation, zero print CSS.
  */
+import { useState } from "react";
 import { LockKeyhole } from "lucide-react";
-import { formatFixed } from "@/lib/wizard/format";
-import { flagChipFor, verdictLabel } from "@/components/wizard/verdict-chip";
+import { verdictLabel } from "@/components/wizard/verdict-chip";
 import type { ReadingResult, Verdict } from "@/lib/ingest/session";
 import type { ReportSnapshot, ReportSignOff } from "@/lib/report/session-snapshot";
 import type { ReportAudit } from "@/lib/report/audit";
@@ -118,6 +118,21 @@ export function ReportDocument({
   const nextInspection = earliestNextInspection(snapshot);
   const ruleRef = citationRef(REINSPECTION_CITATION_ID);
 
+  const [tablePage, setTablePage] = useState(1);
+  const REPORT_PAGE_SIZE = 50;
+  const totalReadings = snapshot.readings.length;
+  const totalPages = Math.max(1, Math.ceil(totalReadings / REPORT_PAGE_SIZE));
+  const safeTablePage = Math.min(Math.max(1, tablePage), totalPages);
+  const pageReadings =
+    variant === "print"
+      ? snapshot.readings.slice(0, 100)
+      : snapshot.readings.slice(
+          (safeTablePage - 1) * REPORT_PAGE_SIZE,
+          safeTablePage * REPORT_PAGE_SIZE,
+        );
+  const pageStart = (safeTablePage - 1) * REPORT_PAGE_SIZE + 1;
+  const pageEnd = Math.min(safeTablePage * REPORT_PAGE_SIZE, totalReadings);
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       {/* Top banner — on the dark chrome, per the mock. */}
@@ -210,8 +225,84 @@ export function ReportDocument({
           </dl>
         </section>
 
+        {/* Inspector sign-off prominently located near the top for accessible workflow */}
+        <section className="flex flex-col gap-4 border-b border-border pb-6">
+          <h2 className="text-xl font-semibold tracking-tight">Inspector sign-off</h2>
+          <div className="grid gap-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="inspector-name" className="text-xs">
+                Name <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
+              <input
+                id="inspector-name"
+                placeholder="Full name"
+                value={signOff?.name ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), name: e.target.value })
+                }
+                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="certification" className="text-xs">
+                Certification <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
+              <input
+                id="certification"
+                placeholder="Certification or license"
+                value={signOff?.certification ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), certification: e.target.value })
+                }
+                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="signoff-date" className="text-xs">
+                Date <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
+              <input
+                id="signoff-date"
+                type="date"
+                placeholder="YYYY-MM-DD"
+                value={signOff?.date ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), date: e.target.value })
+                }
+                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="signoff-signature" className="text-xs">
+                Signature <span aria-hidden="true" className="text-destructive">*</span>
+                <span className="sr-only">required</span>
+              </label>
+              <textarea
+                id="signoff-signature"
+                placeholder="Sign after reviewing the findings."
+                rows={2}
+                value={signOff?.signature ?? ""}
+                onChange={(e) =>
+                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), signature: e.target.value })
+                }
+                className="rounded-lg border border-input bg-card px-3 py-2 outline-none"
+              />
+            </div>
+          </div>
+        </section>
+
         <section className="flex flex-col gap-3 border-b border-border pb-6">
-          <h2 className="text-xl font-semibold tracking-tight">CML measurements</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold tracking-tight">CML measurements</h2>
+            {totalReadings > REPORT_PAGE_SIZE && (
+              <span className="text-xs text-muted-foreground">
+                {`Showing ${pageStart.toLocaleString("en-US")}–${pageEnd.toLocaleString("en-US")} of ${totalReadings.toLocaleString("en-US")}`}
+              </span>
+            )}
+          </div>
           <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full table-fixed text-left text-xs">
               <thead className="bg-card text-muted-foreground">
@@ -227,7 +318,7 @@ export function ReportDocument({
                 </tr>
               </thead>
               <tbody className="font-mono">
-                {snapshot.readings.map((reading) => (
+                {pageReadings.map((reading) => (
                   <tr key={reading.readingId} className="border-t border-border">
                     <td className={`${PAPER_TD} font-sans`}>{cmlName(reading)}</td>
                     <td className={PAPER_TD}>{formatFixed(reading.tActualMm, 2)}</td>
@@ -236,16 +327,22 @@ export function ReportDocument({
                     <td className={PAPER_TD}>
                       {reading.rlYears === null
                         ? "—"
-                        : `${formatFixed(reading.rlYears, 1)} yr`}
+                        : reading.rlYears <= 0
+                          ? "0.0 yr (RETIRED)"
+                          : `${formatFixed(reading.rlYears, 1)} yr`}
                     </td>
                     <td className={PAPER_TD}>
-                      {reading.nextInspection ? reading.nextInspection.date : "—"}
+                      {reading.nextInspection
+                        ? reading.nextInspection.date
+                        : reading.flags.includes("immediate_inspection")
+                          ? "Immediate inspection required"
+                          : "—"}
                     </td>
                     <td className={`${PAPER_TD} font-sans`}>
                       {reading.flags.length === 0
                         ? "—"
                         : reading.flags
-                            .map((flag) => flagChipFor(flag)?.label ?? flag)
+                            .map((flag) => formatFlagLabel(flag))
                             .join(", ")}
                     </td>
                     <td className={`${PAPER_TD} font-sans font-semibold ${verdictTextClass(reading.verdict)}`}>
@@ -256,6 +353,29 @@ export function ReportDocument({
               </tbody>
             </table>
           </div>
+          {totalReadings > REPORT_PAGE_SIZE && variant === "preview" && (
+            <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground print:hidden">
+              <span>{`Page ${safeTablePage} of ${totalPages}`}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={safeTablePage <= 1}
+                  onClick={() => setTablePage(safeTablePage - 1)}
+                  className="rounded border border-border px-2.5 py-1 hover:bg-secondary disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  disabled={safeTablePage >= totalPages}
+                  onClick={() => setTablePage(safeTablePage + 1)}
+                  className="rounded border border-border px-2.5 py-1 hover:bg-secondary disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="flex flex-col gap-3 border-b border-border pb-6">
@@ -335,73 +455,6 @@ export function ReportDocument({
           </section>
         )}
 
-        <section className="flex flex-col gap-4 border-b border-border pb-6">
-          <h2 className="text-xl font-semibold tracking-tight">Inspector sign-off</h2>
-          <div className="grid gap-4">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="inspector-name" className="text-xs">
-                Name <span aria-hidden="true" className="text-destructive">*</span>
-                <span className="sr-only">required</span>
-              </label>
-              <input
-                id="inspector-name"
-                placeholder="Full name"
-                value={signOff?.name ?? ""}
-                onChange={(e) =>
-                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), name: e.target.value })
-                }
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="certification" className="text-xs">
-                Certification <span aria-hidden="true" className="text-destructive">*</span>
-                <span className="sr-only">required</span>
-              </label>
-              <input
-                id="certification"
-                placeholder="Certification or license"
-                value={signOff?.certification ?? ""}
-                onChange={(e) =>
-                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), certification: e.target.value })
-                }
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="signoff-date" className="text-xs">
-                Date <span aria-hidden="true" className="text-destructive">*</span>
-                <span className="sr-only">required</span>
-              </label>
-              <input
-                id="signoff-date"
-                type="date"
-                placeholder="YYYY-MM-DD"
-                value={signOff?.date ?? ""}
-                onChange={(e) =>
-                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), date: e.target.value })
-                }
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="signoff-signature" className="text-xs">
-                Signature <span aria-hidden="true" className="text-destructive">*</span>
-                <span className="sr-only">required</span>
-              </label>
-              <textarea
-                id="signoff-signature"
-                placeholder="Sign after reviewing the findings."
-                rows={2}
-                value={signOff?.signature ?? ""}
-                onChange={(e) =>
-                  onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), signature: e.target.value })
-                }
-                className="rounded-lg border border-input bg-card px-3 py-2 outline-none"
-              />
-            </div>
-          </div>
-        </section>
 
         <section className="flex flex-col gap-3 border-b border-border pb-6">
           <h2 className="text-xl font-semibold tracking-tight">Audit appendix</h2>

@@ -16,7 +16,6 @@ import {
   readReportSnapshot,
   writeReportSnapshot,
   withSignOff,
-  type ReportSnapshot,
   type ReportSignOff,
 } from "@/lib/report/session-snapshot";
 import { readReportAudit } from "@/lib/report/audit";
