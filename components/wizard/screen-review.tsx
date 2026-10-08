@@ -80,7 +80,7 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
         <h1
           tabIndex={-1}
           data-screen-heading
-          className="text-2xl font-semibold tracking-tight"
+          className="text-2xl font-semibold tracking-tight outline-none focus:outline-none focus-visible:outline-none"
         >
           Review your inspection setup
         </h1>
@@ -130,7 +130,7 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
         {children}
       </div>
 
-      <div className="sticky bottom-0 mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card/95 px-1 py-3 backdrop-blur-sm">
+      <div className="sticky bottom-0 z-20 mt-6 flex w-full max-w-full flex-wrap items-center justify-between gap-3 border-t border-border bg-card/95 px-2 py-3 backdrop-blur-sm pb-safe">
         <button
           type="button"
           onClick={() => dispatch({ type: "set-screen", screen: 1 })}
@@ -141,10 +141,10 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
         <span className="hidden text-xs text-muted-foreground lg:inline">
           Step 2 of 4 · Review complete when required fields are resolved
         </span>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <p
             aria-live="polite"
-            className="rounded-lg bg-primary/10 px-4 py-2 text-sm text-primary"
+            className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs sm:text-sm text-primary"
           >
             {blockerSummary({
               rowErrors: blockers.rowErrors,
@@ -161,7 +161,7 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
               // Yield a frame so Evaluating… paints before the sync compute.
               setTimeout(() => dispatch({ type: "run-evaluation" }), 30);
             }}
-            className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="rounded-md bg-primary px-4 py-2 sm:px-5 sm:py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             {state.ui.evaluating ? "Evaluating…" : "Run evaluation"}
           </button>

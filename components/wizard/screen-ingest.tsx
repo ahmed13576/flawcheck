@@ -84,7 +84,7 @@ export function ScreenIngest() {
       <h1
         tabIndex={-1}
         data-screen-heading
-        className="text-3xl font-semibold tracking-tight"
+        className="text-3xl font-semibold tracking-tight outline-none focus:outline-none focus-visible:outline-none"
       >
         Start with your inspection data
       </h1>
@@ -232,7 +232,7 @@ export function ScreenIngest() {
         </div>
       </div>
 
-      <div className="sticky bottom-0 mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border bg-background/95 px-1 py-3">
+      <div className="sticky bottom-0 z-20 mt-8 flex w-full max-w-full flex-wrap items-center justify-between gap-4 border-t border-border bg-background/95 px-2 py-3 backdrop-blur-sm pb-safe">
         <button
           type="button"
           disabled

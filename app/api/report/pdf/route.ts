@@ -15,6 +15,7 @@ import { checkRateLimit, clientIp, rateLimitedResponse } from "@/lib/api/rate-li
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const MAX_BODY_BYTES = 25 * 1024 * 1024; // mirrors the Phase 2 upload cap
 

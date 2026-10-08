@@ -57,14 +57,15 @@ const NUMERIC_CELL = "border border-border px-3 py-2 font-mono tabular-nums whit
  * scanner. UI auditor note: the Verdict offset extension + Reasoning column
  * are 03-01's additions on top of 03-00b's cluster.
  */
-const STICKY_LEFT_TH = "sticky left-0 z-30 bg-card";
-const STICKY_LEFT_TD = "sticky left-0 z-10 bg-background";
-const STICKY_RIGHT_TH = "sticky right-0 z-30 bg-card";
-const STICKY_RIGHT_TD = "sticky right-0 z-10 bg-background";
+const STICKY_LEFT_TH = "sticky left-0 max-md:static z-30 bg-card";
+const STICKY_LEFT_TD = "sticky left-0 max-md:static z-10 bg-background";
+const STICKY_RIGHT_TH = "sticky right-0 max-md:static z-30 bg-card";
+const STICKY_RIGHT_TD = "sticky right-0 max-md:static z-10 bg-background";
 /** Reasoning column width = the fixed right offset for the Verdict column. */
-const REASONING_COL_WIDTH = "w-[9.5rem]";
-const STICKY_VERDICT_TH = "sticky right-[9.5rem] z-30 bg-card";
-const STICKY_VERDICT_TD = "sticky right-[9.5rem] z-10 bg-background";
+const REASONING_COL_WIDTH = "w-[9.5rem] min-w-[9.5rem]";
+const VERDICT_COL_WIDTH = "w-32 min-w-[8rem]";
+const STICKY_VERDICT_TH = "sticky right-[9.5rem] max-md:static z-30 bg-card";
+const STICKY_VERDICT_TD = "sticky right-[9.5rem] max-md:static z-10 bg-background";
 
 const REASONING_TOGGLE =
   "inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-xs font-semibold hover:border-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring";
@@ -120,6 +121,13 @@ function FlagChipButton({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  if (flag === "immediate_inspection") {
+    return (
+      <span className="inline-flex h-6 items-center rounded border border-red-500/40 px-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+        IMMEDIATE INSPECTION REQUIRED
+      </span>
+    );
+  }
   if (!TOGGLEABLE_FLAGS.includes(flag)) {
     return <FlagChip flag={flag} />;
   }
@@ -277,23 +285,26 @@ export function ResultsTable({
   return (
     <section aria-label="CML results" className="rounded-lg border border-border bg-card p-4">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+        <p className="sr-only sm:not-sr-only text-[11px] text-muted-foreground pb-1">
+          Tip: Scroll horizontally to view all measurements and verdicts. Sticky columns remain pinned.
+        </p>
+        <table className="min-w-[1100px] w-full border-collapse text-sm">
           <caption className="px-1 pb-2 text-left text-xs text-muted-foreground">
             {formatCaption(start, end, readings.length)}
           </caption>
           <thead>
             <tr className="bg-card text-left">
-              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_LEFT_TH}`}>CML / Location</th>
-              <th scope="col" className="border border-border px-3 py-2">t-actual (mm)</th>
-              <th scope="col" className="border border-border px-3 py-2">t-required (mm)</th>
-              <th scope="col" className="border border-border px-3 py-2">CR_LT (mm/yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">CR_ST (mm/yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">CR governing (mm/yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">RL (yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">Next inspection</th>
-              <th scope="col" className="border border-border px-3 py-2">Flags</th>
-              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_VERDICT_TH}`}>Verdict</th>
-              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_RIGHT_TH} ${REASONING_COL_WIDTH}`}>Reasoning</th>
+              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_LEFT_TH}`}>CML / Location</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">t-actual (mm)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">t-required (mm)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">CR_LT (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">CR_ST (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">CR governing (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">RL (yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap min-w-[13rem]">Next inspection</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap min-w-[14rem]">Flags</th>
+              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_VERDICT_TH} ${VERDICT_COL_WIDTH}`}>Verdict</th>
+              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_RIGHT_TH} ${REASONING_COL_WIDTH}`}>Reasoning</th>
             </tr>
           </thead>
           <tbody>
@@ -333,10 +344,17 @@ export function ResultsTable({
                           )}
                         </>
                       ) : (
-                        rl.text
+                        <>
+                          <span>{rl.text}</span>
+                          {rl.subText && (
+                            <span className="block text-[10px] font-semibold tracking-tight text-fail">
+                              {rl.subText}
+                            </span>
+                          )}
+                        </>
                       )}
                     </td>
-                    <td className="border border-border px-3 py-2 whitespace-nowrap">
+                    <td className="border border-border px-3 py-2 whitespace-nowrap min-w-[13rem]">
                       {next.kind === "immediate" ? (
                         <span className="font-semibold text-fail">
                           Immediate inspection required
@@ -352,7 +370,7 @@ export function ResultsTable({
                         <span>—</span>
                       )}
                     </td>
-                    <td className="border border-border px-3 py-2">
+                    <td className="border border-border px-3 py-2 min-w-[14rem]">
                       <div className="flex flex-wrap gap-1">
                         {reading.flags.map((flag) => (
                           <FlagChipButton
@@ -365,7 +383,7 @@ export function ResultsTable({
                         ))}
                       </div>
                     </td>
-                    <td className={`border border-border px-3 py-2 ${STICKY_VERDICT_TD}`}>
+                    <td className={`border border-border px-3 py-2 ${STICKY_VERDICT_TD} ${VERDICT_COL_WIDTH}`}>
                       <VerdictChip verdict={reading.verdict} />
                     </td>
                     <td className={`border border-border px-3 py-2 ${STICKY_RIGHT_TD} ${REASONING_COL_WIDTH}`}>

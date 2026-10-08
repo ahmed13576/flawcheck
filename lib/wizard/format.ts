@@ -64,11 +64,11 @@ export function nextInspectionCell(
   };
 }
 
-/** RL cell model: '—' (+ sub-text when insufficient) or the 1-dp years. */
+/** RL cell model: '—' (+ sub-text when insufficient) or the 1-dp years (or 0.0 with RETIRED / IMMEDIATE ACTION). */
 export function rlCell(
   reading: Pick<ReadingResult, "rlYears" | "flags">,
-): { kind: "dash"; subText?: string } | { kind: "years"; text: string } {
-  if (reading.rlYears === null) {
+): { kind: "dash"; subText?: string } | { kind: "years"; text: string; subText?: string } {
+  if (reading.rlYears === null || !Number.isFinite(reading.rlYears)) {
     return {
       kind: "dash",
       subText: reading.flags.includes("insufficient_history")
@@ -76,5 +76,21 @@ export function rlCell(
         : undefined,
     };
   }
+  if (reading.rlYears <= 0) {
+    return {
+      kind: "years",
+      text: "0.0",
+      subText: "RETIRED / IMMEDIATE ACTION",
+    };
+  }
   return { kind: "years", text: formatFixed(reading.rlYears, 1) };
+}
+
+/** Formats flag into an uppercase human-readable label; ensures immediate_inspection is never raw snake_case. */
+export function formatFlagLabel(flag: string): string {
+  if (flag === "immediate_inspection") return "IMMEDIATE INSPECTION REQUIRED";
+  if (flag === "measurement_inconsistency") return "MEASUREMENT INCONSISTENCY";
+  if (flag === "insufficient_history") return "INSUFFICIENT HISTORY";
+  if (flag === "outlier") return "OUTLIER";
+  return flag.toUpperCase().replace(/_/g, " ");
 }
