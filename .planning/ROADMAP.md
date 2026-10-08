@@ -167,6 +167,19 @@ Plans:
 
 **Plans**: TBD
 
+### Phase 6: Report Digestibility & At-a-Glance Findings
+
+**Goal**: A human inspector can understand a full evaluation in seconds — the results screen leads with a plain-English summary of what was found and why it matters, and the report presents findings hierarchically (disposition → worst locations → detail) instead of thousands of flat entries
+**Depends on**: Phases 1–5 (the PDF subset + hash seal from Phase A remediation is the foundation to build on)
+**Requirements**: TBD (created during discussion — likely REPT-04..06)
+**Success Criteria** (what must be TRUE):
+
+  1. The results screen contains a plain-language "What we found" brief — disposition in one sentence, the N locations that need attention, and what each verdict means — understandable by a non-NDT reader
+  2. The certified PDF leads with an at-a-glance summary a human can verify without scrolling through thousands of entries; the governing CML register is the detail layer, not the front page
+  3. Verdict meaning (ACCEPT / RE-CHECK / FAIL) is explained in layman terms wherever a verdict chip appears
+
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
