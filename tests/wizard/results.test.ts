@@ -12,6 +12,7 @@ import { flagChipFor } from "@/components/wizard/verdict-chip";
 import { APPARENT_GAIN_SENTENCE } from "@/components/wizard/flag-detail-row";
 import { dimensionsLine } from "@/components/wizard/ptmt-triage-list";
 import { resultRowKey } from "@/components/wizard/results-table";
+import { convertMetadataUnitValue } from "@/components/wizard/metadata-form";
 import type { ReadingResult } from "@/lib/ingest/session";
 
 /**
@@ -148,6 +149,27 @@ describe("next-inspection cell model — G14 immediate inspection", () => {
   it("formatFlagLabel converts snake_case to uppercase readable text", () => {
     expect(formatFlagLabel("immediate_inspection")).toBe("IMMEDIATE INSPECTION REQUIRED");
     expect(formatFlagLabel("insufficient_history")).toBe("INSUFFICIENT HISTORY");
+  });
+});
+
+describe("convertMetadataUnitValue — safe geometry conversions", () => {
+  it("converts mm to inches accurately", () => {
+    expect(convertMetadataUnitValue(25.4, "mm", "in")).toBe(1.0);
+    expect(convertMetadataUnitValue(219.1, "mm", "in")).toBe(8.626);
+  });
+
+  it("converts inches to mm accurately", () => {
+    expect(convertMetadataUnitValue(1.0, "in", "mm")).toBe(25.4);
+    expect(convertMetadataUnitValue(0.5, "in", "mm")).toBe(12.7);
+  });
+
+  it("converts mils to mm and back", () => {
+    expect(convertMetadataUnitValue(100, "mils", "mm")).toBe(2.54);
+    expect(convertMetadataUnitValue(2.54, "mm", "mils")).toBe(100);
+  });
+
+  it("returns same value when fromUnit equals toUnit", () => {
+    expect(convertMetadataUnitValue(15.5, "mm", "mm")).toBe(15.5);
   });
 });
 

@@ -35,6 +35,24 @@ function SectionHeader({ children }: { children: string }) {
   );
 }
 
+export function convertMetadataUnitValue(
+  value: number,
+  fromUnit: Unit,
+  toUnit: Unit,
+): number {
+  if (fromUnit === toUnit) return value;
+  let mm = value;
+  if (fromUnit === "in") mm = value * 25.4;
+  else if (fromUnit === "mils") mm = value * 0.0254;
+
+  let converted = mm;
+  if (toUnit === "in") converted = mm / 25.4;
+  else if (toUnit === "mils") converted = mm / 0.0254;
+
+  const decimals = toUnit === "mm" ? 3 : toUnit === "in" ? 4 : 1;
+  return Number(converted.toFixed(decimals));
+}
+
 export function MetadataForm({
   draft,
   metadataUnit,
@@ -92,16 +110,7 @@ export function MetadataForm({
       if (typeof currentVal === "string" && currentVal.trim() !== "") {
         const num = parseFloat(currentVal);
         if (Number.isFinite(num)) {
-          let mm = num;
-          if (metadataUnit === "in") mm = num * 25.4;
-          else if (metadataUnit === "mils") mm = num * 0.0254;
-
-          let converted = mm;
-          if (newUnit === "in") converted = mm / 25.4;
-          else if (newUnit === "mils") converted = mm / 0.0254;
-
-          const decimals = newUnit === "mm" ? 3 : newUnit === "in" ? 4 : 1;
-          const rounded = Number(converted.toFixed(decimals));
+          const rounded = convertMetadataUnitValue(num, metadataUnit, newUnit);
           onField(field, String(rounded));
         }
       }
