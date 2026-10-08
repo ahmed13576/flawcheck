@@ -16,6 +16,7 @@ import { ChevronRight, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { MAX_FILE_BYTES } from "@/lib/ingest/validate";
 import { useWizard } from "@/components/wizard/wizard-context";
 import { Dropzone } from "@/components/wizard/dropzone";
+import { PipelineGraph } from "@/components/ui/pipeline-graph";
 
 function isCsvFile(file: File): boolean {
   return file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv";
@@ -143,6 +144,8 @@ export function ScreenIngest() {
           </p>
         </div>
       </div>
+
+      <PipelineGraph className="mt-6" />
 
       <div className="mt-6 flex flex-col gap-6">
         {panelError ? (
