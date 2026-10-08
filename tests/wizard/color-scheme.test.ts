@@ -32,4 +32,18 @@ describe("native control color-scheme contract", () => {
     const lightBlock = css.slice(0, blockStart);
     expect(lightBlock).toMatch(/color-scheme:\s*light/);
   });
+
+  it("forces explicit option colors in the dark theme (Chromium popup follows OS theme, not color-scheme)", () => {
+    // Regression: user-verified white popup persisted despite color-scheme:
+    // dark — Chromium on Windows themes the popup from the OS. The dark
+    // block must set option background/color explicitly. The rule spans a
+    // two-selector group, so assert on the selector lines + declarations.
+    const darkBlock = css.slice(blockStart);
+    expect(darkBlock).toContain(
+      '[data-appearance="dark"] select option',
+    );
+    expect(darkBlock).toMatch(
+      /select option,\s*\[data-appearance="dark"\] select optgroup\s*{[^}]*background-color:\s*var\(--card\)[^}]*color:\s*var\(--card-foreground\)/,
+    );
+  });
 });
