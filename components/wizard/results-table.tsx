@@ -57,14 +57,15 @@ const NUMERIC_CELL = "border border-border px-3 py-2 font-mono tabular-nums whit
  * scanner. UI auditor note: the Verdict offset extension + Reasoning column
  * are 03-01's additions on top of 03-00b's cluster.
  */
-const STICKY_LEFT_TH = "sticky left-0 z-30 bg-card";
-const STICKY_LEFT_TD = "sticky left-0 z-10 bg-background";
-const STICKY_RIGHT_TH = "sticky right-0 z-30 bg-card";
-const STICKY_RIGHT_TD = "sticky right-0 z-10 bg-background";
+const STICKY_LEFT_TH = "sticky left-0 max-md:static z-30 bg-card";
+const STICKY_LEFT_TD = "sticky left-0 max-md:static z-10 bg-background";
+const STICKY_RIGHT_TH = "sticky right-0 max-md:static z-30 bg-card";
+const STICKY_RIGHT_TD = "sticky right-0 max-md:static z-10 bg-background";
 /** Reasoning column width = the fixed right offset for the Verdict column. */
-const REASONING_COL_WIDTH = "w-[9.5rem]";
-const STICKY_VERDICT_TH = "sticky right-[9.5rem] z-30 bg-card";
-const STICKY_VERDICT_TD = "sticky right-[9.5rem] z-10 bg-background";
+const REASONING_COL_WIDTH = "w-[9.5rem] min-w-[9.5rem]";
+const VERDICT_COL_WIDTH = "w-32 min-w-[8rem]";
+const STICKY_VERDICT_TH = "sticky right-[9.5rem] max-md:static z-30 bg-card";
+const STICKY_VERDICT_TD = "sticky right-[9.5rem] max-md:static z-10 bg-background";
 
 const REASONING_TOGGLE =
   "inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-xs font-semibold hover:border-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring";
@@ -301,8 +302,8 @@ export function ResultsTable({
               <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">CR governing (mm/yr)</th>
               <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">RL (yr)</th>
               <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap min-w-[13rem]">Next inspection</th>
-              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">Flags</th>
-              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_VERDICT_TH}`}>Verdict</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap min-w-[14rem]">Flags</th>
+              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_VERDICT_TH} ${VERDICT_COL_WIDTH}`}>Verdict</th>
               <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_RIGHT_TH} ${REASONING_COL_WIDTH}`}>Reasoning</th>
             </tr>
           </thead>
@@ -369,7 +370,7 @@ export function ResultsTable({
                         <span>—</span>
                       )}
                     </td>
-                    <td className="border border-border px-3 py-2">
+                    <td className="border border-border px-3 py-2 min-w-[14rem]">
                       <div className="flex flex-wrap gap-1">
                         {reading.flags.map((flag) => (
                           <FlagChipButton
@@ -382,7 +383,7 @@ export function ResultsTable({
                         ))}
                       </div>
                     </td>
-                    <td className={`border border-border px-3 py-2 ${STICKY_VERDICT_TD}`}>
+                    <td className={`border border-border px-3 py-2 ${STICKY_VERDICT_TD} ${VERDICT_COL_WIDTH}`}>
                       <VerdictChip verdict={reading.verdict} />
                     </td>
                     <td className={`border border-border px-3 py-2 ${STICKY_RIGHT_TD} ${REASONING_COL_WIDTH}`}>
