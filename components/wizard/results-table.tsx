@@ -120,6 +120,13 @@ function FlagChipButton({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  if (flag === "immediate_inspection") {
+    return (
+      <span className="inline-flex h-6 items-center rounded border border-red-500/40 px-2 text-xs font-semibold uppercase tracking-wide text-red-400">
+        IMMEDIATE INSPECTION REQUIRED
+      </span>
+    );
+  }
   if (!TOGGLEABLE_FLAGS.includes(flag)) {
     return <FlagChip flag={flag} />;
   }
@@ -277,23 +284,26 @@ export function ResultsTable({
   return (
     <section aria-label="CML results" className="rounded-lg border border-border bg-card p-4">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+        <p className="sr-only sm:not-sr-only text-[11px] text-muted-foreground pb-1">
+          Tip: Scroll horizontally to view all measurements and verdicts. Sticky columns remain pinned.
+        </p>
+        <table className="min-w-[1100px] w-full border-collapse text-sm">
           <caption className="px-1 pb-2 text-left text-xs text-muted-foreground">
             {formatCaption(start, end, readings.length)}
           </caption>
           <thead>
             <tr className="bg-card text-left">
-              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_LEFT_TH}`}>CML / Location</th>
-              <th scope="col" className="border border-border px-3 py-2">t-actual (mm)</th>
-              <th scope="col" className="border border-border px-3 py-2">t-required (mm)</th>
-              <th scope="col" className="border border-border px-3 py-2">CR_LT (mm/yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">CR_ST (mm/yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">CR governing (mm/yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">RL (yr)</th>
-              <th scope="col" className="border border-border px-3 py-2">Next inspection</th>
-              <th scope="col" className="border border-border px-3 py-2">Flags</th>
-              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_VERDICT_TH}`}>Verdict</th>
-              <th scope="col" className={`border border-border px-3 py-2 ${STICKY_RIGHT_TH} ${REASONING_COL_WIDTH}`}>Reasoning</th>
+              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_LEFT_TH}`}>CML / Location</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">t-actual (mm)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">t-required (mm)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">CR_LT (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">CR_ST (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">CR governing (mm/yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">RL (yr)</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap min-w-[13rem]">Next inspection</th>
+              <th scope="col" className="border border-border px-3 py-2 whitespace-nowrap">Flags</th>
+              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_VERDICT_TH}`}>Verdict</th>
+              <th scope="col" className={`border border-border px-3 py-2 whitespace-nowrap ${STICKY_RIGHT_TH} ${REASONING_COL_WIDTH}`}>Reasoning</th>
             </tr>
           </thead>
           <tbody>
@@ -333,10 +343,17 @@ export function ResultsTable({
                           )}
                         </>
                       ) : (
-                        rl.text
+                        <>
+                          <span>{rl.text}</span>
+                          {rl.subText && (
+                            <span className="block text-[10px] font-semibold tracking-tight text-fail">
+                              {rl.subText}
+                            </span>
+                          )}
+                        </>
                       )}
                     </td>
-                    <td className="border border-border px-3 py-2 whitespace-nowrap">
+                    <td className="border border-border px-3 py-2 whitespace-nowrap min-w-[13rem]">
                       {next.kind === "immediate" ? (
                         <span className="font-semibold text-fail">
                           Immediate inspection required

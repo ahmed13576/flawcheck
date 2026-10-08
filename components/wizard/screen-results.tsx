@@ -22,7 +22,7 @@
  */
 import { useEffect, useRef, useState, useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useWizard } from "@/components/wizard/wizard-context";
 import { SummaryStrip } from "@/components/wizard/summary-strip";
 import { ReasoningProvider, useReasoning } from "@/components/wizard/reasoning-context";
@@ -39,8 +39,6 @@ import {
   buildAuditSteps,
   computeInputHash,
   writeReportAudit,
-  type AuditTelemetry,
-  type ReportAudit,
 } from "@/lib/report/audit";
 import { REPORT_UNIT_ASSUMPTION_COPY } from "@/lib/report/content";
 import type {
@@ -219,7 +217,7 @@ export function ScreenResultsContent({
           <h1
             tabIndex={-1}
             data-screen-heading
-            className="text-3xl font-semibold tracking-tight"
+            className="text-3xl font-semibold tracking-tight outline-none focus:outline-none focus-visible:outline-none"
           >
             Your findings are ready
           </h1>
