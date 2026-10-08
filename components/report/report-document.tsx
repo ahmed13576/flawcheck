@@ -17,6 +17,7 @@
  */
 import { useState } from "react";
 import { LockKeyhole } from "lucide-react";
+import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
 import type { ReadingResult, Verdict } from "@/lib/ingest/session";
 import type { ReportSnapshot, ReportSignOff } from "@/lib/report/session-snapshot";

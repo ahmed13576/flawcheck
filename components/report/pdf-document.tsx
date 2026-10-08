@@ -21,10 +21,11 @@ import {
   earliestNextInspection,
   REPORT_UNIT_ASSUMPTION_COPY,
 } from "@/lib/report/content";
+import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
 
 const styles = StyleSheet.create({
-  body: { fontFamily: "Helvetica", fontSize: 9, color: "#111111", paddingBottom: 24 },
+  body: { fontFamily: "Helvetica", fontSize: 9, color: "#111111", padding: 24, paddingBottom: 28 },
   title: { fontSize: 16, fontWeight: 700 },
   chip: { fontSize: 8, fontWeight: 700, color: "#444444" },
   sectionLabel: { fontSize: 11, fontWeight: 700, marginTop: 12 },
@@ -43,13 +44,14 @@ const styles = StyleSheet.create({
   monoSmall: { fontFamily: "Courier", fontSize: 7, color: "#444444" },
   callout: { backgroundColor: "#fdf3d8", padding: 8, marginTop: 10 },
   calloutTitle: { fontSize: 11, fontWeight: 700 },
-  footer: { marginTop: 18, fontSize: 7, color: "#555555" },
+  footer: { marginTop: 14, fontSize: 7, color: "#555555" },
   summaryCard: { backgroundColor: "#f3f4f6", padding: 8, marginTop: 8, borderRadius: 3, borderWidth: 0.5, borderColor: "#d1d5db" },
   summaryTitle: { fontSize: 10, fontWeight: 700, color: "#111827" },
   summaryDisposition: { fontSize: 8, fontWeight: 700, color: "#991b1b" },
   summaryStat: { fontSize: 8, color: "#374151" },
   summaryHash: { fontSize: 7, fontFamily: "Courier", color: "#6b7280", marginTop: 4 },
   filterNotice: { fontSize: 7.5, color: "#047857", marginTop: 2, fontStyle: "italic" },
+  pageNumber: { position: "absolute", fontSize: 7, bottom: 10, left: 24, right: 24, textAlign: "center", color: "#888888" },
 });
 
 function dateOnly(iso: string): string {
@@ -201,6 +203,32 @@ export function buildPdfDocument(
         </View>
         <Text style={styles.metaRow}>{unitLine}</Text>
 
+        <Text style={styles.sectionLabel}>PT/MT indication triage</Text>
+        {snapshot.indications.length === 0 ? (
+          <Text style={styles.metaRow}>No PT/MT indications recorded for this evaluation.</Text>
+        ) : (
+          <View style={styles.table}>
+            <View wrap={false} style={[styles.tableRow, styles.tableHeader]}>
+              <Text style={styles.cellNum}>Method</Text>
+              <Text style={styles.cellWide}>Morphology</Text>
+              <Text style={styles.cellWide}>Dimensions</Text>
+              <Text style={styles.cellNum}>Verdict</Text>
+              <Text style={styles.cellWide}>Clause reference</Text>
+            </View>
+            {snapshot.indications.map((ind) => (
+              <View key={ind.id} wrap={false} style={styles.tableRow}>
+                <Text style={styles.cellNum}>{ind.method}</Text>
+                <Text style={styles.cellWide}>{ind.morphology} (declared: informational)</Text>
+                <Text style={styles.cellWide}>
+                  L {formatFixed(ind.lengthMm, 1)} × W {formatFixed(ind.widthMm, 1)} mm
+                </Text>
+                <Text style={styles.cellNum}>{verdictLabel(ind.verdict)}</Text>
+                <Text style={styles.cellWide}>{citationRef(ind.citationId) || "—"}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         <Text style={styles.sectionLabel}>
           {isFiltered ? "Governing CML measurements (critical register)" : "CML measurements"}
         </Text>
@@ -210,7 +238,7 @@ export function buildPdfDocument(
           </Text>
         )}
         <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
+          <View wrap={false} style={[styles.tableRow, styles.tableHeader]}>
             <Text style={styles.cellName}>CML / Location</Text>
             <Text style={styles.cellNum}>t-actual (mm)</Text>
             <Text style={styles.cellNum}>t-required (mm)</Text>
@@ -221,7 +249,7 @@ export function buildPdfDocument(
             <Text style={styles.cellNum}>Verdict</Text>
           </View>
           {governingReadings.map((r) => (
-            <View key={r.readingId} style={styles.tableRow}>
+            <View key={r.readingId} wrap={false} style={styles.tableRow}>
               <Text style={styles.cellName}>{r.cml ?? r.location}</Text>
               <Text style={styles.cellNum}>{formatFixed(r.tActualMm, 2)}</Text>
               <Text style={styles.cellNum}>{formatFixed(r.tRequiredMm, 2)}</Text>
@@ -245,32 +273,6 @@ export function buildPdfDocument(
             </View>
           ))}
         </View>
-
-        <Text style={styles.sectionLabel}>PT/MT indication</Text>
-        {snapshot.indications.length === 0 ? (
-          <Text style={styles.metaRow}>No PT/MT indications recorded for this evaluation.</Text>
-        ) : (
-          <View style={styles.table}>
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={styles.cellNum}>Method</Text>
-              <Text style={styles.cellWide}>Morphology</Text>
-              <Text style={styles.cellWide}>Dimensions</Text>
-              <Text style={styles.cellNum}>Verdict</Text>
-              <Text style={styles.cellWide}>Clause reference</Text>
-            </View>
-            {snapshot.indications.map((ind) => (
-              <View key={ind.id} style={styles.tableRow}>
-                <Text style={styles.cellNum}>{ind.method}</Text>
-                <Text style={styles.cellWide}>{ind.morphology} (declared: informational)</Text>
-                <Text style={styles.cellWide}>
-                  L {formatFixed(ind.lengthMm, 1)} × W {formatFixed(ind.widthMm, 1)} mm
-                </Text>
-                <Text style={styles.cellNum}>{verdictLabel(ind.verdict)}</Text>
-                <Text style={styles.cellWide}>{citationRef(ind.citationId) || "—"}</Text>
-              </View>
-            ))}
-          </View>
-        )}
 
         <Text style={styles.sectionLabel}>Clause-cited conclusions</Text>
         {conclusions.map((line, i) => (
@@ -325,6 +327,14 @@ export function buildPdfDocument(
           Confirm findings, calculations, and disposition through the responsible inspector and
           applicable procedures.
         </Text>
+
+        <Text
+          render={({ pageNumber, totalPages }) =>
+            `FlawCheck Certified Inspection Report · Page ${pageNumber} of ${totalPages}`
+          }
+          fixed
+          style={styles.pageNumber}
+        />
       </Page>
     </Document>
   );

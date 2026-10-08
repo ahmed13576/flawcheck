@@ -78,3 +78,12 @@ export function rlCell(
   }
   return { kind: "years", text: formatFixed(reading.rlYears, 1) };
 }
+
+/** Formats flag into an uppercase human-readable label; ensures immediate_inspection is never raw snake_case. */
+export function formatFlagLabel(flag: string): string {
+  if (flag === "immediate_inspection") return "IMMEDIATE INSPECTION REQUIRED";
+  if (flag === "measurement_inconsistency") return "MEASUREMENT INCONSISTENCY";
+  if (flag === "insufficient_history") return "INSUFFICIENT HISTORY";
+  if (flag === "outlier") return "OUTLIER";
+  return flag.toUpperCase().replace(/_/g, " ");
+}
