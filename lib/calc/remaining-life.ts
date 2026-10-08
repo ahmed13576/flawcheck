@@ -21,5 +21,10 @@ export function remainingLife(
   if (governingEffectiveMmYr === null || governingEffectiveMmYr <= 0) {
     return null;
   }
+  // API 570 para. 7.1.1 & 7.2: if t_actual <= t_required, the component has reached
+  // or breached retirement thickness — remaining life is clamped to 0.0 yr (never negative).
+  if (tActualMm <= tRequiredMm) {
+    return 0;
+  }
   return roundTo((tActualMm - tRequiredMm) / governingEffectiveMmYr, 4);
 }

@@ -64,16 +64,23 @@ export function nextInspectionCell(
   };
 }
 
-/** RL cell model: '—' (+ sub-text when insufficient) or the 1-dp years. */
+/** RL cell model: '—' (+ sub-text when insufficient) or the 1-dp years (or 0.0 with RETIRED / IMMEDIATE ACTION). */
 export function rlCell(
   reading: Pick<ReadingResult, "rlYears" | "flags">,
-): { kind: "dash"; subText?: string } | { kind: "years"; text: string } {
-  if (reading.rlYears === null) {
+): { kind: "dash"; subText?: string } | { kind: "years"; text: string; subText?: string } {
+  if (reading.rlYears === null || !Number.isFinite(reading.rlYears)) {
     return {
       kind: "dash",
       subText: reading.flags.includes("insufficient_history")
         ? "insufficient corrosion history"
         : undefined,
+    };
+  }
+  if (reading.rlYears <= 0) {
+    return {
+      kind: "years",
+      text: "0.0",
+      subText: "RETIRED / IMMEDIATE ACTION",
     };
   }
   return { kind: "years", text: formatFixed(reading.rlYears, 1) };

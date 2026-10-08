@@ -77,6 +77,38 @@ export function MetadataForm({
     </div>
   );
 
+  const GEOMETRIC_FIELDS: MetadataDraftField[] = [
+    "od",
+    "tNominal",
+    "fca",
+    "tStructural",
+    "gaugeUncertainty",
+  ];
+
+  const handleUnitChange = (newUnit: Unit) => {
+    if (newUnit === metadataUnit) return;
+    for (const field of GEOMETRIC_FIELDS) {
+      const currentVal = draft[field];
+      if (typeof currentVal === "string" && currentVal.trim() !== "") {
+        const num = parseFloat(currentVal);
+        if (Number.isFinite(num)) {
+          let mm = num;
+          if (metadataUnit === "in") mm = num * 25.4;
+          else if (metadataUnit === "mils") mm = num * 0.0254;
+
+          let converted = mm;
+          if (newUnit === "in") converted = mm / 25.4;
+          else if (newUnit === "mils") converted = mm / 0.0254;
+
+          const decimals = newUnit === "mm" ? 3 : newUnit === "in" ? 4 : 1;
+          const rounded = Number(converted.toFixed(decimals));
+          onField(field, String(rounded));
+        }
+      }
+    }
+    onMetadataUnit(newUnit);
+  };
+
   return (
     <section
       aria-label="Component metadata"
@@ -90,7 +122,7 @@ export function MetadataForm({
         <UnitSegmented
           options={THICKNESS_UNIT_OPTIONS}
           value={metadataUnit}
-          onChange={(value) => onMetadataUnit(value as Unit)}
+          onChange={(value) => handleUnitChange(value as Unit)}
           ariaLabel="Metadata unit — applies to all numeric metadata fields"
         />
       </div>

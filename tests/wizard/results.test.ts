@@ -6,6 +6,7 @@ import {
   formatEvaluatedAt,
   nextInspectionCell,
   rlCell,
+  formatFlagLabel,
 } from "@/lib/wizard/format";
 import { flagChipFor } from "@/components/wizard/verdict-chip";
 import { APPARENT_GAIN_SENTENCE } from "@/components/wizard/flag-detail-row";
@@ -129,6 +130,24 @@ describe("next-inspection cell model — G14 immediate inspection", () => {
     expect(rlCell(leaked).kind === "years" ? (rlCell(leaked) as { text: string }).text : "—").toBe(
       "—",
     );
+  });
+
+  it("RL <= 0 renders 0.0 with RETIRED / IMMEDIATE ACTION subtext", () => {
+    const reading: ReadingResult = {
+      ...baseReading,
+      rlYears: 0,
+      nextInspection: null,
+    };
+    expect(rlCell(reading)).toEqual({
+      kind: "years",
+      text: "0.0",
+      subText: "RETIRED / IMMEDIATE ACTION",
+    });
+  });
+
+  it("formatFlagLabel converts snake_case to uppercase readable text", () => {
+    expect(formatFlagLabel("immediate_inspection")).toBe("IMMEDIATE INSPECTION REQUIRED");
+    expect(formatFlagLabel("insufficient_history")).toBe("INSUFFICIENT HISTORY");
   });
 });
 
