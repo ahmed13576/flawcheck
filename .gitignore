@@ -47,3 +47,11 @@ next-env.d.ts
 
 # local scratch (agent working files)
 scratch/
+
+# Copyrighted standards + design artifacts — never publish (2026-10 final review)
+/API 570 5th EDITION.pdf
+/API 574 Inspection Practices for Piping System Components.pdf
+/ASME-B31.3-2024.pdf
+/Nebius x NVIDIA Global AI Hackathon_ Build the next frontier of AI on open infrastructure - Devpost.pdf
+/flowstep-gui/
+/graphify-out/
