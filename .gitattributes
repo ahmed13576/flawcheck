@@ -1,0 +1,2 @@
+*.csv text eol=lf
+lib/demo/fixtures/*.json text eol=lf
