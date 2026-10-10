@@ -201,3 +201,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. LLM Reasoning & Citation Layer | 7/7 | Complete (verified 52/52 + enabled-path walkthrough, 2026-10-05) |  |
 | 4. Report Rendering | 4/4 | Complete (verified 2026-10-05) | 2026-10-05 |
 | 5. Demo Hardening, Deployment & Submission | Complete | Complete (deployed + audit, 2026-10-08) | 2026-10-08 |
+| 6. Report Digestibility & At-a-Glance Findings | 2/2 | Complete (verified 6/6 + 583 tests, 2026-10-10) | 2026-10-10 |
