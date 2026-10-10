@@ -183,12 +183,12 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
 | 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) |
 | 3. LLM Reasoning & Citation Layer | 7/7 | Complete (verified 52/52 + enabled-path walkthrough, 2026-10-05) |  |
-| 4. Report Rendering | 0/4 | Not started | - |
-| 5. Demo Hardening, Deployment & Submission | 0/TBD | Not started | - |
+| 4. Report Rendering | 4/4 | Complete (verified 2026-10-05) | 2026-10-05 |
+| 5. Demo Hardening, Deployment & Submission | Complete | Complete (deployed + audit, 2026-10-08) | 2026-10-08 |
