@@ -155,7 +155,7 @@ New tests per decision:
 | A3 | Top-3–5 brief list cap "3–5" resolves to "min(5, count)" | Recommendation 1 | Cosmetic only |
 | A4 | CSV pointer remains non-functional text this phase | Recommendation 2 | If user expects a live link, small follow-up (export route) needed |
 
-## Open Questions
+## Open Questions (RESOLVED — see 06-CONTEXT.md decisions 2 & 3)
 
 1. **Glossary clause-id remap** — confirm ACCEPT→§10.5.1.4, FAIL→§7.1.1→§7.6 swap, RE-CHECK→§7.1.2-or-null at the human checkpoint (P1). Recommendation: present the rendered strings side-by-side with the locked copy.
 2. **Top-10 ordering** — accept file-order within the flagged block (locked reuse, F5) or rl-sort the top-10 slice? Recommendation: accept locked reuse; the brief carries true worst-first.
