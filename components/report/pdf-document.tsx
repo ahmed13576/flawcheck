@@ -167,7 +167,13 @@ export function buildPdfDocument(
       : snapshot.summary.reCheck > 0
         ? "ATTENTION — RE-CHECK REQUIRED"
         : "ACCEPTABLE FOR CONTINUED SERVICE";
-  const dispositionTone = snapshot.summary.fail > 0 ? "#991b1b" : "#047857";
+  // WR-01: amber for the RE-CHECK tone — green is reserved for the all-accept
+  // disposition; "ATTENTION — RE-CHECK REQUIRED" must not read as acceptable.
+  const dispositionTone = snapshot.summary.fail > 0
+    ? "#991b1b"
+    : snapshot.summary.reCheck > 0
+      ? "#b45309"
+      : "#047857";
   const count = (n: number) => n.toLocaleString("en-US");
 
   // The page-number footer renders on EVERY page (UI-6.13) — one render node
