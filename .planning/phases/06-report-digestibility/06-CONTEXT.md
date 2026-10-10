@@ -39,16 +39,16 @@ This phase changes PRESENTATION and DEMO COMPOSITION only. It must not touch:
 
 - **Page 1 = executive dashboard**: disposition banner ("2 of 4,912 FAILED — 2 locations need immediate inspection"), the existing executive summary card (from the A-remediation merge), **code-breakdown stats** — counts per verdict and per criterion type passing/failing (user: "all the types of codes passing/failing"), top-10 worst CMLs table (location, t-actual, t-required, RL, verdict), and the what-to-do-next line.
 - **Detail register**: KEPT as the human-verifiable detail layer starting page 2 — full governing register (top 100 + all reject/re-check) as merged in the A-remediation. Additionally, a "Full data: downloadable CSV" pointer line is added so the register can shrink in a future revision without losing the data path.
-- The top-10 table and the code-breakdown stats are presentation-level compositions of `snapshot.summary` + `snapshot.readings` — no new computation (reuse `getGoverningPdfReadings` sorting; worst-10 = first 10 of that ordering).
+- The top-10 table and the code-breakdown stats are presentation-level compositions of `snapshot.summary` + `snapshot.readings` — no new computation. Top-10 is RL-ascending sorted (worst remaining life first), user-decided during planning; code-breakdown stats group by verdict and governing-thickness source.
 
 ### 3. Verdict glossary
 
 - **Form**: shared 3-line legend — SAME copy everywhere a verdict appears (results table footer, HTML report document, PDF). Not tooltips (invisible in print/PDF).
 - **Tone**: plain consequence-led sentence FIRST, standard clause as a small sub-line beneath (cite-don't-quote: composed from `citationRef` record fields only).
-- **Locked copy** (plain sentence / clause sub-line):
-  - **ACCEPT** — "Wall thickness meets the code minimum at this location." / API 574 §10.5 (via citationRef)
-  - **RE-CHECK** — "Thickness is close to the limit — re-measure to confirm before deciding." / API 570 §6.4 (via citationRef)
-  - **FAIL** — "Wall is thinner than the code allows at this location. Action required." / API 570 §7.1.1 (via citationRef)
+- **Locked copy** (plain sentence / clause sub-line) — clause ids RE-MAPPED during planning (research found the originally-proposed ids absent from citations.json and semantically wrong; plain sentences unchanged):
+  - **ACCEPT** — "Wall thickness meets the code minimum at this location." / `api574_10_5_1_4` (governing t-required = max(pressure, structural))
+  - **RE-CHECK** — "Thickness is close to the limit — re-measure to confirm before deciding." / `api570_7_1_2_governing`
+  - **FAIL** — "Wall is thinner than the code allows at this location. Action required." / `api570_7_6` (retirement/action)
 - Legend placement: results table footer (Screen 3), report conclusions section (HTML), PDF page-1 footer. One shared source-of-truth constant (e.g. `lib/report/verdict-glossary.ts`) consumed by all three renderers — one source, two-to-three renderers, same pattern as `lib/report/content.ts`.
 
 ### 4. Demo dataset size
@@ -73,7 +73,7 @@ This phase changes PRESENTATION and DEMO COMPOSITION only. It must not touch:
 - `lib/report/content.ts` — the established one-source/multiple-renderers content seam; verdict glossary constant belongs beside it.
 - `components/wizard/verdict-chip.tsx` — `verdictLabel()` repo-protected strings; glossary renders adjacent, not inside.
 - `components/wizard/screen-results.tsx` — Screen 3 host; the brief mounts above `ResultsTable`.
-- `lib/ingest/csv.ts` — demo subset ships as a committed fixture parsed by the same path (no special-casing).
+- `lib/ingest/csv.ts` — demo subset ships as a committed fixture parsed by the same path (no special-casing). Research constraint (06-RESEARCH.md): subset filters by Tank (WBT-S6, ~420 readings), NEVER by date — `groupByCml` derives history from the date-sorted group and a date window would manufacture insufficient_history flags.
 
 </code_context>
 
