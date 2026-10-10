@@ -11,7 +11,8 @@
  * Plan 02-04 action surface:
  * - ingest: start-parse / parse-file / parse-invalid / parse-too-large /
  *   cancel-parse / dismiss-ingest-error (T-02-06 caps enforced BEFORE tokenize)
- * - demo: load-demo (zero network beyond the static fixture import)
+ * - demo: load-demo (subset) / load-demo-full (scale demo) — zero network
+ *   beyond the static fixture imports; ui.demoScope carries the provenance
  * - replace: stage-replace / cancel-replace / confirm-replace (UI-03)
  * - review: set-mapping / set-csv-thickness-unit / set-metadata-unit /
  *   set-row-cell / set-page (UI-07..09, UI-13)
@@ -98,6 +99,13 @@ export interface WizardUiState {
   evaluationError: string | null;
   /** Captured by run-evaluation for the results data-source footnote. */
   evaluatedAt: string | null;
+  /**
+   * Which demo the current session came from (06-02, UI-6.23): null unless a
+   * load-demo/load-demo-full created it — every other session-creating path
+   * spreads INITIAL_UI, so upload/tracer/sample sessions naturally reset it.
+   * Drives the scope-aware provenance banner (subset | full).
+   */
+  demoScope: "subset" | "full" | null;
 }
 
 /**
@@ -111,6 +119,7 @@ export interface WizardState extends EvaluationSession {
 export type WizardAction =
   | { type: "load-sample" }
   | { type: "load-demo" }
+  | { type: "load-demo-full" }
   | { type: "start-parse"; filename: string }
   | { type: "parse-file"; filename: string; content: string }
   | { type: "parse-invalid"; filename: string }
@@ -263,6 +272,7 @@ const INITIAL_UI: WizardUiState = {
   evaluating: false,
   evaluationError: null,
   evaluatedAt: null,
+  demoScope: null,
 };
 
 export function createInitialState(): WizardState {
@@ -544,7 +554,10 @@ function loadSample(): WizardState {
 }
 
 function loadDemo(): WizardState {
-  const session = createDemoSession();
+  // 06-02: the PRIMARY demo is the committed WBT-S6 subset (~420 readings,
+  // one tank, every CML multi-campaign) — the same parse path as the full
+  // register (no special-casing), now the default scope.
+  const session = createDemoSession("subset");
   return {
     ...session,
     ui: {
@@ -552,6 +565,26 @@ function loadDemo(): WizardState {
       metadataDraft: draftFromMetadata(DEMO_METADATA),
       screen: 2,
       rowIssues: validateSession(session),
+      demoScope: "subset",
+    },
+  };
+}
+
+/**
+ * 06-02 (UI-6.22): the secondary "Load full register (scale demo)" path —
+ * mirrors loadDemo but resolves the untouched 4,912-row fixture; the same
+ * validateSession gate and Screen 2 landing apply.
+ */
+function loadDemoFull(): WizardState {
+  const session = createDemoSession("full");
+  return {
+    ...session,
+    ui: {
+      ...INITIAL_UI,
+      metadataDraft: draftFromMetadata(DEMO_METADATA),
+      screen: 2,
+      rowIssues: validateSession(session),
+      demoScope: "full",
     },
   };
 }
@@ -582,6 +615,9 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
 
     case "load-demo":
       return loadDemo();
+
+    case "load-demo-full":
+      return loadDemoFull();
 
     case "start-parse":
       return {

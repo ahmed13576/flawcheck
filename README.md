@@ -34,7 +34,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-Click **"Explore a sample inspection"** on the landing page for a one-click demo with 4,912 real readings (Zenodo, CC BY 4.0).
+Click **"Explore a sample inspection"** on the landing page for a one-click demo with 420 real readings (the WBT-S6 tank subset — Zenodo, CC BY 4.0), or **"Load full register (scale demo)"** for the complete 4,912-reading register.
 
 ## Architecture
 
@@ -95,7 +95,19 @@ Without a Nebius key the app still runs end-to-end: every evaluation falls back 
 
 ## Dataset
 
-The demo scenario uses [Zenodo record 16780668](https://zenodo.org/records/16780668) (CC BY 4.0) — 4,912 real ultrasonic thickness readings from 12 ballast tank locations across 11 annual survey campaigns.
+The demo uses [Zenodo record 16780668](https://zenodo.org/records/16780668) (CC BY 4.0) — real ultrasonic thickness readings from ballast tank locations across 11 annual survey campaigns.
+
+**Demo datasets:**
+
+- **Primary demo** (`Explore a sample inspection`): the committed WBT-S6 tank subset — 420 readings, one tank section, 40 CMLs, every CML multi-campaign (`lib/demo/fixtures/zenodo-16780668-ut-register-subset.json`, mirrored as `public/sample-ut-register-subset.csv`). It is generated deterministically from the full register by tank-identity filtering ONLY (never date-filtered, so per-CML campaign history stays intact):
+
+  ```bash
+  node scripts/generate-demo-subset.mjs
+  ```
+
+- **Scale demo** (`Load full register (scale demo)`): the untouched full register — 4,912 readings across 12 tank locations (`lib/demo/fixtures/zenodo-16780668-ut-register.json`).
+
+Dataset attribution is unchanged — see `lib/demo/ATTRIBUTION.md`.
 
 ## License
 
