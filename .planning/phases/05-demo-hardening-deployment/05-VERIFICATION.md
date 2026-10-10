@@ -1,19 +1,19 @@
 ---
 phase: 05-demo-hardening-deployment
-verified: 2026-10-10T13:00:00Z
+verified: 2026-10-10T08:56:59Z
 status: passed
 score: 5/5 must-haves verified
 covered_files:
-  - ".env.example"
-  - ".planning/phases/05-demo-hardening-deployment/05-CONTEXT.md"
-  - ".planning/phases/05-demo-hardening-deployment/05-PLAN.md"
-  - ".planning/phases/05-demo-hardening-deployment/05-SUMMARY.md"
-  - "LICENSE"
-  - "README.md"
-  - "VIDEO_SCRIPT.md"
-  - "app/api/tavily/route.ts"
-  - "lib/api/rate-limit.ts"
-covered_digest: "v3:sha256:af8787cd577997089ba741903244ef61710b1533e874935d12804d5b7c67053e"
+  - .env.example
+  - .planning/phases/05-demo-hardening-deployment/05-CONTEXT.md
+  - .planning/phases/05-demo-hardening-deployment/05-PLAN.md
+  - .planning/phases/05-demo-hardening-deployment/05-SUMMARY.md
+  - LICENSE
+  - README.md
+  - VIDEO_SCRIPT.md
+  - app/api/tavily/route.ts
+  - lib/api/rate-limit.ts
+covered_digest: "v3:sha256:a3bdadf5d2c3abe522f1a954e36d5765e9d90b58057b6d182a5a801ad8a01352"
 behavior_unverified: 0
 overrides_applied: 0
 ---

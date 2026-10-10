@@ -1,6 +1,6 @@
 ---
 phase: 03-llm-reasoning-citation-layer
-verified: 2026-10-10T07:20:10Z
+verified: 2026-10-10T08:56:57Z
 status: passed
 score: 52/52 must-haves verified
 behavior_unverified: 0
@@ -24,27 +24,27 @@ covered_files:
   - .planning/phases/03-llm-reasoning-citation-layer/03-UI-SPEC.md
   - app/api/reasoning/extract/route.ts
   - app/api/reasoning/narrative/route.ts
+  - components/report/report-document.tsx
+  - components/wizard/citation-chip.tsx
+  - components/wizard/pipeline-status-bar.tsx
+  - components/wizard/ptmt-triage-list.tsx
   - components/wizard/reasoning-context.tsx
   - components/wizard/reasoning-pane.tsx
   - components/wizard/results-table.tsx
-  - components/wizard/pipeline-status-bar.tsx
-  - components/wizard/ptmt-triage-list.tsx
-  - components/wizard/citation-chip.tsx
   - components/wizard/screen-results.tsx
-  - components/report/report-document.tsx
   - hooks/use-narrative-stream.ts
-  - lib/reasoning/tokenizer.ts
+  - lib/criteria/citations.json
+  - lib/llm/complete.ts
   - lib/reasoning/fallback.ts
   - lib/reasoning/lints.ts
-  - lib/reasoning/schemas.ts
-  - lib/reasoning/prompts.ts
   - lib/reasoning/narrative-context.ts
-  - lib/llm/complete.ts
+  - lib/reasoning/prompts.ts
+  - lib/reasoning/schemas.ts
+  - lib/reasoning/tokenizer.ts
   - lib/report/session-snapshot.ts
   - lib/utils.ts
-  - lib/criteria/citations.json
   - tests/reasoning/e2e-offline.test.ts
-covered_digest: "v3:sha256:bd56fa2ab8099bde9d9557eb579bb090907d735fc9760bbef98969cc9a431522"
+covered_digest: "v3:sha256:5bbafa16c3371546046829f3c0c144bbf99f790bcee51a8cd928bcfa570ac071"
 re_verification:
   previous_status: human_needed
   previous_score: 52/52

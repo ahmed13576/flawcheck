@@ -1,10 +1,10 @@
 ---
 phase: 01-platform-spike
-verified: 2026-10-10T07:13:23Z
+verified: 2026-10-10T08:56:54Z
 status: passed
 score: 15/15 must-haves verified
 covered_files: [".env.example", ".gitignore", ".planning/phases/01-platform-spike/01-01-PLAN.md", ".planning/phases/01-platform-spike/01-01-SUMMARY.md", ".planning/phases/01-platform-spike/01-02-PLAN.md", ".planning/phases/01-platform-spike/01-02-SUMMARY.md", ".planning/phases/01-platform-spike/01-03-PLAN.md", ".planning/phases/01-platform-spike/01-03-SUMMARY.md", ".planning/phases/01-platform-spike/01-04-PLAN.md", ".planning/phases/01-platform-spike/01-04-SUMMARY.md", ".planning/phases/01-platform-spike/01-SUMMARY.md", "UNINSTALL.md", "app/api/health/route.ts", "app/api/spike/stream/route.ts", "app/page.tsx", "app/spike/page.tsx", "docs/model-catalog.json", "docs/spike-record.md", "instrumentation.ts", "lib/llm/client.ts", "lib/llm/complete.ts", "lib/llm/config.ts", "lib/llm/schemas.ts", "lib/llm/validate-config.ts", "package.json", "scripts/dump-model-catalog.mjs", "tests/llm/hello-fixture.test.ts", "tests/llm/validate-config.offline.test.ts", "tests/llm/validated-call.retry.test.ts", "tests/pdf/react-pdf-smoke.test.ts", "vitest.config.ts"]
-covered_digest: "v3:sha256:2f8c97a95ddc0b547af0d04cd48916f1f163db1c223389cf4cb2196929d7545e"
+covered_digest: "v3:sha256:1b0d67dd6a94e1eb357315257327791533220f5e5bdfd3c129c4d600b6ecf3ec"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:

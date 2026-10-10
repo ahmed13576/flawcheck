@@ -1,6 +1,6 @@
 ---
 phase: 02-ingestion-calc-engine
-verified: 2026-10-10T07:16:48Z
+verified: 2026-10-10T08:56:56Z
 status: passed
 score: 50/50 must-haves verified (0 failed)
 behavior_unverified: 0
@@ -81,10 +81,10 @@ covered_files:
   - tests/ingest/map.test.ts
   - tests/ingest/units-gate.test.ts
   - tests/ingest/validate.test.ts
+  - tests/wizard/color-scheme.test.ts
   - tests/wizard/reducer.test.ts
   - tests/wizard/results.test.ts
-  - tests/wizard/color-scheme.test.ts
-covered_digest: "v3:sha256:a464db5a5a6e588ea109aab27023fa4a0f314923745a8944eb59fcc52e4fc445"
+covered_digest: "v3:sha256:560f20da39adf749116fce45b86ad28156b7a1016ceed4f2513be977ca6ac3a4"
 re_verification:
   previous_status: passed (after orchestrator browser walkthrough 2026-09-27)
   previous_score: 50/50

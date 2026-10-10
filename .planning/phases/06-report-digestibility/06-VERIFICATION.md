@@ -1,6 +1,6 @@
 ---
 phase: 06-report-digestibility
-verified: 2026-10-10T14:30:00Z
+verified: 2026-10-10T08:53:21Z
 status: passed
 score: 6/6 must-haves verified
 covered_files:
@@ -29,10 +29,7 @@ covered_files:
   - "tests/report/findings-brief.test.ts"
   - "tests/report/pdf-route.test.ts"
   - "tests/report/report-preview.test.ts"
-  - "tests/wizard/flowstep-restyle.test.ts"
-  - "tests/wizard/reducer.test.ts"
-  - "tests/wizard/screen3-brief.test.tsx"
-covered_digest: "v3:sha256:cc1f7aa21c2a6e988d4a5f4b7077712cc3f9b1178cc252c692f2bb985a35a55f"
+covered_digest: "v3:sha256:310a9608e63eba89424d7c3bf74a92b94b13f7b1722f072ef842335f4538d5ac"
 behavior_unverified: 0
 overrides_applied: 1
 overrides:
