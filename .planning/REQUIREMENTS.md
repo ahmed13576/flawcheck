@@ -35,6 +35,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **REPT-01**: User can export a PDF report (header, CML grid, indication table, conclusions, revision block, sign-off, disclaimer)
 - [x] **REPT-02**: Report includes an audit appendix (timestamps, input hashes, model + version per step)
 - [x] **REPT-03**: Print-CSS fallback guarantees report output even if the PDF library fails
+- [ ] **REPT-04**: Results screen leads with a plain-English "What we found" brief (disposition sentence, next action, verdict narrative, worst locations) composed deterministically from engine output — never LLM-generated (Phase 6)
+- [ ] **REPT-05**: The certified PDF leads with a page-1 executive dashboard (disposition banner, summary card, code-breakdown stats, top-10 worst CMLs RL-ascending, next action, CSV pointer); the governing register is the detail layer from page 2 (Phase 6)
+- [ ] **REPT-06**: Verdict meaning (ACCEPT / RE-CHECK / FAIL) is explained in plain layman terms with clause sub-lines from the citation allowlist wherever a verdict appears — Screen 3 footer, HTML report conclusions, PDF page-1 footer — from one shared constant (Phase 6)
 
 ### Platform
 
@@ -50,6 +53,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DEMO-02**: Seeded scenarios run from committed cached LLM responses, with a "Live model" toggle for the video
 - [x] **DEMO-03**: App deployed to a public URL with Nebius as the AI backend
 - [x] **DEMO-04**: Repo is public, OSS-licensed, README with setup + Nebius/NVIDIA usage highlighted
+- [ ] **DEMO-05**: Primary one-click demo loads a committed deterministic human-sized subset (WBT-S6 tank section, ~420 readings, multi-campaign) of the Zenodo register through the standard parse path; the full 4,912-row register remains a secondary scale-demo option with distinguished provenance (Phase 6)
 
 ## v2 Requirements
 
@@ -106,19 +110,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REPT-01 | Phase 4 | Complete |
 | REPT-02 | Phase 4 | Complete |
 | REPT-03 | Phase 4 | Complete |
+| REPT-04 | Phase 6 | Planned |
+| REPT-05 | Phase 6 | Planned |
+| REPT-06 | Phase 6 | Planned |
 | PLAT-03 | Phase 5 | Complete |
 | PLAT-04 | Phase 5 | Complete |
 | DEMO-01 | Phase 5 | Complete |
 | DEMO-02 | Phase 5 | Complete |
 | DEMO-03 | Phase 5 | Complete |
 | DEMO-04 | Phase 5 | Complete |
+| DEMO-05 | Phase 6 | Planned |
 
 **Coverage:**
 
-- v1 requirements: 26 total
-- Mapped to phases: 26
+- v1 requirements: 30 total
+- Mapped to phases: 30
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-24*
-*Last updated: 2026-09-24 — roadmap traceability populated (26/26 mapped); corrected prior "24 total" miscount*
+*Last updated: 2026-10-10 — Phase 6 requirements introduced (REPT-04..06, DEMO-05; traceability 30/30 mapped)*
