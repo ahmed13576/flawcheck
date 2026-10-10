@@ -1,12 +1,17 @@
 /**
- * PDF document renderer — 04-02 Task 2 (SERVER module, no "use client").
- * Mirrors the on-screen ReportDocument 1:1 per the locked decision: same
- * data, same citations, same disclaimers — two renderers, one content
- * source (lib/report/content.ts + lib/wizard/format.ts). Nothing is
- * imported from components/report/report-document.tsx (it carries a
- * "use client" directive). Every clause reference is composed by
- * citationRef from the citations.json record fields — cite-don't-quote;
- * no hardcoded clause strings.
+ * PDF document renderer — 04-02 Task 2, restructured by 06-01 Task 2 (SERVER
+ * module, no "use client"). Mirrors the on-screen ReportDocument per the
+ * locked decision: same data, same citations, same disclaimers — two
+ * renderers, one content source (lib/report/content.ts + lib/wizard/format.ts).
+ * Nothing is imported from components/report/report-document.tsx (it carries
+ * a "use client" directive). Every clause reference is composed by
+ * citationRef from the citations.json record fields — cite-don't-quote; no
+ * hardcoded clause strings.
+ *
+ * 06-01: the document renders TWO <Page> elements — page 1 is the executive
+ * dashboard (disposition banner, summary card, code-breakdown stats, top-10
+ * worst locations, what-to-do-next, CSV pointer, verdict-glossary footer),
+ * page 2+ carries the unchanged detail register (UI-6.13/UI-6.14).
  *
  * Styling: built-in Helvetica (body) + Courier (numeric) — NO Font.register
  * (avoids the react-pdf server font-registration gotcha entirely). Text
@@ -20,6 +25,12 @@ import {
   buildConclusions,
   earliestNextInspection,
   REPORT_UNIT_ASSUMPTION_COPY,
+  buildCodeBreakdown,
+  buildCsvPointerLine,
+  buildDispositionBannerSentence,
+  buildWhatToDoNextLine,
+  VERDICT_GLOSSARY,
+  VERDICT_GLOSSARY_ORDER,
 } from "@/lib/report/content";
 import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
@@ -93,6 +104,24 @@ export function getGoverningPdfReadings(
   return { governingReadings: combined, isFiltered: true, totalCount };
 }
 
+/**
+ * Top-10 worst locations (06-01, UI-6.17): takes the flagged-first governing
+ * slice getGoverningPdfReadings(readings, 10).governingReadings and RL-sorts
+ * THAT SLICE ascending with null RL last (the locked RL-ascending decision
+ * for the top-10 slice ONLY — the page-2+ register keeps the unsorted
+ * governing ordering). Exported pure for the node test-suite.
+ */
+export function getTop10Worst(
+  readings: ReportSnapshot["readings"],
+): ReportSnapshot["readings"] {
+  const { governingReadings } = getGoverningPdfReadings(readings, 10);
+  return [...governingReadings].sort((a, b) => {
+    const rlA = a.rlYears ?? Number.POSITIVE_INFINITY;
+    const rlB = b.rlYears ?? Number.POSITIVE_INFINITY;
+    return rlA - rlB;
+  });
+}
+
 function flagsLine(reading: ReportSnapshot["readings"][number]): string {
   const labels = reading.flags.map((f) => formatFlagLabel(f)).join(", ");
   return labels.length > 0 ? labels : "—";
@@ -129,8 +158,33 @@ export function buildPdfDocument(
     100,
   );
 
+  // 06-01 dashboard derivations — pure compositions from the content seam.
+  const breakdown = buildCodeBreakdown(snapshot.summary, snapshot.readings);
+  const top10 = getTop10Worst(snapshot.readings);
+  const dispositionHeading =
+    snapshot.summary.fail > 0
+      ? "ACTION REQUIRED — DEFECTS DETECTED"
+      : snapshot.summary.reCheck > 0
+        ? "ATTENTION — RE-CHECK REQUIRED"
+        : "ACCEPTABLE FOR CONTINUED SERVICE";
+  const dispositionTone = snapshot.summary.fail > 0 ? "#991b1b" : "#047857";
+  const count = (n: number) => n.toLocaleString("en-US");
+
+  // The page-number footer renders on EVERY page (UI-6.13) — one render node
+  // reused in both Page elements.
+  const pageFooter = (
+    <Text
+      render={({ pageNumber, totalPages }) =>
+        `FlawCheck Certified Inspection Report · Page ${pageNumber} of ${totalPages}`
+      }
+      fixed
+      style={styles.pageNumber}
+    />
+  );
+
   return (
     <Document>
+      {/* ---------------- Page 1 — executive dashboard (UI-6.14) ---------------- */}
       <Page size="A4" style={styles.body}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Text style={styles.title}>FlawCheck Inspection Report</Text>
@@ -145,26 +199,31 @@ export function buildPdfDocument(
           </Text>
         </View>
 
+        {/* 1) Disposition banner — the existing three-tone heading + the locked sentence. */}
+        <View style={styles.summaryCard}>
+          <Text style={[styles.summaryDisposition, { color: dispositionTone }]}>
+            {dispositionHeading}
+          </Text>
+          <Text style={styles.summaryStat}>{buildDispositionBannerSentence(snapshot.summary)}</Text>
+        </View>
+
+        {/* 2) Executive summary card (moved onto page 1; "Total CMLs" → "Total readings" — P5). */}
         <View style={styles.summaryCard}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Text style={styles.summaryTitle}>EXECUTIVE EVALUATION SUMMARY</Text>
-            <Text style={styles.summaryDisposition}>
-              {snapshot.summary.fail > 0
-                ? "ACTION REQUIRED — DEFECTS DETECTED"
-                : snapshot.summary.reCheck > 0
-                  ? "ATTENTION — RE-CHECK REQUIRED"
-                  : "ACCEPTABLE FOR CONTINUED SERVICE"}
+            <Text style={[styles.summaryDisposition, { color: dispositionTone }]}>
+              {dispositionHeading}
             </Text>
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4 }}>
             <Text style={styles.summaryStat}>
-              Total CMLs: {snapshot.summary.total.toLocaleString("en-US")}
+              Total readings: {count(snapshot.summary.total)}
             </Text>
             <Text style={styles.summaryStat}>
               {`Disposition: ${snapshot.summary.accept} Accept · ${snapshot.summary.reCheck} Re-Check · ${snapshot.summary.fail} Fail`}
             </Text>
             <Text style={styles.summaryStat}>
-              Locations: {snapshot.summary.locations.toLocaleString("en-US")}
+              Locations: {count(snapshot.summary.locations)}
             </Text>
           </View>
           {audit?.inputHash && (
@@ -174,6 +233,79 @@ export function buildPdfDocument(
           )}
         </View>
 
+        {/* 3) Code-breakdown stats — verdict counts + both governing branches (UI-6.16). */}
+        <View style={styles.grid}>
+          <View style={styles.gridCell}>
+            <Text style={styles.gridLabel}>Verdicts</Text>
+            <Text style={styles.gridValue}>
+              {`${count(breakdown.verdicts.accept)} Accept · ${count(breakdown.verdicts.reCheck)} Re-check · ${count(breakdown.verdicts.fail)} Fail`}
+            </Text>
+          </View>
+          <View style={styles.gridCell}>
+            <Text style={styles.gridLabel}>vs pressure design (B31.3)</Text>
+            <Text style={styles.gridValue}>
+              {`${count(breakdown.pressure.pass)} pass · ${count(breakdown.pressure.fail)} fail`}
+            </Text>
+          </View>
+          <View style={styles.gridCell}>
+            <Text style={styles.gridLabel}>vs structural minimum (API 574)</Text>
+            <Text style={styles.gridValue}>
+              {`${count(breakdown.structural.pass)} pass · ${count(breakdown.structural.fail)} fail`}
+            </Text>
+          </View>
+        </View>
+
+        {/* 4) Top-10 worst locations — RL-ascending slice (null RL last). */}
+        <Text style={styles.sectionLabel}>Top-10 worst locations</Text>
+        <View style={styles.table}>
+          <View wrap={false} style={[styles.tableRow, styles.tableHeader]}>
+            <Text style={styles.cellName}>CML / Location</Text>
+            <Text style={styles.cellNum}>t-actual (mm)</Text>
+            <Text style={styles.cellNum}>t-required (mm)</Text>
+            <Text style={styles.cellNum}>RL (yr)</Text>
+            <Text style={styles.cellWide}>Verdict</Text>
+          </View>
+          {top10.map((r) => (
+            <View key={r.readingId} wrap={false} style={styles.tableRow}>
+              <Text style={styles.cellName}>{r.cml ?? r.location}</Text>
+              <Text style={styles.cellNum}>{formatFixed(r.tActualMm, 2)}</Text>
+              <Text style={styles.cellNum}>{formatFixed(r.tRequiredMm, 2)}</Text>
+              <Text style={styles.cellNum}>
+                {r.rlYears === null
+                  ? "—"
+                  : r.rlYears <= 0
+                    ? "0.0 (RETIRED)"
+                    : formatFixed(r.rlYears, 1)}
+              </Text>
+              <Text style={styles.cellWide}>{verdictLabel(r.verdict)}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* 5) What-to-do-next line (UI-6.18). */}
+        <Text style={styles.summaryStat}>{buildWhatToDoNextLine(snapshot.summary)}</Text>
+
+        {/* 6) CSV pointer — static text, no hyperlink this phase (UI-6.19). */}
+        <Text style={styles.footer}>{buildCsvPointerLine(totalCount)}</Text>
+
+        {/* 7) Verdict glossary footer — sub-lines ONLY via citationRef (UI-6.12). */}
+        <Text style={styles.gridLabel}>Verdict glossary</Text>
+        {VERDICT_GLOSSARY_ORDER.map((verdict) => {
+          const entry = VERDICT_GLOSSARY[verdict];
+          return (
+            <View key={verdict}>
+              <Text style={styles.footer}>{entry.plain}</Text>
+              <Text style={styles.monoSmall}>
+                {entry.citationId ? citationRef(entry.citationId) : ""}
+              </Text>
+            </View>
+          );
+        })}
+        {pageFooter}
+      </Page>
+
+      {/* ------------- Page 2+ — unchanged detail register (UI-6.13) ------------- */}
+      <Page size="A4" style={styles.body}>
         <Text style={styles.sectionLabel}>Component context</Text>
         <View style={styles.grid}>
           <View style={styles.gridCell}>
@@ -327,14 +459,7 @@ export function buildPdfDocument(
           Confirm findings, calculations, and disposition through the responsible inspector and
           applicable procedures.
         </Text>
-
-        <Text
-          render={({ pageNumber, totalPages }) =>
-            `FlawCheck Certified Inspection Report · Page ${pageNumber} of ${totalPages}`
-          }
-          fixed
-          style={styles.pageNumber}
-        />
+        {pageFooter}
       </Page>
     </Document>
   );
