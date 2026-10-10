@@ -23,13 +23,22 @@ import {
   writeReportSnapshot,
 } from "@/lib/report/session-snapshot";
 
-function DemoBanner() {
+/**
+ * Demo provenance banner (UI-21, 06-02 UI-6.23): scope-aware — the copy
+ * distinguishes the committed WBT-S6 subset from the full-register scale
+ * demo; both retain "(sample data)". Exported pure for the node test-suite.
+ */
+export function DemoBanner({ scope }: { scope: "subset" | "full" }) {
+  const copy =
+    scope === "full"
+      ? "Demo scenario loaded — Zenodo record 16780668 full register (sample data)"
+      : "Demo scenario loaded — Zenodo record 16780668 subset (sample data)";
   return (
     <div
       role="status"
       className="mb-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary"
     >
-      Demo scenario loaded — Zenodo record 16780668 subset (sample data)
+      {copy}
     </div>
   );
 }
@@ -93,7 +102,10 @@ function WizardRoot() {
         <StepIndicator current={ui.screen} />
       </div>
       <div className="mt-6">
-        {ui.screen !== 1 && state.source.isDemo && <DemoBanner />}
+        {/* 06-02: the banner renders whenever a demo scope is loaded (the
+            reducer's demo-creating paths are the only ones that set it) and
+            persists on Screens 2-3 with the scope-aware copy. */}
+        {ui.screen !== 1 && ui.demoScope !== null && <DemoBanner scope={ui.demoScope} />}
         {ui.screen === 1 && <ScreenIngest />}
         {ui.screen === 2 && (
           <ScreenReview>

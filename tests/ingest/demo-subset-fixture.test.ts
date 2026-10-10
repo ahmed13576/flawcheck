@@ -54,7 +54,7 @@ describe("demo subset fixture — the committed WBT-S6 tank section (UI-6.24)", 
       campaignsByCml.get(key)!.add(row.Measurement_Date);
     }
     expect(campaignsByCml.size).toBe(40);
-    for (const [cml, dates] of campaignsByCml) {
+    for (const dates of campaignsByCml.values()) {
       expect(dates.size).toBeGreaterThanOrEqual(2);
     }
   });

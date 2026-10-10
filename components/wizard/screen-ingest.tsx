@@ -192,9 +192,24 @@ export function ScreenIngest() {
           </button>
           <div className="rounded-lg border border-primary/20 bg-primary/10 p-4 text-center">
             <p className="font-mono text-sm text-muted-foreground">
-              Zenodo record 16780668 subset — 4,912 real readings. Runs offline.
+              Zenodo record 16780668 — WBT-S6 tank section, 420 real readings. Runs offline.
             </p>
           </div>
+
+          {/* Secondary scale-demo path (06-02, UI-6.22): SECONDARY token
+              styling — NEVER accent — dispatching load-demo-full; the same
+              validateSession gate and zero-network static import apply. */}
+          <button
+            type="button"
+            disabled={parsing !== null}
+            onClick={() => dispatch({ type: "load-demo-full" })}
+            className="flex h-12 w-full items-center justify-center rounded-md border border-border bg-secondary text-base font-semibold text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50"
+          >
+            Load full register (scale demo)
+          </button>
+          <p className="text-center text-sm text-muted-foreground">
+            4,912 readings — full Zenodo register.
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
