@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import Home from "@/app/page";
+import Home, { DemoBanner } from "@/app/page";
 import { StepIndicator } from "@/components/wizard/step-indicator";
 import { WizardProvider, useWizard } from "@/components/wizard/wizard-context";
 import { ScreenReview } from "@/components/wizard/screen-review";
@@ -124,7 +124,7 @@ describe("FS-03 Screen 1 reassurance row + provenance + 25 MB copy", () => {
     expect(markup).toContain("Offline-ready evaluation");
     expect(markup).toContain("Sample data available");
     expect(markup).toContain(
-      "Zenodo record 16780668 subset — 4,912 real readings. Runs offline.",
+      "Zenodo record 16780668 — WBT-S6 tank section, 420 real readings. Runs offline.",
     );
   });
 });
@@ -144,6 +144,59 @@ describe("FS-04 Screen 1 footer nav + preserved affordances", () => {
     expect(markup).toContain("Continue to review");
     const backIdx = markup.indexOf(">Back<");
     expect(markup.slice(backIdx - 200, backIdx)).toContain("disabled");
+  });
+});
+
+/**
+ * 06-02 Screen 1 two-tier demo block (UI-6.21/UI-6.22): the primary accent
+ * button keeps its label + dispatch (now the committed WBT-S6 subset); the
+ * secondary "Load full register (scale demo)" button renders BELOW the
+ * primary block with SECONDARY token styling — never accent — plus its
+ * muted explainer. The provenance banner (UI-6.23) distinguishes subset vs
+ * full, both retaining "(sample data)".
+ */
+describe("06-02 Screen 1 two-tier demo buttons + scope-aware provenance banner", () => {
+  it("renders the secondary scale-demo button BELOW the primary block with secondary-token styling", () => {
+    const markup = renderScreen1();
+    const primaryIdx = markup.indexOf("Explore a sample inspection");
+    const secondaryIdx = markup.indexOf("Load full register (scale demo)");
+    expect(primaryIdx).toBeGreaterThan(-1);
+    expect(secondaryIdx).toBeGreaterThan(primaryIdx);
+
+    // The secondary button's own tag carries bg-secondary and NEVER bg-primary.
+    const buttonStart = markup.lastIndexOf("<button", secondaryIdx);
+    const buttonTag = markup.slice(buttonStart, secondaryIdx);
+    expect(buttonTag).toContain("bg-secondary");
+    expect(buttonTag).not.toContain("bg-primary");
+    expect(buttonTag).toContain("text-secondary-foreground");
+    expect(buttonTag).toContain("disabled:opacity-50");
+  });
+
+  it("carries the muted full-register explainer line beneath the secondary button", () => {
+    const markup = renderScreen1();
+    const secondaryIdx = markup.indexOf("Load full register (scale demo)");
+    const explainerIdx = markup.indexOf("4,912 readings — full Zenodo register.", secondaryIdx);
+    expect(explainerIdx).toBeGreaterThan(secondaryIdx);
+  });
+
+  it("both demo buttons are disabled-while-parsing capable (disabled:opacity-50 present)", () => {
+    const markup = renderScreen1();
+    const primaryIdx = markup.lastIndexOf("<button", markup.indexOf("Explore a sample inspection"));
+    const primaryTag = markup.slice(primaryIdx, markup.indexOf("Explore a sample inspection"));
+    expect(primaryTag).toContain("disabled:opacity-50");
+  });
+
+  it("renders the subset and full-register provenance banner strings, both retaining (sample data)", () => {
+    const subsetBanner = renderToStaticMarkup(createElement(DemoBanner, { scope: "subset" }));
+    const fullBanner = renderToStaticMarkup(createElement(DemoBanner, { scope: "full" }));
+    expect(subsetBanner).toContain(
+      "Demo scenario loaded — Zenodo record 16780668 subset (sample data)",
+    );
+    expect(fullBanner).toContain(
+      "Demo scenario loaded — Zenodo record 16780668 full register (sample data)",
+    );
+    expect(subsetBanner).toContain("(sample data)");
+    expect(fullBanner).toContain("(sample data)");
   });
 });
 

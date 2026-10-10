@@ -235,14 +235,20 @@ describe("wizard reducer — CR-01 regression: in/mils upload rows validate clea
   });
 });
 
-describe("wizard reducer — load-demo (zero-network Zenodo fixture)", () => {
+describe("wizard reducer — load-demo (zero-network Zenodo SUBSET, 06-02 primary demo)", () => {
   const demo: WizardState = wizardReducer(createInitialState(), { type: "load-demo" });
 
-  it("loads the 4,912-row session with isDemo true", () => {
-    expect(demo.csv.rowCount).toBe(4912);
-    expect(demo.rows).toHaveLength(4912);
+  it("loads the 420-row WBT-S6 subset session with isDemo true and demoScope 'subset'", () => {
+    expect(demo.csv.rowCount).toBe(420);
+    expect(demo.rows).toHaveLength(420);
     expect(demo.source.isDemo).toBe(true);
     expect(demo.ui.screen).toBe(2);
+    expect(demo.ui.demoScope).toBe("subset");
+  });
+
+  it("carries exactly one distinct Tank value (the committed subset's tank filter)", () => {
+    const tanks = new Set(demo.rows.map((row) => row.cells["Tank"]));
+    expect([...tanks]).toEqual(["WBT-S6"]);
   });
 
   it("leaves t-initial/t-previous unmapped (derived R6 history governs)", () => {
@@ -263,6 +269,33 @@ describe("wizard reducer — load-demo (zero-network Zenodo fixture)", () => {
     expect(demo.ui.metadataDraft.gaugeUncertainty).toBe("0.1");
     expect(demo.ui.metadataDraft.pipeClass).toBe("2");
     expect(demo.ui.metadataDraft.od).toBe("2000");
+  });
+});
+
+describe("wizard reducer — load-demo-full (06-02 secondary scale-demo contract)", () => {
+  const demo: WizardState = wizardReducer(createInitialState(), { type: "load-demo-full" });
+
+  it("loads the full 4,912-row register session with isDemo true and demoScope 'full'", () => {
+    expect(demo.csv.rowCount).toBe(4912);
+    expect(demo.rows).toHaveLength(4912);
+    expect(demo.source.isDemo).toBe(true);
+    expect(demo.ui.screen).toBe(2);
+    expect(demo.ui.demoScope).toBe("full");
+  });
+
+  it("carries zero blocking row errors and a valid metadata draft (same validateSession gate)", () => {
+    const blockers = blockingChecks(demo);
+    expect(blockers.rowErrors).toBe(0);
+    expect(blockers.unmappedRequired).toHaveLength(0);
+    expect(blockers.metadataProblems).toHaveLength(0);
+    expect(blockers.unitsUndeclared).toBe(false);
+    expect(demo.ui.metadataDraft.tStructural).toBe("19.85");
+    expect(demo.ui.metadataDraft.od).toBe("2000");
+  });
+
+  it("leaves t-initial/t-previous unmapped (identical builder steps, no special-casing)", () => {
+    expect(demo.mapping.tInitial).toBeNull();
+    expect(demo.mapping.tPrevious).toBeNull();
   });
 });
 
@@ -513,9 +546,9 @@ describe("wizard reducer — blocking selector flips (UI-08)", () => {
     expect(blockingChecks(remapped).unmappedRequired).toHaveLength(0);
   });
 
-  it("4,912-row validation + selector runs fast (Pitfall 8 budget)", () => {
+  it("4,912-row validation + selector runs fast (Pitfall 8 budget) — via the full-register scope", () => {
     const started = performance.now();
-    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const demo = wizardReducer(createInitialState(), { type: "load-demo-full" });
     const blockers = blockingChecks(demo);
     expect(blockers.rowErrors).toBe(0);
     const elapsed = performance.now() - started;
@@ -654,12 +687,14 @@ describe("wizard reducer — PT/MT indications round-trip (ING-04)", () => {
 });
 
 describe("wizard reducer — run-evaluation (UI-23)", () => {
-  it("on a valid demo session populates results and flips to Screen 3", () => {
+  it("on a valid demo session populates results and flips to Screen 3 (subset primary demo)", () => {
     const demo = wizardReducer(createInitialState(), { type: "load-demo" });
     const result = wizardReducer(demo, { type: "run-evaluation" });
     expect(result.ui.screen).toBe(3);
     expect(result.results).not.toBeNull();
-    expect(result.results!.summary.total).toBe(4912);
+    // 06-02: load-demo is the committed WBT-S6 subset — the full-register
+    // counts moved to the load-demo-full contract (evaluate.demo.test.ts).
+    expect(result.results!.summary.total).toBe(420);
     expect(result.results!.summary.accept).toBeGreaterThan(0);
     expect(result.results!.summary.fail).toBeGreaterThan(0);
     // demo PT/MT indications triage: linear MT reject + rounded PT accept

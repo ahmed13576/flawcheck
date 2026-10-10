@@ -15,13 +15,19 @@ import type { EvaluationResults } from "@/lib/ingest/session";
  * flows load -> validate -> group -> evaluate through the REAL reducer seam
  * with zero network calls (pure imports only — CONTEXT.md demo lock).
  *
+ * 06-02: the primary one-click demo is the committed WBT-S6 SUBSET (420
+ * rows) — this suite pins the FULL-REGISTER contract explicitly via
+ * { type: "load-demo-full" } (the secondary "scale demo" path); every
+ * 4,912-row pin below stays VERBATIM under the full scope. A parallel
+ * subset block pins the observed subset counts from the fixture test.
+ *
  * Numbers pinned here are the OBSERVED acquisition-time values (see
  * 02-03-SUMMARY deviations): 480 CMLs (tank + grid), all multi-campaign, so
  * 480 first-campaign readings (9.8%) carry honest insufficient-history state —
  * the research anticipated ~447; the fixture's real geometry wins.
  */
 
-const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+const demo = wizardReducer(createInitialState(), { type: "load-demo-full" });
 const evaluated = wizardReducer(demo, { type: "run-evaluation" });
 const results = evaluated.results as EvaluationResults;
 
@@ -194,8 +200,8 @@ describe("G14 immediate inspection on real data (builder decision)", () => {
 describe("CR-degradation contract (UI-SPEC policy)", () => {
   it("unmapping Tank -> every row its own CML: CR columns null, verdicts still compute", () => {
     const degradedSession = {
-      ...createDemoSession(),
-      mapping: { ...createDemoSession().mapping, tank: null },
+      ...createDemoSession("full"),
+      mapping: { ...createDemoSession("full").mapping, tank: null },
     };
     const degradedInputs = groupByCml(degradedSession.rows, degradedSession.mapping, {
       csvThicknessUnit: degradedSession.units.csvThickness,
@@ -241,9 +247,37 @@ describe("citations + PT/MT triage", () => {
 
   it("the whole end-to-end pipeline stays fast (deterministic, client-grade)", () => {
     const started = performance.now();
-    const fresh = wizardReducer(createInitialState(), { type: "load-demo" });
+    const fresh = wizardReducer(createInitialState(), { type: "load-demo-full" });
     wizardReducer(fresh, { type: "run-evaluation" });
     const elapsed = performance.now() - started;
     expect(elapsed).toBeLessThan(10_000);
+  });
+});
+
+/**
+ * 06-02 parallel subset block — the PRIMARY one-click demo contract: the
+ * committed WBT-S6 subset through the SAME reducer seam, pinning the OBSERVED
+ * subset counts (mirrors tests/ingest/demo-subset-fixture.test.ts).
+ */
+describe("subset demo end-to-end — load-demo -> evaluate (primary demo scope)", () => {
+  const subsetDemo = wizardReducer(createInitialState(), { type: "load-demo" });
+  const subsetEvaluated = wizardReducer(subsetDemo, { type: "run-evaluation" });
+  const subsetResults = subsetEvaluated.results as EvaluationResults;
+
+  it("flows the subset through the real reducer seam with zero blocking errors", () => {
+    expect(subsetDemo.csv.rowCount).toBe(420);
+    expect(blockingChecks(subsetDemo).rowErrors).toBe(0);
+    expect(subsetEvaluated.ui.screen).toBe(3);
+    expect(subsetEvaluated.ui.demoScope).toBe("subset");
+  });
+
+  it("summary: 420 readings · 1 location · all three verdict bands present (observed split)", () => {
+    expect(subsetResults.summary).toEqual({
+      total: 420,
+      locations: 1,
+      accept: 22,
+      reCheck: 53,
+      fail: 345,
+    });
   });
 });

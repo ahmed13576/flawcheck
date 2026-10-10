@@ -26,6 +26,19 @@ import type {
   TargetField,
 } from "@/lib/ingest/session";
 import rawFixture from "./fixtures/zenodo-16780668-ut-register.json";
+import rawSubsetFixture from "./fixtures/zenodo-16780668-ut-register-subset.json";
+
+/**
+ * Demo scope (06-02, UI-6.21/UI-6.22): "subset" — the committed deterministic
+ * WBT-S6 tank subset (420 rows, one tank, every CML multi-campaign; the
+ * human-sized PRIMARY demo), "full" — the untouched 4,912-row register (the
+ * secondary "scale demo"). Both scopes parse through the IDENTICAL
+ * buildCells ParsedRow path — no special-casing (T-06-02-01) — and carry the
+ * same DEMO_FILENAME source name, metadata preset, mapping, indications, and
+ * isDemo provenance; the scope is carried separately by the reducer's
+ * ui.demoScope.
+ */
+export type DemoScope = "subset" | "full";
 
 export const DEMO_FILENAME = "zenodo-16780668-Appendix-A-UT-register.csv";
 
@@ -94,8 +107,10 @@ export const DEMO_INDICATIONS: PtmIndication[] = [
   },
 ];
 
-export function createDemoSession(): EvaluationSession {
-  const rows = rawFixture as unknown as Array<Record<string, string>>;
+export function createDemoSession(scope: DemoScope = "subset"): EvaluationSession {
+  const rows = (scope === "full" ? rawFixture : rawSubsetFixture) as unknown as Array<
+    Record<string, string>
+  >;
   const headers = [...DEMO_HEADERS];
   const parsedRows: ParsedRow[] = rows.map((cells, i) => ({
     row: i + 1,

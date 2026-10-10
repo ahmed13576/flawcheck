@@ -302,3 +302,40 @@ describe("final-milestone-review additions — Rev 0 header (REPT-01) + PLAT-03 
     expect(markup).toContain('rel="noreferrer"');
   });
 });
+
+/* ---------------------------------------------------------------------------
+ * 06-01 Task 3 — the verdict glossary block in the conclusions section
+ * (REPT-06 / UI-6.11): three real-text entries in ACCEPT/RE-CHECK/FAIL order
+ * on the light island, clause sub-lines composed ONLY via citationRef.
+ * ------------------------------------------------------------------------- */
+describe("06-01 verdict glossary block — clause-cited conclusions section", () => {
+  it("renders the three glossary entries inside the conclusions section in locked order", () => {
+    const markup = renderReport();
+    const acceptIdx = markup.indexOf("Wall thickness meets the code minimum at this location.");
+    const recheckIdx = markup.indexOf(
+      "Thickness is close to the limit — re-measure to confirm before deciding.",
+    );
+    const failIdx = markup.indexOf(
+      "Wall is thinner than the code allows at this location. Action required.",
+    );
+    expect(acceptIdx).toBeGreaterThan(-1);
+    expect(recheckIdx).toBeGreaterThan(acceptIdx);
+    expect(failIdx).toBeGreaterThan(recheckIdx);
+    // Verdict words come from the repo-protected verdictLabel strings — chips
+    // are never renamed, the glossary only ADDS lines.
+    expect(markup).toContain("Verdict glossary");
+  });
+
+  it("every clause sub-line resolves from citationRef (non-empty for the locked ids)", () => {
+    const markup = renderReport();
+    expect(markup).toContain("API 574 §10.5.1.4");
+    expect(markup).toContain("API 570 §7.1.2");
+    expect(markup).toContain("API 570 §7.6");
+  });
+
+  it("import-graph pin: the HTML renderer imports VERDICT_GLOSSARY from the content seam (T-06-01-03)", () => {
+    const src = readFileSync(join(process.cwd(), "components/report/report-document.tsx"), "utf8");
+    expect(src).toContain("VERDICT_GLOSSARY");
+    expect(src).toContain('from "@/lib/report/content"');
+  });
+});

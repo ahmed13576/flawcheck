@@ -40,7 +40,14 @@ import {
   computeInputHash,
   writeReportAudit,
 } from "@/lib/report/audit";
-import { REPORT_UNIT_ASSUMPTION_COPY } from "@/lib/report/content";
+import {
+  REPORT_UNIT_ASSUMPTION_COPY,
+  VERDICT_GLOSSARY,
+  VERDICT_GLOSSARY_ORDER,
+  citationRef,
+} from "@/lib/report/content";
+import { FindingsBrief } from "@/components/wizard/findings-brief";
+import { verdictLabel } from "@/components/wizard/verdict-chip";
 import type {
   ComponentMetadata,
   EvaluationResults,
@@ -226,6 +233,11 @@ export function ScreenResultsContent({
           </p>
         </section>
 
+        {/* "What we found" brief (REPT-04, UI-6.1) — locked position: below
+            the hero card, ABOVE the KPI cards, inside the gap-6 stack (no new
+            wrapper spacing). Fed exclusively by the 06-01 pure builder. */}
+        <FindingsBrief summary={summary} readings={results.readings} />
+
         {/* KPI stat cards — real evaluation counts only (never mock numbers). */}
         <section aria-label="Finding metrics" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <KpiCard label="Accepted" value={summary.accept} valueClass="text-green-400" />
@@ -294,6 +306,37 @@ export function ScreenResultsContent({
             evaluatedAt={evaluatedAt ?? undefined}
           />
         )}
+
+        {/* Verdict glossary footer (REPT-06, UI-6.9/UI-6.10) — one shared
+            VERDICT_GLOSSARY constant (same source as the report + PDF
+            renderers), rendered beneath the table / empty-state and above the
+            mono footnotes. Real text — never a tooltip (UI-6.25); clause
+            sub-lines composed ONLY via citationRef. Dot classes match the
+            "Finding legend" dots above; chip strings are untouched. */}
+        <div aria-label="Verdict glossary" className="flex flex-col gap-1">
+          {VERDICT_GLOSSARY_ORDER.map((verdict) => {
+            const entry = VERDICT_GLOSSARY[verdict];
+            const dotClass =
+              verdict === "accept"
+                ? "text-green-400"
+                : verdict === "re_check"
+                  ? "text-amber-400"
+                  : "text-red-400";
+            return (
+              <div key={verdict} className="flex flex-col gap-0.5">
+                <p className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className={dotClass} aria-hidden="true">●</span>
+                  <span className="font-semibold">{verdictLabel(verdict)}</span>
+                  <span aria-hidden="true" className="text-muted-foreground">—</span>
+                  <span className="text-xs text-muted-foreground">{entry.plain}</span>
+                </p>
+                <p className="font-mono text-xs text-muted-foreground">
+                  {citationRef(entry.citationId ?? "")}
+                </p>
+              </div>
+            );
+          })}
+        </div>
 
         <PtmtTriageList
             indications={results.indications}

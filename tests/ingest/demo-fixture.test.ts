@@ -81,7 +81,9 @@ describe("demo fixture — the real Zenodo 16780668 Appendix A subset", () => {
 });
 
 describe("demo session — builder decisions", () => {
-  const session = createDemoSession();
+  // 06-02: this file pins the FULL-register contract — the explicit scope
+  // keeps every pin verbatim under the default-now-subset builder signature.
+  const session = createDemoSession("full");
 
   it("loads 4,912 rows as demo data", () => {
     expect(session.csv.rowCount).toBe(4912);
@@ -103,7 +105,7 @@ describe("demo session — builder decisions", () => {
 });
 
 describe("demo smoke — evaluate over the real fixture lands all three verdict bands", () => {
-  const session = createDemoSession();
+  const session = createDemoSession("full");
   const inputs = groupByCml(session.rows, session.mapping, {
     csvThicknessUnit: session.units.csvThickness,
   });

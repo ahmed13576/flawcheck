@@ -1,0 +1,3362 @@
+[
+	{
+		"Reading_ID": "1",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.67",
+		"Measurement_Date": "2022-05-14"
+	},
+	{
+		"Reading_ID": "8",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2017-07-14"
+	},
+	{
+		"Reading_ID": "13",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.4",
+		"Measurement_Date": "2022-04-10"
+	},
+	{
+		"Reading_ID": "25",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.93",
+		"Measurement_Date": "2017-12-24"
+	},
+	{
+		"Reading_ID": "28",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.5",
+		"Measurement_Date": "2024-09-04"
+	},
+	{
+		"Reading_ID": "31",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.24",
+		"Measurement_Date": "2016-09-05"
+	},
+	{
+		"Reading_ID": "42",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.89",
+		"Measurement_Date": "2017-09-12"
+	},
+	{
+		"Reading_ID": "44",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.44",
+		"Measurement_Date": "2015-08-12"
+	},
+	{
+		"Reading_ID": "50",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2022-05-31"
+	},
+	{
+		"Reading_ID": "56",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.77",
+		"Measurement_Date": "2023-01-23"
+	},
+	{
+		"Reading_ID": "58",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2020-12-22"
+	},
+	{
+		"Reading_ID": "77",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.46",
+		"Measurement_Date": "2025-01-17"
+	},
+	{
+		"Reading_ID": "81",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.67",
+		"Measurement_Date": "2023-09-20"
+	},
+	{
+		"Reading_ID": "94",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.79",
+		"Measurement_Date": "2018-06-17"
+	},
+	{
+		"Reading_ID": "108",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.58",
+		"Measurement_Date": "2021-04-08"
+	},
+	{
+		"Reading_ID": "114",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.26",
+		"Measurement_Date": "2016-02-20"
+	},
+	{
+		"Reading_ID": "133",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.27",
+		"Measurement_Date": "2024-05-09"
+	},
+	{
+		"Reading_ID": "184",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2022-11-02"
+	},
+	{
+		"Reading_ID": "199",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.13",
+		"Measurement_Date": "2023-11-04"
+	},
+	{
+		"Reading_ID": "202",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.95",
+		"Measurement_Date": "2016-04-06"
+	},
+	{
+		"Reading_ID": "211",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.51",
+		"Measurement_Date": "2015-08-20"
+	},
+	{
+		"Reading_ID": "219",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.01",
+		"Measurement_Date": "2022-10-07"
+	},
+	{
+		"Reading_ID": "222",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.14",
+		"Measurement_Date": "2022-02-13"
+	},
+	{
+		"Reading_ID": "233",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.4",
+		"Measurement_Date": "2024-07-28"
+	},
+	{
+		"Reading_ID": "237",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.9",
+		"Measurement_Date": "2018-05-12"
+	},
+	{
+		"Reading_ID": "239",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.08",
+		"Measurement_Date": "2015-05-15"
+	},
+	{
+		"Reading_ID": "255",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.91",
+		"Measurement_Date": "2015-06-25"
+	},
+	{
+		"Reading_ID": "256",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.64",
+		"Measurement_Date": "2016-11-29"
+	},
+	{
+		"Reading_ID": "261",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2019-07-22"
+	},
+	{
+		"Reading_ID": "264",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2021-10-31"
+	},
+	{
+		"Reading_ID": "270",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.66",
+		"Measurement_Date": "2015-04-14"
+	},
+	{
+		"Reading_ID": "285",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.84",
+		"Measurement_Date": "2022-11-30"
+	},
+	{
+		"Reading_ID": "300",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.51",
+		"Measurement_Date": "2017-06-04"
+	},
+	{
+		"Reading_ID": "322",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2016-07-12"
+	},
+	{
+		"Reading_ID": "323",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.88",
+		"Measurement_Date": "2016-06-30"
+	},
+	{
+		"Reading_ID": "334",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.31",
+		"Measurement_Date": "2020-12-07"
+	},
+	{
+		"Reading_ID": "349",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.93",
+		"Measurement_Date": "2023-04-15"
+	},
+	{
+		"Reading_ID": "352",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2018-08-19"
+	},
+	{
+		"Reading_ID": "358",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.64",
+		"Measurement_Date": "2022-03-22"
+	},
+	{
+		"Reading_ID": "389",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.25",
+		"Measurement_Date": "2020-09-13"
+	},
+	{
+		"Reading_ID": "405",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2020-05-27"
+	},
+	{
+		"Reading_ID": "428",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.47",
+		"Measurement_Date": "2020-08-27"
+	},
+	{
+		"Reading_ID": "441",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2024-04-06"
+	},
+	{
+		"Reading_ID": "460",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.17",
+		"Measurement_Date": "2018-03-18"
+	},
+	{
+		"Reading_ID": "466",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2019-07-06"
+	},
+	{
+		"Reading_ID": "469",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.14",
+		"Measurement_Date": "2025-04-13"
+	},
+	{
+		"Reading_ID": "471",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.29",
+		"Measurement_Date": "2023-12-18"
+	},
+	{
+		"Reading_ID": "473",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.71",
+		"Measurement_Date": "2023-04-04"
+	},
+	{
+		"Reading_ID": "474",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2015-05-22"
+	},
+	{
+		"Reading_ID": "477",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.08",
+		"Measurement_Date": "2017-02-13"
+	},
+	{
+		"Reading_ID": "497",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.99",
+		"Measurement_Date": "2018-07-02"
+	},
+	{
+		"Reading_ID": "499",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.33",
+		"Measurement_Date": "2016-08-22"
+	},
+	{
+		"Reading_ID": "526",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.78",
+		"Measurement_Date": "2018-12-31"
+	},
+	{
+		"Reading_ID": "535",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19",
+		"Measurement_Date": "2024-06-08"
+	},
+	{
+		"Reading_ID": "536",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.5",
+		"Measurement_Date": "2024-08-28"
+	},
+	{
+		"Reading_ID": "549",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2019-09-24"
+	},
+	{
+		"Reading_ID": "557",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2023-07-19"
+	},
+	{
+		"Reading_ID": "558",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.34",
+		"Measurement_Date": "2022-08-08"
+	},
+	{
+		"Reading_ID": "566",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.15",
+		"Measurement_Date": "2024-02-26"
+	},
+	{
+		"Reading_ID": "593",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.31",
+		"Measurement_Date": "2017-10-18"
+	},
+	{
+		"Reading_ID": "602",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2025-01-19"
+	},
+	{
+		"Reading_ID": "604",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.95",
+		"Measurement_Date": "2021-11-10"
+	},
+	{
+		"Reading_ID": "612",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.18",
+		"Measurement_Date": "2021-06-22"
+	},
+	{
+		"Reading_ID": "620",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.28",
+		"Measurement_Date": "2021-11-23"
+	},
+	{
+		"Reading_ID": "622",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2019-04-17"
+	},
+	{
+		"Reading_ID": "648",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.25",
+		"Measurement_Date": "2025-04-19"
+	},
+	{
+		"Reading_ID": "651",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2025-01-24"
+	},
+	{
+		"Reading_ID": "653",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.55",
+		"Measurement_Date": "2016-03-13"
+	},
+	{
+		"Reading_ID": "656",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2025-05-26"
+	},
+	{
+		"Reading_ID": "688",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.45",
+		"Measurement_Date": "2021-07-05"
+	},
+	{
+		"Reading_ID": "706",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.88",
+		"Measurement_Date": "2018-04-02"
+	},
+	{
+		"Reading_ID": "708",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.11",
+		"Measurement_Date": "2021-05-12"
+	},
+	{
+		"Reading_ID": "718",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.54",
+		"Measurement_Date": "2017-04-09"
+	},
+	{
+		"Reading_ID": "726",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.32",
+		"Measurement_Date": "2024-09-15"
+	},
+	{
+		"Reading_ID": "738",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.42",
+		"Measurement_Date": "2015-03-07"
+	},
+	{
+		"Reading_ID": "747",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.52",
+		"Measurement_Date": "2020-12-07"
+	},
+	{
+		"Reading_ID": "760",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2020-12-02"
+	},
+	{
+		"Reading_ID": "762",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.62",
+		"Measurement_Date": "2021-05-03"
+	},
+	{
+		"Reading_ID": "766",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.61",
+		"Measurement_Date": "2020-08-19"
+	},
+	{
+		"Reading_ID": "769",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.33",
+		"Measurement_Date": "2019-01-12"
+	},
+	{
+		"Reading_ID": "774",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.91",
+		"Measurement_Date": "2020-02-20"
+	},
+	{
+		"Reading_ID": "777",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.62",
+		"Measurement_Date": "2017-08-20"
+	},
+	{
+		"Reading_ID": "786",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.03",
+		"Measurement_Date": "2024-07-24"
+	},
+	{
+		"Reading_ID": "790",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2024-07-27"
+	},
+	{
+		"Reading_ID": "801",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.11",
+		"Measurement_Date": "2018-02-12"
+	},
+	{
+		"Reading_ID": "850",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.99",
+		"Measurement_Date": "2018-03-22"
+	},
+	{
+		"Reading_ID": "852",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.45",
+		"Measurement_Date": "2018-10-24"
+	},
+	{
+		"Reading_ID": "863",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.1",
+		"Measurement_Date": "2015-10-14"
+	},
+	{
+		"Reading_ID": "892",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2025-03-11"
+	},
+	{
+		"Reading_ID": "905",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.85",
+		"Measurement_Date": "2016-10-22"
+	},
+	{
+		"Reading_ID": "917",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.91",
+		"Measurement_Date": "2016-12-07"
+	},
+	{
+		"Reading_ID": "920",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.33",
+		"Measurement_Date": "2018-08-21"
+	},
+	{
+		"Reading_ID": "922",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.99",
+		"Measurement_Date": "2022-06-11"
+	},
+	{
+		"Reading_ID": "939",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.35",
+		"Measurement_Date": "2016-08-07"
+	},
+	{
+		"Reading_ID": "951",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.92",
+		"Measurement_Date": "2025-03-04"
+	},
+	{
+		"Reading_ID": "964",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.42",
+		"Measurement_Date": "2015-03-05"
+	},
+	{
+		"Reading_ID": "988",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2016-02-07"
+	},
+	{
+		"Reading_ID": "1011",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.85",
+		"Measurement_Date": "2024-12-01"
+	},
+	{
+		"Reading_ID": "1024",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.23",
+		"Measurement_Date": "2023-12-28"
+	},
+	{
+		"Reading_ID": "1026",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.54",
+		"Measurement_Date": "2019-02-26"
+	},
+	{
+		"Reading_ID": "1028",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.27",
+		"Measurement_Date": "2025-01-14"
+	},
+	{
+		"Reading_ID": "1058",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2017-05-29"
+	},
+	{
+		"Reading_ID": "1080",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.64",
+		"Measurement_Date": "2015-04-30"
+	},
+	{
+		"Reading_ID": "1081",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2023-12-17"
+	},
+	{
+		"Reading_ID": "1090",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.29",
+		"Measurement_Date": "2019-11-27"
+	},
+	{
+		"Reading_ID": "1105",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2019-07-17"
+	},
+	{
+		"Reading_ID": "1110",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.29",
+		"Measurement_Date": "2023-12-27"
+	},
+	{
+		"Reading_ID": "1122",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.44",
+		"Measurement_Date": "2021-03-11"
+	},
+	{
+		"Reading_ID": "1143",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.1",
+		"Measurement_Date": "2018-09-15"
+	},
+	{
+		"Reading_ID": "1152",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.17",
+		"Measurement_Date": "2017-09-11"
+	},
+	{
+		"Reading_ID": "1174",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.93",
+		"Measurement_Date": "2015-10-16"
+	},
+	{
+		"Reading_ID": "1175",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.88",
+		"Measurement_Date": "2016-07-09"
+	},
+	{
+		"Reading_ID": "1183",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.62",
+		"Measurement_Date": "2023-11-07"
+	},
+	{
+		"Reading_ID": "1189",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.66",
+		"Measurement_Date": "2018-07-07"
+	},
+	{
+		"Reading_ID": "1195",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.72",
+		"Measurement_Date": "2019-10-27"
+	},
+	{
+		"Reading_ID": "1208",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.75",
+		"Measurement_Date": "2018-10-18"
+	},
+	{
+		"Reading_ID": "1213",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.98",
+		"Measurement_Date": "2019-09-01"
+	},
+	{
+		"Reading_ID": "1248",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.54",
+		"Measurement_Date": "2021-10-18"
+	},
+	{
+		"Reading_ID": "1251",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2020-07-22"
+	},
+	{
+		"Reading_ID": "1253",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.93",
+		"Measurement_Date": "2023-12-13"
+	},
+	{
+		"Reading_ID": "1271",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.11",
+		"Measurement_Date": "2025-02-07"
+	},
+	{
+		"Reading_ID": "1290",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.84",
+		"Measurement_Date": "2020-12-08"
+	},
+	{
+		"Reading_ID": "1294",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.75",
+		"Measurement_Date": "2019-05-30"
+	},
+	{
+		"Reading_ID": "1296",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.95",
+		"Measurement_Date": "2022-12-21"
+	},
+	{
+		"Reading_ID": "1297",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.92",
+		"Measurement_Date": "2025-05-01"
+	},
+	{
+		"Reading_ID": "1304",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.34",
+		"Measurement_Date": "2023-11-30"
+	},
+	{
+		"Reading_ID": "1308",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.72",
+		"Measurement_Date": "2016-08-29"
+	},
+	{
+		"Reading_ID": "1309",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.3",
+		"Measurement_Date": "2023-03-03"
+	},
+	{
+		"Reading_ID": "1321",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.85",
+		"Measurement_Date": "2025-03-09"
+	},
+	{
+		"Reading_ID": "1328",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.92",
+		"Measurement_Date": "2021-07-01"
+	},
+	{
+		"Reading_ID": "1331",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.33",
+		"Measurement_Date": "2019-09-01"
+	},
+	{
+		"Reading_ID": "1340",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.97",
+		"Measurement_Date": "2022-09-20"
+	},
+	{
+		"Reading_ID": "1358",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.41",
+		"Measurement_Date": "2017-01-13"
+	},
+	{
+		"Reading_ID": "1359",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.31",
+		"Measurement_Date": "2017-10-25"
+	},
+	{
+		"Reading_ID": "1362",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2018-09-27"
+	},
+	{
+		"Reading_ID": "1384",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.7",
+		"Measurement_Date": "2015-08-29"
+	},
+	{
+		"Reading_ID": "1386",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.54",
+		"Measurement_Date": "2018-03-06"
+	},
+	{
+		"Reading_ID": "1397",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.86",
+		"Measurement_Date": "2022-11-16"
+	},
+	{
+		"Reading_ID": "1434",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.41",
+		"Measurement_Date": "2024-09-11"
+	},
+	{
+		"Reading_ID": "1448",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.91",
+		"Measurement_Date": "2019-09-08"
+	},
+	{
+		"Reading_ID": "1454",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.79",
+		"Measurement_Date": "2023-08-18"
+	},
+	{
+		"Reading_ID": "1457",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.36",
+		"Measurement_Date": "2024-04-24"
+	},
+	{
+		"Reading_ID": "1458",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.41",
+		"Measurement_Date": "2019-06-07"
+	},
+	{
+		"Reading_ID": "1473",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2020-09-13"
+	},
+	{
+		"Reading_ID": "1502",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.63",
+		"Measurement_Date": "2019-03-31"
+	},
+	{
+		"Reading_ID": "1506",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19",
+		"Measurement_Date": "2018-05-31"
+	},
+	{
+		"Reading_ID": "1559",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.96",
+		"Measurement_Date": "2024-04-22"
+	},
+	{
+		"Reading_ID": "1582",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.04",
+		"Measurement_Date": "2020-12-07"
+	},
+	{
+		"Reading_ID": "1647",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.61",
+		"Measurement_Date": "2024-04-05"
+	},
+	{
+		"Reading_ID": "1659",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.07",
+		"Measurement_Date": "2019-10-08"
+	},
+	{
+		"Reading_ID": "1664",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.03",
+		"Measurement_Date": "2018-06-16"
+	},
+	{
+		"Reading_ID": "1670",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.03",
+		"Measurement_Date": "2022-09-20"
+	},
+	{
+		"Reading_ID": "1676",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.39",
+		"Measurement_Date": "2017-02-24"
+	},
+	{
+		"Reading_ID": "1685",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2019-12-19"
+	},
+	{
+		"Reading_ID": "1709",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.02",
+		"Measurement_Date": "2021-06-30"
+	},
+	{
+		"Reading_ID": "1715",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.28",
+		"Measurement_Date": "2015-06-13"
+	},
+	{
+		"Reading_ID": "1722",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.74",
+		"Measurement_Date": "2015-10-26"
+	},
+	{
+		"Reading_ID": "1724",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2020-09-22"
+	},
+	{
+		"Reading_ID": "1727",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.01",
+		"Measurement_Date": "2017-05-27"
+	},
+	{
+		"Reading_ID": "1759",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.59",
+		"Measurement_Date": "2020-01-05"
+	},
+	{
+		"Reading_ID": "1782",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.47",
+		"Measurement_Date": "2021-08-27"
+	},
+	{
+		"Reading_ID": "1799",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.28",
+		"Measurement_Date": "2022-08-27"
+	},
+	{
+		"Reading_ID": "1806",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.38",
+		"Measurement_Date": "2020-06-09"
+	},
+	{
+		"Reading_ID": "1813",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.64",
+		"Measurement_Date": "2025-05-17"
+	},
+	{
+		"Reading_ID": "1818",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.42",
+		"Measurement_Date": "2020-10-26"
+	},
+	{
+		"Reading_ID": "1821",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.69",
+		"Measurement_Date": "2018-04-21"
+	},
+	{
+		"Reading_ID": "1859",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.51",
+		"Measurement_Date": "2023-02-20"
+	},
+	{
+		"Reading_ID": "1865",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2024-12-07"
+	},
+	{
+		"Reading_ID": "1873",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.89",
+		"Measurement_Date": "2021-03-17"
+	},
+	{
+		"Reading_ID": "1874",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.57",
+		"Measurement_Date": "2017-06-26"
+	},
+	{
+		"Reading_ID": "1891",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.86",
+		"Measurement_Date": "2018-12-13"
+	},
+	{
+		"Reading_ID": "1915",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.52",
+		"Measurement_Date": "2022-12-16"
+	},
+	{
+		"Reading_ID": "1925",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.62",
+		"Measurement_Date": "2017-05-01"
+	},
+	{
+		"Reading_ID": "1928",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.47",
+		"Measurement_Date": "2020-01-29"
+	},
+	{
+		"Reading_ID": "1929",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.09",
+		"Measurement_Date": "2016-02-24"
+	},
+	{
+		"Reading_ID": "1935",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2020-02-22"
+	},
+	{
+		"Reading_ID": "1940",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "20",
+		"Measurement_Date": "2021-07-01"
+	},
+	{
+		"Reading_ID": "1948",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.4",
+		"Measurement_Date": "2021-02-10"
+	},
+	{
+		"Reading_ID": "1951",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.98",
+		"Measurement_Date": "2025-04-07"
+	},
+	{
+		"Reading_ID": "1973",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.72",
+		"Measurement_Date": "2022-01-28"
+	},
+	{
+		"Reading_ID": "1977",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2018-03-03"
+	},
+	{
+		"Reading_ID": "2011",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.74",
+		"Measurement_Date": "2016-11-30"
+	},
+	{
+		"Reading_ID": "2069",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.53",
+		"Measurement_Date": "2021-11-07"
+	},
+	{
+		"Reading_ID": "2080",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.81",
+		"Measurement_Date": "2022-01-24"
+	},
+	{
+		"Reading_ID": "2081",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.88",
+		"Measurement_Date": "2021-06-11"
+	},
+	{
+		"Reading_ID": "2110",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.35",
+		"Measurement_Date": "2016-08-13"
+	},
+	{
+		"Reading_ID": "2115",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.98",
+		"Measurement_Date": "2015-11-20"
+	},
+	{
+		"Reading_ID": "2123",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.16",
+		"Measurement_Date": "2021-07-03"
+	},
+	{
+		"Reading_ID": "2132",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2018-10-23"
+	},
+	{
+		"Reading_ID": "2139",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.63",
+		"Measurement_Date": "2019-11-24"
+	},
+	{
+		"Reading_ID": "2161",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.84",
+		"Measurement_Date": "2025-04-24"
+	},
+	{
+		"Reading_ID": "2183",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.48",
+		"Measurement_Date": "2024-06-24"
+	},
+	{
+		"Reading_ID": "2197",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.56",
+		"Measurement_Date": "2019-07-18"
+	},
+	{
+		"Reading_ID": "2224",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.66",
+		"Measurement_Date": "2016-04-13"
+	},
+	{
+		"Reading_ID": "2250",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.25",
+		"Measurement_Date": "2017-02-02"
+	},
+	{
+		"Reading_ID": "2252",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.42",
+		"Measurement_Date": "2017-02-08"
+	},
+	{
+		"Reading_ID": "2263",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.31",
+		"Measurement_Date": "2025-01-24"
+	},
+	{
+		"Reading_ID": "2274",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.54",
+		"Measurement_Date": "2017-02-09"
+	},
+	{
+		"Reading_ID": "2291",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.3",
+		"Measurement_Date": "2025-01-06"
+	},
+	{
+		"Reading_ID": "2297",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.78",
+		"Measurement_Date": "2023-10-20"
+	},
+	{
+		"Reading_ID": "2311",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.64",
+		"Measurement_Date": "2017-09-19"
+	},
+	{
+		"Reading_ID": "2350",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.95",
+		"Measurement_Date": "2021-10-28"
+	},
+	{
+		"Reading_ID": "2356",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.89",
+		"Measurement_Date": "2017-02-25"
+	},
+	{
+		"Reading_ID": "2369",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.32",
+		"Measurement_Date": "2021-08-28"
+	},
+	{
+		"Reading_ID": "2391",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.97",
+		"Measurement_Date": "2016-04-02"
+	},
+	{
+		"Reading_ID": "2396",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.78",
+		"Measurement_Date": "2021-01-30"
+	},
+	{
+		"Reading_ID": "2397",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.74",
+		"Measurement_Date": "2024-09-01"
+	},
+	{
+		"Reading_ID": "2403",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2021-06-18"
+	},
+	{
+		"Reading_ID": "2408",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.35",
+		"Measurement_Date": "2017-05-18"
+	},
+	{
+		"Reading_ID": "2411",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.51",
+		"Measurement_Date": "2023-02-04"
+	},
+	{
+		"Reading_ID": "2459",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.71",
+		"Measurement_Date": "2016-11-28"
+	},
+	{
+		"Reading_ID": "2490",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.88",
+		"Measurement_Date": "2017-10-30"
+	},
+	{
+		"Reading_ID": "2506",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.67",
+		"Measurement_Date": "2023-12-24"
+	},
+	{
+		"Reading_ID": "2508",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.71",
+		"Measurement_Date": "2023-09-13"
+	},
+	{
+		"Reading_ID": "2524",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.69",
+		"Measurement_Date": "2019-08-09"
+	},
+	{
+		"Reading_ID": "2581",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.23",
+		"Measurement_Date": "2021-07-17"
+	},
+	{
+		"Reading_ID": "2589",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.64",
+		"Measurement_Date": "2023-06-03"
+	},
+	{
+		"Reading_ID": "2590",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.51",
+		"Measurement_Date": "2019-01-01"
+	},
+	{
+		"Reading_ID": "2592",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.43",
+		"Measurement_Date": "2016-12-11"
+	},
+	{
+		"Reading_ID": "2601",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.79",
+		"Measurement_Date": "2015-11-30"
+	},
+	{
+		"Reading_ID": "2620",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2021-07-28"
+	},
+	{
+		"Reading_ID": "2622",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2023-11-22"
+	},
+	{
+		"Reading_ID": "2649",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.56",
+		"Measurement_Date": "2016-01-03"
+	},
+	{
+		"Reading_ID": "2663",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.34",
+		"Measurement_Date": "2019-01-02"
+	},
+	{
+		"Reading_ID": "2673",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.69",
+		"Measurement_Date": "2016-05-10"
+	},
+	{
+		"Reading_ID": "2688",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2019-10-04"
+	},
+	{
+		"Reading_ID": "2695",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "20",
+		"Measurement_Date": "2019-08-02"
+	},
+	{
+		"Reading_ID": "2700",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.12",
+		"Measurement_Date": "2020-07-18"
+	},
+	{
+		"Reading_ID": "2711",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2018-10-07"
+	},
+	{
+		"Reading_ID": "2746",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.08",
+		"Measurement_Date": "2024-10-16"
+	},
+	{
+		"Reading_ID": "2750",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.18",
+		"Measurement_Date": "2020-09-01"
+	},
+	{
+		"Reading_ID": "2760",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.9",
+		"Measurement_Date": "2015-10-23"
+	},
+	{
+		"Reading_ID": "2774",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.14",
+		"Measurement_Date": "2020-12-13"
+	},
+	{
+		"Reading_ID": "2778",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.38",
+		"Measurement_Date": "2021-02-05"
+	},
+	{
+		"Reading_ID": "2780",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.67",
+		"Measurement_Date": "2017-05-24"
+	},
+	{
+		"Reading_ID": "2782",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.42",
+		"Measurement_Date": "2021-12-28"
+	},
+	{
+		"Reading_ID": "2790",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.98",
+		"Measurement_Date": "2016-02-28"
+	},
+	{
+		"Reading_ID": "2796",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.4",
+		"Measurement_Date": "2020-05-17"
+	},
+	{
+		"Reading_ID": "2804",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.52",
+		"Measurement_Date": "2024-11-05"
+	},
+	{
+		"Reading_ID": "2810",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.24",
+		"Measurement_Date": "2024-10-14"
+	},
+	{
+		"Reading_ID": "2815",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.97",
+		"Measurement_Date": "2016-07-01"
+	},
+	{
+		"Reading_ID": "2830",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.16",
+		"Measurement_Date": "2022-10-23"
+	},
+	{
+		"Reading_ID": "2831",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2022-02-22"
+	},
+	{
+		"Reading_ID": "2859",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.35",
+		"Measurement_Date": "2018-03-06"
+	},
+	{
+		"Reading_ID": "2881",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.04",
+		"Measurement_Date": "2018-10-21"
+	},
+	{
+		"Reading_ID": "2910",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.69",
+		"Measurement_Date": "2019-02-13"
+	},
+	{
+		"Reading_ID": "2911",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.18",
+		"Measurement_Date": "2023-08-20"
+	},
+	{
+		"Reading_ID": "2916",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.58",
+		"Measurement_Date": "2017-07-07"
+	},
+	{
+		"Reading_ID": "2936",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.63",
+		"Measurement_Date": "2016-12-16"
+	},
+	{
+		"Reading_ID": "2937",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.64",
+		"Measurement_Date": "2024-12-20"
+	},
+	{
+		"Reading_ID": "2945",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.35",
+		"Measurement_Date": "2019-05-05"
+	},
+	{
+		"Reading_ID": "2968",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2020-12-14"
+	},
+	{
+		"Reading_ID": "2977",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2015-08-09"
+	},
+	{
+		"Reading_ID": "2987",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.53",
+		"Measurement_Date": "2023-06-30"
+	},
+	{
+		"Reading_ID": "2988",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.58",
+		"Measurement_Date": "2015-08-11"
+	},
+	{
+		"Reading_ID": "3009",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2020-03-18"
+	},
+	{
+		"Reading_ID": "3015",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.85",
+		"Measurement_Date": "2022-08-06"
+	},
+	{
+		"Reading_ID": "3027",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2019-06-14"
+	},
+	{
+		"Reading_ID": "3055",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.46",
+		"Measurement_Date": "2018-02-25"
+	},
+	{
+		"Reading_ID": "3081",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.96",
+		"Measurement_Date": "2019-12-22"
+	},
+	{
+		"Reading_ID": "3096",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.84",
+		"Measurement_Date": "2016-01-28"
+	},
+	{
+		"Reading_ID": "3119",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.39",
+		"Measurement_Date": "2023-08-13"
+	},
+	{
+		"Reading_ID": "3135",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.47",
+		"Measurement_Date": "2018-07-11"
+	},
+	{
+		"Reading_ID": "3149",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.01",
+		"Measurement_Date": "2019-09-25"
+	},
+	{
+		"Reading_ID": "3150",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.76",
+		"Measurement_Date": "2020-08-18"
+	},
+	{
+		"Reading_ID": "3153",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2024-06-23"
+	},
+	{
+		"Reading_ID": "3159",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.38",
+		"Measurement_Date": "2022-12-31"
+	},
+	{
+		"Reading_ID": "3161",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.53",
+		"Measurement_Date": "2023-10-22"
+	},
+	{
+		"Reading_ID": "3163",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.9",
+		"Measurement_Date": "2015-08-08"
+	},
+	{
+		"Reading_ID": "3176",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.85",
+		"Measurement_Date": "2021-03-20"
+	},
+	{
+		"Reading_ID": "3180",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.79",
+		"Measurement_Date": "2021-02-13"
+	},
+	{
+		"Reading_ID": "3210",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.92",
+		"Measurement_Date": "2018-04-24"
+	},
+	{
+		"Reading_ID": "3225",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.95",
+		"Measurement_Date": "2020-02-12"
+	},
+	{
+		"Reading_ID": "3227",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.8",
+		"Measurement_Date": "2019-08-18"
+	},
+	{
+		"Reading_ID": "3235",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2020-06-07"
+	},
+	{
+		"Reading_ID": "3243",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.56",
+		"Measurement_Date": "2019-04-13"
+	},
+	{
+		"Reading_ID": "3266",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.52",
+		"Measurement_Date": "2022-05-07"
+	},
+	{
+		"Reading_ID": "3274",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.28",
+		"Measurement_Date": "2017-04-20"
+	},
+	{
+		"Reading_ID": "3284",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2021-06-28"
+	},
+	{
+		"Reading_ID": "3298",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.97",
+		"Measurement_Date": "2017-10-12"
+	},
+	{
+		"Reading_ID": "3299",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.28",
+		"Measurement_Date": "2016-12-12"
+	},
+	{
+		"Reading_ID": "3308",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.48",
+		"Measurement_Date": "2022-09-22"
+	},
+	{
+		"Reading_ID": "3320",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.26",
+		"Measurement_Date": "2020-08-12"
+	},
+	{
+		"Reading_ID": "3325",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.74",
+		"Measurement_Date": "2021-03-27"
+	},
+	{
+		"Reading_ID": "3356",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.3",
+		"Measurement_Date": "2023-01-30"
+	},
+	{
+		"Reading_ID": "3372",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2018-04-03"
+	},
+	{
+		"Reading_ID": "3385",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2025-01-21"
+	},
+	{
+		"Reading_ID": "3387",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.01",
+		"Measurement_Date": "2017-03-08"
+	},
+	{
+		"Reading_ID": "3411",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.33",
+		"Measurement_Date": "2023-03-28"
+	},
+	{
+		"Reading_ID": "3417",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.86",
+		"Measurement_Date": "2015-08-31"
+	},
+	{
+		"Reading_ID": "3424",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.31",
+		"Measurement_Date": "2022-09-22"
+	},
+	{
+		"Reading_ID": "3432",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.08",
+		"Measurement_Date": "2025-04-15"
+	},
+	{
+		"Reading_ID": "3450",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2016-06-07"
+	},
+	{
+		"Reading_ID": "3455",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.61",
+		"Measurement_Date": "2022-01-07"
+	},
+	{
+		"Reading_ID": "3468",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "20",
+		"Measurement_Date": "2022-07-01"
+	},
+	{
+		"Reading_ID": "3479",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2024-11-04"
+	},
+	{
+		"Reading_ID": "3484",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.25",
+		"Measurement_Date": "2022-12-23"
+	},
+	{
+		"Reading_ID": "3486",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.45",
+		"Measurement_Date": "2021-08-11"
+	},
+	{
+		"Reading_ID": "3487",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2016-07-10"
+	},
+	{
+		"Reading_ID": "3488",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.98",
+		"Measurement_Date": "2022-05-12"
+	},
+	{
+		"Reading_ID": "3505",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.06",
+		"Measurement_Date": "2020-01-09"
+	},
+	{
+		"Reading_ID": "3515",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.45",
+		"Measurement_Date": "2017-01-28"
+	},
+	{
+		"Reading_ID": "3527",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.31",
+		"Measurement_Date": "2020-07-17"
+	},
+	{
+		"Reading_ID": "3529",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2022-07-01"
+	},
+	{
+		"Reading_ID": "3531",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.2",
+		"Measurement_Date": "2019-01-26"
+	},
+	{
+		"Reading_ID": "3553",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.62",
+		"Measurement_Date": "2023-06-18"
+	},
+	{
+		"Reading_ID": "3569",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.26",
+		"Measurement_Date": "2023-01-26"
+	},
+	{
+		"Reading_ID": "3588",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2017-06-24"
+	},
+	{
+		"Reading_ID": "3596",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.76",
+		"Measurement_Date": "2018-04-24"
+	},
+	{
+		"Reading_ID": "3608",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.95",
+		"Measurement_Date": "2019-07-27"
+	},
+	{
+		"Reading_ID": "3615",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.15",
+		"Measurement_Date": "2018-03-08"
+	},
+	{
+		"Reading_ID": "3620",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.42",
+		"Measurement_Date": "2016-12-07"
+	},
+	{
+		"Reading_ID": "3640",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.99",
+		"Measurement_Date": "2023-12-12"
+	},
+	{
+		"Reading_ID": "3650",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.81",
+		"Measurement_Date": "2016-10-03"
+	},
+	{
+		"Reading_ID": "3656",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2024-04-15"
+	},
+	{
+		"Reading_ID": "3661",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2022-10-16"
+	},
+	{
+		"Reading_ID": "3679",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.21",
+		"Measurement_Date": "2017-06-07"
+	},
+	{
+		"Reading_ID": "3694",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.26",
+		"Measurement_Date": "2019-07-14"
+	},
+	{
+		"Reading_ID": "3710",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.43",
+		"Measurement_Date": "2018-03-09"
+	},
+	{
+		"Reading_ID": "3712",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.99",
+		"Measurement_Date": "2015-06-29"
+	},
+	{
+		"Reading_ID": "3720",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.86",
+		"Measurement_Date": "2015-06-23"
+	},
+	{
+		"Reading_ID": "3725",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.03",
+		"Measurement_Date": "2025-01-08"
+	},
+	{
+		"Reading_ID": "3736",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.88",
+		"Measurement_Date": "2019-02-26"
+	},
+	{
+		"Reading_ID": "3741",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2017-02-01"
+	},
+	{
+		"Reading_ID": "3781",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.15",
+		"Measurement_Date": "2022-08-30"
+	},
+	{
+		"Reading_ID": "3784",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.56",
+		"Measurement_Date": "2023-07-04"
+	},
+	{
+		"Reading_ID": "3792",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.07",
+		"Measurement_Date": "2022-02-15"
+	},
+	{
+		"Reading_ID": "3793",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.04",
+		"Measurement_Date": "2021-09-29"
+	},
+	{
+		"Reading_ID": "3796",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.1",
+		"Measurement_Date": "2023-01-22"
+	},
+	{
+		"Reading_ID": "3800",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.23",
+		"Measurement_Date": "2018-05-31"
+	},
+	{
+		"Reading_ID": "3813",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.59",
+		"Measurement_Date": "2015-03-29"
+	},
+	{
+		"Reading_ID": "3840",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.49",
+		"Measurement_Date": "2020-09-19"
+	},
+	{
+		"Reading_ID": "3862",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.76",
+		"Measurement_Date": "2015-05-26"
+	},
+	{
+		"Reading_ID": "3867",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2023-04-29"
+	},
+	{
+		"Reading_ID": "3870",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.45",
+		"Measurement_Date": "2017-03-08"
+	},
+	{
+		"Reading_ID": "3876",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.52",
+		"Measurement_Date": "2016-03-15"
+	},
+	{
+		"Reading_ID": "3881",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.96",
+		"Measurement_Date": "2021-01-02"
+	},
+	{
+		"Reading_ID": "3882",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.61",
+		"Measurement_Date": "2017-12-15"
+	},
+	{
+		"Reading_ID": "3883",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.08",
+		"Measurement_Date": "2020-07-06"
+	},
+	{
+		"Reading_ID": "3886",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.73",
+		"Measurement_Date": "2015-06-24"
+	},
+	{
+		"Reading_ID": "3888",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.72",
+		"Measurement_Date": "2020-01-16"
+	},
+	{
+		"Reading_ID": "3904",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.05",
+		"Measurement_Date": "2025-04-25"
+	},
+	{
+		"Reading_ID": "3935",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.8",
+		"Measurement_Date": "2017-09-24"
+	},
+	{
+		"Reading_ID": "3941",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2024-06-14"
+	},
+	{
+		"Reading_ID": "3947",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.34",
+		"Measurement_Date": "2024-07-20"
+	},
+	{
+		"Reading_ID": "4000",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.83",
+		"Measurement_Date": "2017-01-03"
+	},
+	{
+		"Reading_ID": "4024",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.75",
+		"Measurement_Date": "2020-10-17"
+	},
+	{
+		"Reading_ID": "4036",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.82",
+		"Measurement_Date": "2016-08-20"
+	},
+	{
+		"Reading_ID": "4040",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.81",
+		"Measurement_Date": "2017-01-26"
+	},
+	{
+		"Reading_ID": "4057",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.94",
+		"Measurement_Date": "2025-01-20"
+	},
+	{
+		"Reading_ID": "4062",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.07",
+		"Measurement_Date": "2023-04-16"
+	},
+	{
+		"Reading_ID": "4069",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.63",
+		"Measurement_Date": "2021-08-06"
+	},
+	{
+		"Reading_ID": "4081",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.19",
+		"Measurement_Date": "2024-10-28"
+	},
+	{
+		"Reading_ID": "4087",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.72",
+		"Measurement_Date": "2022-06-07"
+	},
+	{
+		"Reading_ID": "4094",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.52",
+		"Measurement_Date": "2023-11-21"
+	},
+	{
+		"Reading_ID": "4097",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.14",
+		"Measurement_Date": "2022-04-17"
+	},
+	{
+		"Reading_ID": "4113",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.59",
+		"Measurement_Date": "2022-07-29"
+	},
+	{
+		"Reading_ID": "4119",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2017-02-11"
+	},
+	{
+		"Reading_ID": "4121",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.91",
+		"Measurement_Date": "2023-05-22"
+	},
+	{
+		"Reading_ID": "4132",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.69",
+		"Measurement_Date": "2022-06-25"
+	},
+	{
+		"Reading_ID": "4135",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.1",
+		"Measurement_Date": "2015-09-01"
+	},
+	{
+		"Reading_ID": "4161",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.09",
+		"Measurement_Date": "2022-05-12"
+	},
+	{
+		"Reading_ID": "4165",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.18",
+		"Measurement_Date": "2023-02-28"
+	},
+	{
+		"Reading_ID": "4171",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.07",
+		"Measurement_Date": "2024-09-14"
+	},
+	{
+		"Reading_ID": "4210",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.1",
+		"Measurement_Date": "2018-06-07"
+	},
+	{
+		"Reading_ID": "4221",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.32",
+		"Measurement_Date": "2018-03-09"
+	},
+	{
+		"Reading_ID": "4242",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.62",
+		"Measurement_Date": "2022-12-22"
+	},
+	{
+		"Reading_ID": "4257",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.02",
+		"Measurement_Date": "2019-07-04"
+	},
+	{
+		"Reading_ID": "4263",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.58",
+		"Measurement_Date": "2019-04-26"
+	},
+	{
+		"Reading_ID": "4293",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2017-10-06"
+	},
+	{
+		"Reading_ID": "4302",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.71",
+		"Measurement_Date": "2017-01-18"
+	},
+	{
+		"Reading_ID": "4315",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.91",
+		"Measurement_Date": "2024-05-24"
+	},
+	{
+		"Reading_ID": "4325",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.08",
+		"Measurement_Date": "2017-03-04"
+	},
+	{
+		"Reading_ID": "4363",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.99",
+		"Measurement_Date": "2019-10-25"
+	},
+	{
+		"Reading_ID": "4369",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.91",
+		"Measurement_Date": "2021-08-25"
+	},
+	{
+		"Reading_ID": "4370",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.16",
+		"Measurement_Date": "2020-08-21"
+	},
+	{
+		"Reading_ID": "4378",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.72",
+		"Measurement_Date": "2024-11-13"
+	},
+	{
+		"Reading_ID": "4390",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2025-04-25"
+	},
+	{
+		"Reading_ID": "4398",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.63",
+		"Measurement_Date": "2020-08-22"
+	},
+	{
+		"Reading_ID": "4404",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.42",
+		"Measurement_Date": "2023-12-20"
+	},
+	{
+		"Reading_ID": "4432",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.66",
+		"Measurement_Date": "2015-10-07"
+	},
+	{
+		"Reading_ID": "4447",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.34",
+		"Measurement_Date": "2019-08-16"
+	},
+	{
+		"Reading_ID": "4489",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.32",
+		"Measurement_Date": "2019-09-21"
+	},
+	{
+		"Reading_ID": "4510",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.73",
+		"Measurement_Date": "2018-09-30"
+	},
+	{
+		"Reading_ID": "4515",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.26",
+		"Measurement_Date": "2016-11-15"
+	},
+	{
+		"Reading_ID": "4524",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2022-03-16"
+	},
+	{
+		"Reading_ID": "4539",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.49",
+		"Measurement_Date": "2023-08-19"
+	},
+	{
+		"Reading_ID": "4588",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.11",
+		"Measurement_Date": "2016-01-24"
+	},
+	{
+		"Reading_ID": "4593",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.82",
+		"Measurement_Date": "2019-05-21"
+	},
+	{
+		"Reading_ID": "4594",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2021-12-31"
+	},
+	{
+		"Reading_ID": "4597",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.76",
+		"Measurement_Date": "2018-10-08"
+	},
+	{
+		"Reading_ID": "4605",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.05",
+		"Measurement_Date": "2016-08-29"
+	},
+	{
+		"Reading_ID": "4624",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.53",
+		"Measurement_Date": "2016-07-27"
+	},
+	{
+		"Reading_ID": "4643",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.9",
+		"Measurement_Date": "2023-08-05"
+	},
+	{
+		"Reading_ID": "4645",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D10",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.87",
+		"Measurement_Date": "2018-06-20"
+	},
+	{
+		"Reading_ID": "4649",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.68",
+		"Measurement_Date": "2017-11-19"
+	},
+	{
+		"Reading_ID": "4650",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.11",
+		"Measurement_Date": "2024-10-02"
+	},
+	{
+		"Reading_ID": "4652",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B5",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.93",
+		"Measurement_Date": "2022-11-26"
+	},
+	{
+		"Reading_ID": "4656",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.86",
+		"Measurement_Date": "2023-02-20"
+	},
+	{
+		"Reading_ID": "4667",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.49",
+		"Measurement_Date": "2019-11-04"
+	},
+	{
+		"Reading_ID": "4696",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.37",
+		"Measurement_Date": "2024-11-14"
+	},
+	{
+		"Reading_ID": "4701",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D8",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.51",
+		"Measurement_Date": "2021-01-18"
+	},
+	{
+		"Reading_ID": "4715",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.48",
+		"Measurement_Date": "2023-12-18"
+	},
+	{
+		"Reading_ID": "4716",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.58",
+		"Measurement_Date": "2024-12-24"
+	},
+	{
+		"Reading_ID": "4728",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.98",
+		"Measurement_Date": "2015-12-04"
+	},
+	{
+		"Reading_ID": "4730",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.24",
+		"Measurement_Date": "2021-05-22"
+	},
+	{
+		"Reading_ID": "4735",
+		"Tank": "WBT-S6",
+		"Grid_Position": "C7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.26",
+		"Measurement_Date": "2022-12-21"
+	},
+	{
+		"Reading_ID": "4739",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.55",
+		"Measurement_Date": "2016-08-19"
+	},
+	{
+		"Reading_ID": "4752",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B9",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2023-11-05"
+	},
+	{
+		"Reading_ID": "4753",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.13",
+		"Measurement_Date": "2017-05-04"
+	},
+	{
+		"Reading_ID": "4782",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.66",
+		"Measurement_Date": "2022-05-12"
+	},
+	{
+		"Reading_ID": "4805",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.22",
+		"Measurement_Date": "2024-04-17"
+	},
+	{
+		"Reading_ID": "4807",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.48",
+		"Measurement_Date": "2015-04-13"
+	},
+	{
+		"Reading_ID": "4839",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.31",
+		"Measurement_Date": "2016-02-05"
+	},
+	{
+		"Reading_ID": "4849",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B6",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.7",
+		"Measurement_Date": "2024-11-23"
+	},
+	{
+		"Reading_ID": "4873",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D3",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.53",
+		"Measurement_Date": "2020-10-09"
+	},
+	{
+		"Reading_ID": "4887",
+		"Tank": "WBT-S6",
+		"Grid_Position": "D1",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "18.97",
+		"Measurement_Date": "2017-02-06"
+	},
+	{
+		"Reading_ID": "4894",
+		"Tank": "WBT-S6",
+		"Grid_Position": "A2",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.69",
+		"Measurement_Date": "2023-11-11"
+	},
+	{
+		"Reading_ID": "4895",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B4",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.65",
+		"Measurement_Date": "2023-06-21"
+	},
+	{
+		"Reading_ID": "4899",
+		"Tank": "WBT-S6",
+		"Grid_Position": "B7",
+		"Original_Scantling_mm": "20",
+		"Measured_Thickness_mm": "19.25",
+		"Measurement_Date": "2015-05-27"
+	}
+]
