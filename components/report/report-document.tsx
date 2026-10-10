@@ -32,6 +32,8 @@ import {
   buildConclusions,
   citationRef,
   earliestNextInspection,
+  VERDICT_GLOSSARY,
+  VERDICT_GLOSSARY_ORDER,
 } from "@/lib/report/content";
 
 export {
@@ -441,6 +443,26 @@ export function ReportDocument({
               ))}
             </ol>
           )}
+          {/* 06-01 verdict glossary (REPT-06 / UI-6.11): the same three entries as
+              the PDF page-1 footer and the Screen 3 footer — one constant, every
+              renderer. Real text (never a tooltip/title), clause sub-lines composed
+              ONLY via citationRef — cite-don't-quote, zero hardcoded clause strings. */}
+          <div aria-label="Verdict glossary" className="mt-1 flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
+            {VERDICT_GLOSSARY_ORDER.map((verdict) => {
+              const entry = VERDICT_GLOSSARY[verdict];
+              return (
+                <div key={verdict} className="flex flex-col gap-0.5">
+                  <p className="text-xs">
+                    <span className="font-semibold">{verdictLabel(verdict)}</span>
+                    <span className="text-muted-foreground">{` — ${entry.plain}`}</span>
+                  </p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {entry.citationId ? citationRef(entry.citationId) : ""}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         {nextInspection && (
