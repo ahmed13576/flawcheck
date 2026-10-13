@@ -22,6 +22,7 @@ import {
   buildWhatToDoNextLine,
   buildCsvPointerLine,
   citationRef,
+  joinNames,
 } from "@/lib/report/content";
 import type { ReadingResult, Verdict } from "@/lib/ingest/session";
 import type { EvaluationResults } from "@/lib/ingest/session";
@@ -444,3 +445,26 @@ describe("06-01 import-graph drift guard (T-06-01-03)", () => {
     }
   });
 });
+
+describe("WR-01 / WR-02 — joinNames null safety and failing location deduplication", () => {
+  it("WR-01: joinNames handles empty array without producing undefined", () => {
+    expect(joinNames([])).toBe("");
+    expect(joinNames(["CML-1"])).toBe("CML-1");
+    expect(joinNames(["CML-1", "CML-2"])).toBe("CML-1 and CML-2");
+    expect(joinNames(["CML-1", "CML-2", "CML-3"])).toBe("CML-1, CML-2, and CML-3");
+  });
+
+  it("WR-02: deduplicates failing location names when multiple fails occur at the same CML", () => {
+    const s = summary({ total: 420, fail: 2, accept: 418 });
+    // Both failing readings belong to TK-101
+    const brief = buildFindingsBrief(s, [
+      reading({ readingId: "f1", cml: "TK-101", verdict: "reject", rlYears: 0.1 }),
+      reading({ readingId: "f2", cml: "TK-101", verdict: "reject", rlYears: 0.2 }),
+    ]);
+    expect(brief.dispositionSentence).toBe(
+      "2 of 420 readings failed — immediate inspection required at TK-101.",
+    );
+    expect(brief.dispositionSentence).not.toContain("TK-101 and TK-101");
+  });
+});
+

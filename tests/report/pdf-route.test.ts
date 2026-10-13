@@ -178,8 +178,8 @@ function rl(overrides: Partial<ReadingResult> & { readingId: string }): ReadingR
   };
 }
 
-describe("06-01 getTop10Worst — RL-ascending top-10 slice with nulls last (UI-6.17)", () => {
-  it("a >10-flagged snapshot yields EXACTLY 10 rows, rlYears ascending, null-RL rows last", () => {
+describe("06-01 getTop10Worst — RL-ascending top-10 slice with nulls last (UI-6.17 / CR-01)", () => {
+  it("a >10-flagged snapshot yields EXACTLY 10 rows from the true worst set (CR-01 pre-sort fix)", () => {
     const readings = [
       rl({ readingId: "r-1", rlYears: 12 }),
       rl({ readingId: "r-2", rlYears: 10 }),
@@ -196,14 +196,29 @@ describe("06-01 getTop10Worst — RL-ascending top-10 slice with nulls last (UI-
     ];
     const top = getTop10Worst(readings);
     expect(top).toHaveLength(10);
+    // r-11 (3 yr) and r-12 (7 yr) at indices 10 & 11 in input MUST be included in the top-10 worst
+    expect(top.map((r) => r.readingId)).toContain("r-11");
+    expect(top.map((r) => r.readingId)).toContain("r-12");
+    // r-1 (12 yr) is excluded because 10 worse readings exist
+    expect(top.map((r) => r.readingId)).not.toContain("r-1");
     const nonNull = top.filter((r) => r.rlYears !== null).map((r) => r.rlYears as number);
     expect(nonNull).toEqual([...nonNull].sort((a, b) => a - b));
-    expect(top.filter((r) => r.rlYears === null)).toHaveLength(1);
-    // Null RL is LAST — "no computable life", never infinite.
-    expect(top[top.length - 1].rlYears).toBeNull();
   });
 
-  it("a <=10-reading snapshot returns ALL rows (RL-sorted, nulls last)", () => {
+  it("places null-RL reading last among selected rows when included in top 10", () => {
+    const readings = [
+      rl({ readingId: "r-1", rlYears: 5 }),
+      rl({ readingId: "r-2", rlYears: 10 }),
+      rl({ readingId: "r-3", rlYears: null, flags: ["insufficient_history"] }),
+      rl({ readingId: "r-4", rlYears: 8 }),
+    ];
+    const top = getTop10Worst(readings);
+    expect(top).toHaveLength(4);
+    expect(top[top.length - 1].rlYears).toBeNull();
+    expect(top[top.length - 1].readingId).toBe("r-3");
+  });
+
+  it("a <=10-reading snapshot returns ALL rows (rejects before accept, RL-sorted, nulls last)", () => {
     const readings = [
       rl({ readingId: "r-1", rlYears: 5 }),
       rl({ readingId: "r-2", rlYears: null, flags: ["insufficient_history"] }),
@@ -212,7 +227,74 @@ describe("06-01 getTop10Worst — RL-ascending top-10 slice with nulls last (UI-
     ];
     const top = getTop10Worst(readings);
     expect(top).toHaveLength(4);
-    expect(top.map((r) => r.readingId)).toEqual(["r-3", "r-1", "r-4", "r-2"]);
+    expect(top.map((r) => r.readingId)).toEqual(["r-3", "r-1", "r-2", "r-4"]);
+  });
+
+  it("adversarial stress test: 50 flagged readings with random & edge-case RL (null, Infinity, 0.001 yr blowouts)", () => {
+    // 50 readings spanning all severity classes, flags, and edge-case remaining life values
+    const generated: ReadingResult[] = [
+      // Tier 1: immediate_inspection (dominant over verdict & RL)
+      rl({ readingId: "imm-rej-0", flags: ["immediate_inspection"], verdict: "reject", rlYears: 0 }),
+      rl({ readingId: "imm-rej-0001", flags: ["immediate_inspection"], verdict: "reject", rlYears: 0.001 }),
+      rl({ readingId: "imm-rej-null", flags: ["immediate_inspection"], verdict: "reject", rlYears: null }),
+      rl({ readingId: "imm-chk-0001", flags: ["immediate_inspection"], verdict: "re_check", rlYears: 0.001 }),
+      rl({ readingId: "imm-acc-0001", flags: ["immediate_inspection"], verdict: "accept", rlYears: 0.001 }),
+
+      // Tier 2: reject (no immediate_inspection)
+      rl({ readingId: "rej-blowout-0001", flags: [], verdict: "reject", rlYears: 0.001 }),
+      rl({ readingId: "rej-0002", flags: [], verdict: "reject", rlYears: 0.002 }),
+      rl({ readingId: "rej-0010", flags: [], verdict: "reject", rlYears: 0.01 }),
+      rl({ readingId: "rej-0100", flags: [], verdict: "reject", rlYears: 0.1 }),
+      rl({ readingId: "rej-0500", flags: [], verdict: "reject", rlYears: 0.5 }),
+      // Boundary items (11th and beyond):
+      rl({ readingId: "rej-1000", flags: [], verdict: "reject", rlYears: 1.0 }),
+      rl({ readingId: "rej-2500", flags: [], verdict: "reject", rlYears: 2.5 }),
+      rl({ readingId: "rej-inf", flags: [], verdict: "reject", rlYears: Infinity }),
+      rl({ readingId: "rej-null", flags: [], verdict: "reject", rlYears: null }),
+
+      // Tier 3: re_check (18 items, rlYears from 0.001 to 20.0 + null)
+      ...Array.from({ length: 18 }, (_, i) =>
+        rl({
+          readingId: `chk-${i}`,
+          flags: [],
+          verdict: "re_check",
+          rlYears: i === 0 ? 0.001 : i === 17 ? null : i * 1.1,
+        }),
+      ),
+
+      // Tier 4: accept (18 items, rlYears from 0.001 to 100.0 + null + Infinity)
+      ...Array.from({ length: 18 }, (_, i) =>
+        rl({
+          readingId: `acc-${i}`,
+          flags: [],
+          verdict: "accept",
+          rlYears: i === 0 ? 0.001 : i === 1 ? Infinity : i === 17 ? null : i * 5.0,
+        }),
+      ),
+    ];
+
+    expect(generated).toHaveLength(50);
+
+    // Shuffle into reverse order to guarantee sort isn't relying on input order
+    const shuffled = [...generated].reverse();
+
+    const top = getTop10Worst(shuffled);
+    expect(top).toHaveLength(10);
+
+    const expectedOrder = [
+      "imm-rej-0",
+      "imm-rej-0001",
+      "imm-rej-null",
+      "imm-chk-0001",
+      "imm-acc-0001",
+      "rej-blowout-0001",
+      "rej-0002",
+      "rej-0010",
+      "rej-0100",
+      "rej-0500",
+    ];
+
+    expect(top.map((r) => r.readingId)).toEqual(expectedOrder);
   });
 });
 
@@ -339,3 +421,60 @@ describe("06-01 two-<Page> PDF document — dashboard page 1, register page 2 (U
     expect(src).toContain('from "@/lib/report/content"');
   });
 });
+
+describe("CR-02 / CR-05 / WR-01 / WR-08 regression tests", () => {
+  it("CR-02: rejected PT/MT indications trigger ACTION REQUIRED banner even when UT passes", () => {
+    const { snapshot, audit } = body();
+    const snap = {
+      ...(snapshot as unknown as ReportSnapshot),
+      summary: { total: 10, locations: 1, accept: 10, reCheck: 0, fail: 0 },
+      indications: [
+        {
+          id: "pt-1",
+          method: "PT" as const,
+          morphology: "linear" as const,
+          lengthMm: 25,
+          widthMm: 2,
+          surfaceOrInternal: "surface" as const,
+          verdict: "reject" as const,
+          citationId: "asme_b31_3_pt_linear",
+        },
+      ],
+    };
+    const [page1] = pageTexts(
+      buildPdfDocument(
+        snap as unknown as ReportSnapshot,
+        audit as unknown as Parameters<typeof buildPdfDocument>[1],
+      ),
+    );
+    expect(page1).toContain("ACTION REQUIRED — DEFECTS DETECTED");
+    expect(page1).not.toContain("ACCEPTABLE FOR CONTINUED SERVICE");
+    expect(page1).toContain("PT/MT surface examination revealed rejected weld indications");
+  });
+
+  it("CR-05 / WR-01: Page 1 Verdict Glossary renders verdict token labels", () => {
+    const { snapshot, audit } = body();
+    const [page1] = pageTexts(buildPdfDocument(
+      snapshot as unknown as ReportSnapshot,
+      audit as unknown as Parameters<typeof buildPdfDocument>[1],
+    ));
+    expect(page1).toContain("ACCEPT — Wall thickness meets the code minimum at this location.");
+    expect(page1).toContain("RE-CHECK — Thickness is close to the limit — re-measure to confirm before deciding.");
+    expect(page1).toContain("FAIL — Wall is thinner than the code allows at this location. Action required.");
+  });
+
+  it("CR-05: Page 2 table header carries fixed attribute for repeating on multi-page reports", () => {
+    const src = readFileSync(join(process.cwd(), "components/report/pdf-document.tsx"), "utf8");
+    expect(src).toContain("<View fixed wrap={false} style={[styles.tableRow, styles.tableHeader]}>");
+  });
+
+  it("WR-08: reinspection callout cites API 570 §6.3.3", () => {
+    const { snapshot, audit } = body();
+    const [, page2] = pageTexts(buildPdfDocument(
+      snapshot as unknown as ReportSnapshot,
+      audit as unknown as Parameters<typeof buildPdfDocument>[1],
+    ));
+    expect(page2).toMatch(/Rule applied:\s*API 570 §6\.3\.3/);
+  });
+});
+

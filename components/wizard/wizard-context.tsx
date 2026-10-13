@@ -24,9 +24,9 @@ interface WizardContextValue {
 
 const WizardContext = createContext<WizardContextValue | null>(null);
 
-const WIZARD_SESSION_KEY = "flawcheck:wizard-state:v1";
+export const WIZARD_SESSION_KEY = "flawcheck:wizard-state:v1";
 
-function serializeWizardState(state: WizardState): string {
+export function serializeWizardState(state: WizardState): string {
   if (state.source.isDemo) {
     // For demo scenario, save compact descriptor to prevent hitting browser 5MB sessionStorage quota
     return JSON.stringify({
@@ -43,20 +43,26 @@ function serializeWizardState(state: WizardState): string {
   return JSON.stringify(copy);
 }
 
-function getInitialState(): WizardState {
+export function getInitialState(): WizardState {
   if (typeof sessionStorage !== "undefined") {
     try {
       const saved = sessionStorage.getItem(WIZARD_SESSION_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.__compactDemo) {
-          // Re-hydrate demo scenario cleanly
-          const demoBase = wizardReducer(createInitialState(), { type: "load-demo" });
-          const evaluated = wizardReducer(demoBase, { type: "run-evaluation" });
+          // Re-hydrate demo scenario cleanly (respects full vs subset demoScope — CR-03)
+          const actionType =
+            parsed.ui?.demoScope === "full" ? "load-demo-full" : "load-demo";
+          const demoBase = wizardReducer(createInitialState(), { type: actionType });
+          const shouldEvaluate =
+            parsed.ui?.screen === 3 || Boolean(parsed.ui?.evaluatedAt);
+          const hydrated = shouldEvaluate
+            ? wizardReducer(demoBase, { type: "run-evaluation" })
+            : demoBase;
           return {
-            ...evaluated,
-            ui: { ...evaluated.ui, ...(parsed.ui ?? {}) },
-            ptmt: parsed.ptmt ? { ...evaluated.ptmt, ...parsed.ptmt } : evaluated.ptmt,
+            ...hydrated,
+            ui: { ...hydrated.ui, ...(parsed.ui ?? {}) },
+            ptmt: parsed.ptmt ? { ...hydrated.ptmt, ...parsed.ptmt } : hydrated.ptmt,
           };
         }
         if (parsed && typeof parsed === "object" && parsed.ui && parsed.csv) {

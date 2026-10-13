@@ -126,8 +126,9 @@ function fmtCount(n: number): string {
   return n.toLocaleString("en-US");
 }
 
-/** "A", "A and B", "A, B, and C" — the locked inline-name joining rule. */
-function joinNames(names: string[]): string {
+/** "A", "A and B", "A, B, and C" — the locked inline-name joining rule (WR-01 null-safe). */
+export function joinNames(names: string[]): string {
+  if (names.length === 0) return "";
   if (names.length === 1) return names[0];
   if (names.length === 2) return `${names[0]} and ${names[1]}`;
   return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
@@ -151,7 +152,7 @@ export interface FindingsBrief {
  * then rejects before re-checks, then rlYears ascending with null RL LAST
  * within its verdict class (null = "no computable life", never infinite —
  * the getGoverningPdfReadings convention). Array#sort is stable, so equal
- * keys preserve input order.
+ * keys preserve input order. WR-06: explicit null check avoids NaN.
  */
 function compareWorst(a: ReadingResult, b: ReadingResult): number {
   const aImmediate = a.flags.includes("immediate_inspection") ? 0 : 1;
@@ -160,9 +161,10 @@ function compareWorst(a: ReadingResult, b: ReadingResult): number {
   const aRank = a.verdict === "reject" ? 0 : 1;
   const bRank = b.verdict === "reject" ? 0 : 1;
   if (aRank !== bRank) return aRank - bRank;
-  const rlA = a.rlYears ?? Number.POSITIVE_INFINITY;
-  const rlB = b.rlYears ?? Number.POSITIVE_INFINITY;
-  return rlA - rlB;
+  if (a.rlYears === null && b.rlYears === null) return 0;
+  if (a.rlYears === null) return 1;
+  if (b.rlYears === null) return -1;
+  return a.rlYears - b.rlYears;
 }
 
 /**
@@ -228,11 +230,16 @@ export function buildFindingsBrief(
     dispositionSentence = `All ${fmtCount(total)} readings failed — the component is below the code minimum everywhere measured.`;
   } else if (summary.fail > 0) {
     if (summary.fail <= 3) {
-      // ≤ 3 fails: name the failing locations inline (worst-order names).
+      // ≤ 3 fails: name the failing locations inline (worst-order names, deduplicated per WR-02).
       const failNames = worstLocations
         .filter((entry) => entry.verdict === "reject")
         .map((entry) => entry.name);
-      dispositionSentence = `${fmtCount(summary.fail)} of ${fmtCount(total)} readings failed — immediate inspection required at ${joinNames(failNames)}.`;
+      const uniqueNames = [...new Set(failNames)];
+      if (uniqueNames.length > 0) {
+        dispositionSentence = `${fmtCount(summary.fail)} of ${fmtCount(total)} readings failed — immediate inspection required at ${joinNames(uniqueNames)}.`;
+      } else {
+        dispositionSentence = `${fmtCount(summary.fail)} of ${fmtCount(total)} readings failed — immediate inspection required at the worst locations listed below.`;
+      }
     } else {
       dispositionSentence = `${fmtCount(summary.fail)} of ${fmtCount(total)} readings failed — immediate inspection required at the worst locations listed below.`;
     }

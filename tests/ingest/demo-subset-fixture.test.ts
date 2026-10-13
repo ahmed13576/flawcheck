@@ -78,7 +78,7 @@ describe("demo subset CSV mirror — identical row content to the fixture", () =
     join(__dirname, "..", "..", "public", "sample-ut-register-subset.csv"),
     "utf8",
   ).trim();
-  const lines = csv.split("\n");
+  const lines = csv.split(/\r?\n/);
 
   it("carries the DEMO_HEADERS header row and exactly 420 data rows", () => {
     expect(lines[0]).toBe(DEMO_HEADERS.join(","));
