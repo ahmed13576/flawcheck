@@ -16,6 +16,13 @@ FlawCheck ships as a five-phase vertical build for the Nebius x NVIDIA hackathon
 - [x] **Phase 3: LLM Reasoning & Citation Layer** - Streamed, clause-cited acceptance narratives around precomputed verdicts; the LLM never computes and can only cite the vetted allowlist
 - [x] **Phase 4: Report Rendering** - Evaluations become a defensible PDF report with sign-off and disclaimer baked in, plus a guaranteed print-CSS fallback
 - [x] **Phase 5: Demo Hardening, Deployment & Submission** - Cached one-click demo with Live toggle, abuse guarding, Tavily lookup, public deploy, and the video/repo deliverables
+- [x] **Phase 6: Report Digestibility & At-a-Glance Findings** - Presentation engine & executive dashboard: plain-English brief, two-page PDF split, shared verdict glossary, two-tier demo loader
+
+### Milestone v3 — System-1 Fast Decision Architectures
+
+- [ ] **Phase 7: Decision Provider Seam & Nebius Fast Decision Engine (Fork A)** - Pluggable `DecisionProvider` typed seam (`choice`, `noul`, `score`), `NebiusNemotronDecisionProvider` on `feat/nvidia-system1`, 4 domain spikes with fail-closed gates, and pure TS calc invariant.
+- [ ] **Phase 8: SubQ.ai Snap Decision Engine & Multi-Modal Benchmark (Fork B)** - `SubQSnapDecisionProvider` on `feat/subq-snap` calling `POST /v1/systemone` (`subq-snap-preview`) with native questions & multimodal image support, 4 domain spikes, and comparative benchmark suite.
+- [ ] **Phase 9: Visual Inspection Analytics & Vector PDF Integration** - Animated SVG/CSS inspection aids (wall loss trend curves, CML spatial severity heatmap, safety margin metric gauges) and lossless vector serialization into `@react-pdf/renderer` PDF reports.
 
 ## Phase Details
 
@@ -189,16 +196,83 @@ Plans:
 
 - [ ] 06-02-PLAN.md — Wizard surfaces + demo composition: Screen 3 What-we-found brief mount + glossary footer, WBT-S6 subset fixture (generator + reducer load-demo-full + scope-aware provenance banner), Screen 1 two-tier demo buttons, full-suite gates
 
+### Phase 7: Decision Provider Seam & Nebius Fast Decision Engine (Fork A)
+
+**Goal**: Define a unified, strictly-typed `DecisionProvider` seam (`choice`, `noul`, `score`), implement `NebiusNemotronDecisionProvider` on Nebius Token Factory (`nvidia/Nemotron-3_5-Lightning`) in isolated worktree `../flawcheck-nvidia-system1` (`feat/nvidia-system1`), prove 4 NDT domain spikes with fail-closed thresholds, and enforce pure TypeScript calculation sovereignty with zero LLM arithmetic.
+**Depends on**: Phases 1–6 (evaluation session model, golden calculation fixtures, citation allowlist)
+**Requirements**: DEC-01, DEC-02, DEC-03, DEC-04, SPIKE-01, SPIKE-02, SPIKE-03, SPIKE-04
+**Success Criteria** (what must be TRUE):
+
+  1. Pluggable `DecisionProvider` TypeScript interface in `lib/decision/types.ts` enforces typed primitives (`choice`, `noul`, `score`) with zero freeform text leakage, typed probability distributions, and scalar confidence ratings.
+  2. `NebiusNemotronDecisionProvider` connects to Nebius Token Factory (`nvidia/Nemotron-3_5-Lightning`) with zero-temperature JSON mode and balanced-brace JSON extraction fallback (`extractBalancedObjects`) to eliminate prose preamble parsing errors.
+  3. 4 NDT Domain Spikes proven:
+     - **Spike A (Fluid Classifier)**: Classifies process descriptions into API 570 Table 1 (Class 1–4) with $\ge 95\%$ accuracy and fail-closed inspector review trigger ($p < 0.85$).
+     - **Spike B (Fleet Triage)**: Batch-screens 4,912 Zenodo UT readings into Tiers 1–3 routing without memory leaks or rate-limit failures.
+     - **Spike C (PT/MT Morphology)**: Classifies indication notes into linear vs rounded per ASME B31.3 §344.4.2 without false negatives on crack notes.
+     - **Spike D (Semantic Guard)**: Non-autoregressive verification validating that report narratives only cite allowlisted standards and match computed values.
+  4. Calculation Invariant: Pure TypeScript (`lib/calc/`) computes 100% of arithmetic ($t_{\text{required}}$, $CR$, $RL$, intervals); all tests run and pass hermetically when `FLAWCHECK_DISABLE_LLM=1`.
+  5. Worktree `../flawcheck-nvidia-system1` on `feat/nvidia-system1` builds cleanly (`npm run build`) and passes all 504+ tests (`npm test`).
+
+**Plans**: 1 plan
+
+Plans:
+**Wave 1**
+
+- [ ] 07-01-PLAN.md — Pluggable DecisionProvider interface, Nebius Nemotron-3.5-Lightning adapter, 4 domain spikes with fail-closed gates, and pure calc invariant verification.
+
+### Phase 8: SubQ.ai Snap Decision Engine & Multi-Modal Benchmark (Fork B)
+
+**Goal**: Implement `SubQSnapDecisionProvider` on SubQ.ai Snap Decision API (`POST /v1/systemone`, model `subq-snap-preview`) in isolated worktree `../flawcheck-subq-snap` (`feat/subq-snap`) with native `choice`/`noul`/`score` questions and multimodal image evaluation, execute the 4 domain spikes, and produce an automated comparative benchmark suite comparing Nemotron-Lightning vs SubQ Snap.
+**Depends on**: Phase 7 (`DecisionProvider` seam contracts, spike fixtures, baseline metrics)
+**Requirements**: SUBQ-01, SUBQ-02, SUBQ-03, BENCH-01
+**Success Criteria** (what must be TRUE):
+
+  1. `SubQSnapDecisionProvider` implements `DecisionProvider` calling `POST /v1/systemone` using model `subq-snap-preview` with native `choice`, `noul`, and `score` questions, zero output token charges (`output_tokens: 0`), and clean HTTP 4xx/5xx error handling.
+  2. Multi-modal evaluation verified sending base64 PNG/JPEG dye penetrant and A-scan indication images ($\le 4\text{ MiB}$) to `subq-snap-preview` for defect morphology classification without data URI prefix errors.
+  3. All 4 Domain Spikes (Fluid Classifier, Fleet Triage, PT/MT Morphology, Semantic Guard) execute against SubQ Snap with identical interface contracts.
+  4. Automated comparative benchmark suite (`lib/decision/benchmark/`) evaluates Nemotron-Lightning vs SubQ Snap across Spikes A–D, recording latency distributions (min/mean/p50/p95/p99), calibration (Brier score / ECE on boundary edge cases), and cost per 1,000 evaluations into `docs/system1-benchmark-report.json`.
+  5. Worktree `../flawcheck-subq-snap` on `feat/subq-snap` builds cleanly (`npm run build`) and passes all 504+ tests (`npm test`).
+
+**Plans**: 1 plan
+
+Plans:
+**Wave 1**
+
+- [ ] 08-01-PLAN.md — SubQ Snap Decision API client, native question & multimodal image adapter, 4 domain spikes execution, and comparative benchmark harness.
+
+### Phase 9: Visual Inspection Analytics & Vector PDF Integration
+
+**Goal**: Deliver lightweight, animated SVG and CSS inspection analytics across web and certified PDF reporting surfaces (wall loss degradation curves, CML spatial severity heatmap, safety margin metric gauges) using pure coordinate math with zero heavy charting library dependencies.
+**Depends on**: Phase 6 & Phase 7/8 (consumes evaluated CML register and PDF report infrastructure)
+**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04
+**Success Criteria** (what must be TRUE):
+
+  1. Pure TypeScript geometry engine `lib/analytics/geometry.ts` calculates coordinates, axes, data points, and SVG path strings (`d="..."`) with zero DOM dependencies, shared seamlessly between web and PDF renderers.
+  2. Wall Loss Velocity & Trend Curves SVG component renders time-series thickness readings, linear degradation trajectory, remaining life intercept at $t_{\text{required}}$, and confidence uncertainty envelope with GPU-accelerated CSS animations respecting `prefers-reduced-motion`.
+  3. CML Spatial Severity Heatmap renders color-coded piping segment grid (accept green, re_check amber, reject red) with inspection density overlays and interactive tooltips.
+  4. Animated Metric Gauges illustrate safety margin above $t_{\text{required}}$ and corrosion velocity using SVG circular arcs and smooth CSS transitions.
+  5. Certified PDF report export (`components/report/pdf-document.tsx`) integrates vector trend curves and heatmap summaries using `@react-pdf/renderer` primitive components (`Svg`, `Path`, `Line`, `Circle`, `Rect`) with 100% vector resolution independence.
+
+**Plans**: 1 plan
+
+Plans:
+**Wave 1**
+
+- [ ] 09-01-PLAN.md — Shared SVG geometry math, interactive web analytics components (trend curve, heatmap, gauge), and certified @react-pdf/renderer vector serialization.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) |
-| 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) |
-| 3. LLM Reasoning & Citation Layer | 7/7 | Complete (verified 52/52 + enabled-path walkthrough, 2026-10-05) |  |
+| 1. Platform Spike & App Skeleton | 4/4 | Complete (verified 15/15, 2026-09-27) | 2026-09-27 |
+| 2. Ingestion & Deterministic Calc Engine | 5/5 | Complete (verified 50/50 + browser walkthrough, 2026-09-27) | 2026-09-27 |
+| 3. LLM Reasoning & Citation Layer | 7/7 | Complete (verified 52/52 + enabled-path walkthrough, 2026-10-05) | 2026-10-05 |
 | 4. Report Rendering | 4/4 | Complete (verified 2026-10-05) | 2026-10-05 |
 | 5. Demo Hardening, Deployment & Submission | Complete | Complete (deployed + audit, 2026-10-08) | 2026-10-08 |
 | 6. Report Digestibility & At-a-Glance Findings | 2/2 | Complete (verified 6/6 + 583 tests, 2026-10-10) | 2026-10-10 |
+| 7. Decision Provider Seam & Nebius Fast Engine (Fork A) | 0/1 | Planned | - |
+| 8. SubQ Snap Engine & Multimodal Benchmark (Fork B) | 0/1 | Planned | - |
+| 9. Visual Inspection Analytics & Vector PDF | 0/1 | Planned | - |
