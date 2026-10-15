@@ -53,10 +53,13 @@ export class SubQSnapDecisionProvider implements DecisionProvider {
   private readonly apiKey: string;
 
   constructor(options?: SubQProviderOptions) {
+    if (options?.model && options.model !== DEFAULT_MODEL) {
+      throw new DecisionValidationError(`SubQ model is locked to ${DEFAULT_MODEL}.`);
+    }
     this.apiKey = options?.apiKey ?? process.env.SUBQ_API_KEY ?? "";
     const configuredBaseURL = (options?.baseURL ?? process.env.SUBQ_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/$/, "");
     this.baseURL = configuredBaseURL.endsWith("/v1") ? configuredBaseURL : `${configuredBaseURL}/v1`;
-    this.modelId = options?.model ?? DEFAULT_MODEL;
+    this.modelId = DEFAULT_MODEL;
   }
 
   async noul(context: DecisionContext, criteria: NoulCriteria, threshold = 0.5): Promise<NoulResult> {

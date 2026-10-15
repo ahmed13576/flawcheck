@@ -70,4 +70,9 @@ describe("SubQSnapDecisionProvider", () => {
     await expect(provider.batch(context, questions)).rejects.toBeInstanceOf(DecisionValidationError);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("keeps the API model locked to the verified SubQ Snap model", () => {
+    expect(() => new SubQSnapDecisionProvider({ apiKey: "test-key", model: "another-model" }))
+      .toThrow("SubQ model is locked to subq-snap-preview.");
+  });
 });

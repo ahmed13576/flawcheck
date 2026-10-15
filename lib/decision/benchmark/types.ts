@@ -6,7 +6,7 @@
  * across latency distributions, calibration metrics, and cost per 1k evals.
  */
 
-import type { DecisionContext } from "../types";
+import type { DecisionBatchQuestions, DecisionContext } from "../types";
 
 export interface BenchmarkScenario {
   id: string;
@@ -15,8 +15,11 @@ export interface BenchmarkScenario {
   spike: "fluid_classifier" | "fleet_triage" | "morphology_classifier" | "semantic_guard";
   context: DecisionContext;
   expectedType: "noul" | "choice" | "score";
+  question: DecisionBatchQuestions[string];
   expectedAnswer?: string | boolean | number;
   tolerance?: number;
+  boundary?: boolean;
+  source: "synthetic_fixture" | "reviewed_fixture";
 }
 
 export interface LatencyDistribution {
@@ -31,18 +34,18 @@ export interface LatencyDistribution {
 
 export interface CalibrationMetrics {
   /** Brier score: mean squared difference between predicted probabilities and actual outcomes */
-  brierScore: number;
+  brierScore: number | null;
   /** Expected Calibration Error (ECE) across 10 probability bins */
-  expectedCalibrationError: number;
+  expectedCalibrationError: number | null;
   /** Accuracy specifically on borderline edge cases */
-  boundaryAccuracy: number;
+  boundaryAccuracy: number | null;
 }
 
 export interface CostMetrics {
   totalInputTokens: number;
   totalOutputTokens: number;
   /** Estimated cost in USD per 1,000 evaluations */
-  estimatedCostPer1kUsd: number;
+  estimatedCostPer1kUsd: number | null;
 }
 
 export interface ProviderBenchmarkMetrics {
@@ -57,15 +60,28 @@ export interface ProviderBenchmarkMetrics {
 }
 
 export interface BenchmarkComparisonReport {
-  timestamp: string;
+  generatedAt: string;
+  status: "measured" | "pending_live_measurement";
+  measurementNotes: string[];
   scenarioCount: number;
   providers: {
     nebius?: ProviderBenchmarkMetrics;
-    subq: ProviderBenchmarkMetrics;
+    subq?: ProviderBenchmarkMetrics;
   };
   verdict: {
-    latencyWinner: "nebius" | "subq" | "tie";
-    calibrationWinner: "nebius" | "subq" | "tie";
-    costWinner: "nebius" | "subq" | "tie";
+    latencyWinner: "nebius" | "subq" | "tie" | null;
+    calibrationWinner: "nebius" | "subq" | "tie" | null;
+    costWinner: "nebius" | "subq" | "tie" | null;
   };
+}
+
+export interface CalibrationObservation {
+  probability: number;
+  correct: boolean;
+  boundary: boolean;
+}
+
+export interface TokenPricingPerMillion {
+  inputUsd: number;
+  outputUsd: number;
 }

@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-10-15",
+  "status": "pending_live_measurement",
+  "measurementNotes": [
+    "No live SubQ benchmark was run because the provider key is unavailable to this execution.",
+    "This fork does not contain the Phase 07 Nebius decision provider, so a comparative baseline is unavailable.",
+    "No verified per-token prices were supplied; cost estimates are intentionally omitted.",
+    "The 30 benchmark scenarios are synthetic harness fixtures, not measured model outcomes or a reviewed industrial dataset."
+  ],
+  "scenarioCount": 30,
+  "providers": {},
+  "verdict": {
+    "latencyWinner": null,
+    "calibrationWinner": null,
+    "costWinner": null
+  }
+}
