@@ -67,14 +67,14 @@ describe("SubQ domain spike contracts (mocked API)", () => {
       dimensionLengthMm: 6,
       dimensionWidthMm: 1,
       inspectorNotes: "Dye penetrant indication with visible edge",
-      image: { mediaType: "image/jpeg", base64: "aGVsbG8=" },
+      image: { mediaType: "image/png", base64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p1sAAAAASUVORK5CYII=" },
     });
 
     expect(result.morphology).toBe("linear");
     expect(result.asmeVerdict).toBe("REJECT");
     expect(fetchMock).toHaveBeenCalledTimes(2);
     const firstBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
-    expect(firstBody.images[0]).toEqual({ mediaType: "image/jpeg", base64: "aGVsbG8=" });
+    expect(firstBody.images[0]).toEqual({ mediaType: "image/png", base64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p1sAAAAASUVORK5CYII=" });
   });
 
   it("Spike D: fails closed below the semantic guard confidence threshold", async () => {

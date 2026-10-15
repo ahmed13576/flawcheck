@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DecisionProviderError, DecisionValidationError } from "../../lib/decision/types";
+import { DecisionProviderError, DecisionValidationError, type DecisionBatchQuestions } from "../../lib/decision/types";
 import { SubQSnapDecisionProvider } from "../../lib/decision/providers/subq-snap";
 
 const context = { state: { observation: "test state" } };
@@ -15,7 +15,7 @@ describe("SubQSnapDecisionProvider", () => {
       answers: {
         toxic: { type: "noul", noul: 0.91 },
         service: { type: "choice", choice: "class_1", probabilities: { class_1: 0.91, class_2: 0.09 }, confidence: 0.91 },
-        severity: { type: "score", score: 1.8, legend: { "2": "high" }, probabilities: { "2": 0.8 }, confidence: 0.8 },
+        severity: { type: "score", score: 1.8, legend: { "2": "high" }, probabilities: { "0": 0.05, "1": 0.1, "2": 0.85 }, confidence: 0.8 },
       },
       usage: { input_tokens: 42, output_tokens: 0 },
     }), { status: 200 }));
@@ -74,5 +74,46 @@ describe("SubQSnapDecisionProvider", () => {
   it("keeps the API model locked to the verified SubQ Snap model", () => {
     expect(() => new SubQSnapDecisionProvider({ apiKey: "test-key", model: "another-model" }))
       .toThrow("SubQ model is locked to subq-snap-preview.");
+  });
+
+  it.each([
+    ["unrequested choice", { type: "choice", choice: "class_3", probabilities: { class_1: 0.6, class_2: 0.4 }, confidence: 0.8 }],
+    ["out-of-range confidence", { type: "choice", choice: "class_1", probabilities: { class_1: 0.6, class_2: 0.4 }, confidence: 1.2 }],
+    ["non-finite confidence", { type: "choice", choice: "class_1", probabilities: { class_1: 0.6, class_2: 0.4 }, confidence: Number.NaN }],
+    ["mismatched probability keys", { type: "choice", choice: "class_1", probabilities: { class_1: 0.6, class_3: 0.4 }, confidence: 0.8 }],
+    ["probabilities not summing to one", { type: "choice", choice: "class_1", probabilities: { class_1: 0.6, class_2: 0.3 }, confidence: 0.8 }],
+    ["out-of-range score", { type: "score", score: 2, probabilities: { "0": 0.5, "1": 0.5 }, confidence: 0.8 }],
+    ["invalid score confidence", { type: "score", score: 1, probabilities: { "0": 0.5, "1": 0.5 }, confidence: -0.1 }],
+    ["invalid score distribution", { type: "score", score: 1, probabilities: { "0": 0.4, "1": 0.4 }, confidence: 0.8 }],
+  ])("rejects malformed provider answer: %s", async (_description, answer) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ answers: { response: answer } }), { status: 200 })));
+    const provider = new SubQSnapDecisionProvider({ apiKey: "test-key" });
+    const question: DecisionBatchQuestions = (answer as { type: string }).type === "score"
+      ? { score: { type: "score" as const, instructions: "Rate", criteria: ["low", "high"] } }
+      : { response: { type: "choice" as const, instructions: "Choose", criteria: { class_1: "one", class_2: "two" } } };
+
+    await expect(provider.batch(context, question)).rejects.toBeInstanceOf(DecisionProviderError);
+  });
+
+  it("restricts production endpoint configuration to the verified SubQ HTTPS origin", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(() => new SubQSnapDecisionProvider({ apiKey: "test-key", baseURL: "http://api.subq.ai/v1" }))
+      .toThrow("SubQ base URL must use HTTPS");
+    expect(() => new SubQSnapDecisionProvider({ apiKey: "test-key", baseURL: "https://attacker.example/v1" }))
+      .toThrow("Production SubQ requests must target https://api.subq.ai/v1.");
+    vi.stubEnv("SUBQ_BASE_URL", "https://attacker.example/v1");
+    expect(() => new SubQSnapDecisionProvider({ apiKey: "test-key" }))
+      .toThrow("Production SubQ requests must target https://api.subq.ai/v1.");
+  });
+
+  it("allows an HTTPS mock endpoint override only under NODE_ENV=test", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ answers: { check: { type: "noul", noul: 0.8 } } }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const provider = new SubQSnapDecisionProvider({ apiKey: "test-key", baseURL: "https://mock.example/v1" });
+    await provider.batch(context, { check: { type: "noul", instructions: "Check" } });
+    expect(fetchMock.mock.calls[0][0]).toBe("https://mock.example/v1/systemone");
+    expect(() => new SubQSnapDecisionProvider({ apiKey: "test-key", baseURL: "http://mock.example/v1" }))
+      .toThrow("SubQ base URL must use HTTPS");
   });
 });

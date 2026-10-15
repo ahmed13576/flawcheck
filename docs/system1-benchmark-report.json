@@ -8,6 +8,7 @@
     "The 30 benchmark scenarios are synthetic harness fixtures, not measured model outcomes or a reviewed industrial dataset."
   ],
   "scenarioCount": 30,
+  "runCount": 0,
   "providers": {},
   "verdict": {
     "latencyWinner": null,

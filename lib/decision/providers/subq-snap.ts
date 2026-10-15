@@ -23,6 +23,7 @@ const MAX_QUESTIONS = 16;
 const MAX_IMAGES = 4;
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const MAX_TOTAL_IMAGE_BYTES = 8 * 1024 * 1024;
+const PROBABILITY_SUM_TOLERANCE = 0.02;
 const IMAGE_MEDIA_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 export interface SubQProviderOptions {
@@ -57,8 +58,10 @@ export class SubQSnapDecisionProvider implements DecisionProvider {
       throw new DecisionValidationError(`SubQ model is locked to ${DEFAULT_MODEL}.`);
     }
     this.apiKey = options?.apiKey ?? process.env.SUBQ_API_KEY ?? "";
-    const configuredBaseURL = (options?.baseURL ?? process.env.SUBQ_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/$/, "");
-    this.baseURL = configuredBaseURL.endsWith("/v1") ? configuredBaseURL : `${configuredBaseURL}/v1`;
+    this.baseURL = resolveBaseURL(
+      options?.baseURL ?? process.env.SUBQ_BASE_URL ?? DEFAULT_BASE_URL,
+      process.env.NODE_ENV === "test",
+    );
     this.modelId = DEFAULT_MODEL;
   }
 
@@ -162,7 +165,7 @@ export class SubQSnapDecisionProvider implements DecisionProvider {
       if (!raw || raw.type !== definition.type) {
         throw new DecisionProviderError(`SubQ response has a missing or mismatched answer for question "${name}"`, 502, this.providerId, data);
       }
-      answers[name] = this.mapAnswer(raw, definition.type, elapsed);
+      answers[name] = this.mapAnswer(raw, definition, elapsed);
     }
 
     return {
@@ -204,8 +207,21 @@ export class SubQSnapDecisionProvider implements DecisionProvider {
       if (!IMAGE_MEDIA_TYPES.has(image.mediaType)) {
         throw new DecisionValidationError(`Unsupported image media type: ${image.mediaType}`);
       }
-      const base64 = image.base64.replace(/^data:image\/(?:png|jpeg|webp);base64,/i, "");
-      if (!base64 || base64.includes("\n") || base64.includes("\r") || !/^[A-Za-z0-9+/]*={0,2}$/.test(base64) || base64.length % 4 === 1) {
+      const dataUriMatch = image.base64.match(/^data:(image\/(?:png|jpeg|webp));base64,/i);
+      if (image.base64.startsWith("data:") && !dataUriMatch) {
+        throw new DecisionValidationError("Image data URI must use a supported image type and base64 encoding.");
+      }
+      if (dataUriMatch && dataUriMatch[1].toLowerCase() !== image.mediaType) {
+        throw new DecisionValidationError("Image data URI media type must match the declared mediaType.");
+      }
+      const base64 = dataUriMatch ? image.base64.slice(dataUriMatch[0].length) : image.base64;
+      const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+      const malformedPadding = padding > 0 && (
+        base64.length % 4 !== 0 ||
+        (padding === 2 && (base64.length - 2) % 4 !== 2) ||
+        (padding === 1 && (base64.length - 1) % 4 !== 3)
+      );
+      if (!base64 || base64.includes("\n") || base64.includes("\r") || !/^[A-Za-z0-9+/]*={0,2}$/.test(base64) || base64.length % 4 === 1 || malformedPadding) {
         throw new DecisionValidationError("Images must contain valid single-line base64 data.");
       }
       const decodedBytes = Math.floor((base64.length * 3) / 4) - (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
@@ -217,7 +233,12 @@ export class SubQSnapDecisionProvider implements DecisionProvider {
     return payload;
   }
 
-  private mapAnswer(raw: SubQAnswer, type: "noul" | "choice" | "score", latencyMs: number) {
+  private mapAnswer(
+    raw: SubQAnswer,
+    definition: DecisionBatchQuestions[string],
+    latencyMs: number,
+  ) {
+    const type = definition.type;
     if (type === "noul") {
       if (typeof raw.noul !== "number" || !Number.isFinite(raw.noul) || raw.noul < 0 || raw.noul > 1) {
         throw new DecisionProviderError("SubQ returned an invalid noul probability", 502, this.providerId, raw);
@@ -225,12 +246,16 @@ export class SubQSnapDecisionProvider implements DecisionProvider {
       return { type: "noul" as const, noul: raw.noul, verdict: raw.noul >= 0.5, latencyMs };
     }
     if (type === "choice") {
-      if (!raw.choice || typeof raw.confidence !== "number" || !raw.probabilities) {
+      const requestedKeys = Object.keys(definition.criteria);
+      if (typeof raw.choice !== "string" || !requestedKeys.includes(raw.choice) || !isProbability(raw.confidence) ||
+          !hasValidDistribution(raw.probabilities, requestedKeys)) {
         throw new DecisionProviderError("SubQ returned an invalid choice answer", 502, this.providerId, raw);
       }
       return { type: "choice" as const, choice: raw.choice, probabilities: raw.probabilities, confidence: raw.confidence, latencyMs };
     }
-    if (typeof raw.score !== "number" || !Number.isFinite(raw.score) || !raw.probabilities || typeof raw.confidence !== "number") {
+    const scoreKeys = definition.criteria.map((_, index) => String(index));
+    if (typeof raw.score !== "number" || !Number.isFinite(raw.score) || raw.score < 0 || raw.score > definition.criteria.length - 1 ||
+        !isProbability(raw.confidence) || !hasValidDistribution(raw.probabilities, scoreKeys)) {
       throw new DecisionProviderError("SubQ returned an invalid score answer", 502, this.providerId, raw);
     }
     const level = Math.round(raw.score);
@@ -255,4 +280,41 @@ export class SubQSnapDecisionProvider implements DecisionProvider {
       return undefined;
     }
   }
+}
+
+function resolveBaseURL(configured: string, isTestEnvironment: boolean): string {
+  let url: URL;
+  try {
+    url = new URL(configured);
+  } catch {
+    throw new DecisionValidationError("SubQ base URL must be a valid HTTPS URL.");
+  }
+  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) {
+    throw new DecisionValidationError("SubQ base URL must use HTTPS and cannot contain credentials, query, or fragment data.");
+  }
+
+  const path = url.pathname.replace(/\/$/, "") || "/";
+  if (isTestEnvironment) {
+    url.pathname = path === "/" ? "/v1" : path;
+    return url.toString().replace(/\/$/, "");
+  }
+  if (url.origin !== "https://api.subq.ai" || !["/", "/v1"].includes(path)) {
+    throw new DecisionValidationError("Production SubQ requests must target https://api.subq.ai/v1.");
+  }
+  return DEFAULT_BASE_URL;
+}
+
+function isProbability(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
+function hasValidDistribution(probabilities: unknown, expectedKeys: string[]): probabilities is Record<string, number> {
+  if (!probabilities || typeof probabilities !== "object" || Array.isArray(probabilities)) return false;
+  const distribution = probabilities as Record<string, unknown>;
+  const keys = Object.keys(distribution);
+  if (keys.length !== expectedKeys.length || expectedKeys.some((key) => !Object.hasOwn(distribution, key))) return false;
+  const values = Object.values(distribution);
+  if (!values.every(isProbability)) return false;
+  const sum = (values as number[]).reduce((total, value) => total + value, 0);
+  return Math.abs(sum - 1) <= PROBABILITY_SUM_TOLERANCE;
 }

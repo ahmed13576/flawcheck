@@ -51,9 +51,11 @@ export interface CostMetrics {
 export interface ProviderBenchmarkMetrics {
   providerId: string;
   modelId: string;
-  totalRuns: number;
+  scenarioCount: number;
+  attemptCount: number;
   successCount: number;
   failureCount: number;
+  failureDiagnostics: string[];
   latency: LatencyDistribution;
   calibration: CalibrationMetrics;
   cost: CostMetrics;
@@ -61,9 +63,10 @@ export interface ProviderBenchmarkMetrics {
 
 export interface BenchmarkComparisonReport {
   generatedAt: string;
-  status: "measured" | "pending_live_measurement";
+  status: "measured" | "pending_live_measurement" | "incomplete_measurement";
   measurementNotes: string[];
   scenarioCount: number;
+  runCount: number;
   providers: {
     nebius?: ProviderBenchmarkMetrics;
     subq?: ProviderBenchmarkMetrics;
