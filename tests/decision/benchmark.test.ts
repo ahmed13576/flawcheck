@@ -131,15 +131,31 @@ describe("System-1 benchmark harness", () => {
     expect(report.providers.nebius).toMatchObject({ successCount: 0, failureCount: 1, attemptCount: 1 });
   });
 
-  it("does not publish invented benchmark measurements in the committed report", () => {
+  it("the committed report is internally consistent — no invented measurements", () => {
+    // Anti-fabrication invariant: a report claiming "measured" must carry a
+    // complete zero-failure dataset from BOTH providers (the harness's own
+    // completeness gate); a pending report must publish empty providers.
+    // Before the live run this locked the placeholder; after it locks the
+    // measured artifact to its own data.
     const artifact = JSON.parse(readFileSync("docs/system1-benchmark-report.json", "utf8"));
-    const pending = new BenchmarkRunner().createPendingReport(30, ["Live measurements not run."]);
-
-    expect(artifact.status).toBe("pending_live_measurement");
     expect(artifact.scenarioCount).toBe(30);
-    expect(artifact.runCount).toBe(0);
-    expect(artifact.providers).toEqual({});
-    expect(artifact.verdict).toEqual({ latencyWinner: null, calibrationWinner: null, costWinner: null });
+
+    if (artifact.status === "measured") {
+      expect(artifact.runCount).toBe(30);
+      for (const metrics of [artifact.providers.subq, artifact.providers.nebius]) {
+        expect(metrics).toBeDefined();
+        expect(metrics.attemptCount).toBe(artifact.scenarioCount);
+        expect(metrics.successCount).toBe(metrics.attemptCount);
+        expect(metrics.failureCount).toBe(0);
+        expect(metrics.failureDiagnostics).toEqual([]);
+      }
+    } else {
+      expect(artifact.status).toBe("pending_live_measurement");
+      expect(artifact.runCount).toBe(0);
+      expect(artifact.providers).toEqual({});
+      expect(artifact.verdict).toEqual({ latencyWinner: null, calibrationWinner: null, costWinner: null });
+    }
+    const pending = new BenchmarkRunner().createPendingReport(30, ["Live measurements not run."]);
     expect(pending.status).toBe("pending_live_measurement");
     expect(JSON.parse(new BenchmarkRunner().serializeReport(pending)).providers).toEqual({});
   });
