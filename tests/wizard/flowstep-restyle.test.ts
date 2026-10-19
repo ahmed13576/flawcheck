@@ -400,8 +400,16 @@ describe("FS-09 Screen 3 hero card + 4 KPI stat cards fed by real summary counts
     expect(markup).toContain("21"); // fail
     expect(markup).toContain("37"); // locations
     // The mock's placeholder numbers are data — they must never render.
+    // Scoped to the KPI region (the pin's target): the VIS-03 analytics
+    // panel legitimately renders SVG geometry floats (dash offsets, path
+    // coordinates) that can coincidentally contain any digit run — those are
+    // geometry, never rendered data.
+    const kpiRegion = markup.slice(
+      markup.indexOf('aria-label="Finding metrics"'),
+      markup.indexOf('aria-label="Visual Inspection Analytics"'),
+    );
     for (const mockNumber of ["3,812", "876", "224", "4,912"]) {
-      expect(markup).not.toContain(mockNumber);
+      expect(kpiRegion).not.toContain(mockNumber);
     }
   });
 });

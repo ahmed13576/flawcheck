@@ -41,6 +41,18 @@ import type { NarrativeHistory } from "@/lib/reasoning/narrative-context";
 
 export const RESULTS_PAGE_SIZE = 50;
 
+/**
+ * VIS-03 — heatmap→table row-highlight hook. Identity matches the heatmap
+ * cell's cmlId seam (`cml ?? location`): a selected heatmap cell highlights
+ * EVERY row of that CML on the visible page (WR-04: multiple readings per
+ * identity are legal). Styling respects the existing token system — the row
+ * token background swaps to the secondary tone while highlighted, keeping the
+ * sticky cells opaque (z-10 bg-background remains the unhighlighted contract).
+ */
+const ROW_HIGHLIGHTED_TESTID = "results-row-highlighted";
+const ROW_HIGHLIGHTED_CLASS = "bg-secondary";
+const ROW_UNHIGHLIGHTED_CLASS = "bg-background";
+
 const TOGGLEABLE_FLAGS: ReadingFlag[] = ["measurement_inconsistency", "outlier"];
 
 const NUMERIC_CELL = "border border-border px-3 py-2 font-mono tabular-nums whitespace-nowrap";
@@ -208,6 +220,7 @@ export function ResultsTable({
   onPageChange,
   metadata,
   evaluatedAt,
+  highlightedCmlId = null,
 }: {
   readings: ReadingResult[];
   page: number;
@@ -216,6 +229,9 @@ export function ResultsTable({
    * error state; the demo path always supplies both via Screen 3). */
   metadata?: ComponentMetadata;
   evaluatedAt?: string;
+  /** VIS-03: selected heatmap CML identity (`cml ?? location`) — matching
+   * rows highlight. Null/undefined = no highlight (default rest). */
+  highlightedCmlId?: string | null;
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [reasoningOpen, setReasoningOpen] = useState<Record<string, boolean>>({});
@@ -315,9 +331,23 @@ export function ResultsTable({
               // is positionally aligned to it (groupByCml 1:1 with inputs).
               const dataIndex = start - 1 + i;
               const rowKey = resultRowKey(reading.readingId, dataIndex);
+              // VIS-03: the heatmap's selected CML highlights this row when
+              // the identities match (`cml ?? location` — the heatmap cell
+              // seam). Highlighted rows carry the hook testid + secondary
+              // tone; unhighlighted rows keep the locked bg-background token.
+              const isHighlighted =
+                highlightedCmlId !== null &&
+                (reading.cml ?? reading.location) === highlightedCmlId;
+              const rowClass = isHighlighted
+                ? ROW_HIGHLIGHTED_CLASS
+                : ROW_UNHIGHLIGHTED_CLASS;
               return (
                 [
-                  <tr key={rowKey} className="bg-background">
+                  <tr
+                    key={rowKey}
+                    className={rowClass}
+                    data-testid={isHighlighted ? ROW_HIGHLIGHTED_TESTID : undefined}
+                  >
                     <td className={`border border-border px-3 py-2 ${STICKY_LEFT_TD}`}>
                       <span
                         className="block max-w-[14rem] truncate"

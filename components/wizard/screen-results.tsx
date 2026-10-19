@@ -13,6 +13,14 @@
  * /report). Zero-result edge (UI-15) and the demo provenance banner (UI-21,
  * wizard root) are preserved; focus lands on this screen's heading (UI-22).
  *
+ * VIS-03 (Phase 09): a collapsible "Visual Inspection Analytics" panel mounts
+ * above the findings tabs — the CML heatmap (one cell per evaluated CML via
+ * the shared buildLatestPerCml adapter), the governing-CML trend curve, and
+ * the safety-margin gauge. The heatmap's onSelect relay drives the
+ * results-table row highlight (selectedCmlId → ResultsTable
+ * highlightedCmlId); all values are precomputed evaluate() outputs — the
+ * panel derives no engineering number.
+ *
  * ScreenResultsContent is the pure presentational layer (node-testable — the
  * FS-09..FS-11 pins render it directly); ScreenResults wires the wizard
  * context, the report-snapshot auto-write/Save-review path, pagination
@@ -48,6 +56,14 @@ import {
 } from "@/lib/report/content";
 import { FindingsBrief } from "@/components/wizard/findings-brief";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
+import { CmlHeatmap } from "@/components/analytics/cml-heatmap";
+import { TrendCurve } from "@/components/analytics/trend-curve";
+import { MetricGauge } from "@/components/analytics/metric-gauge";
+import {
+  buildGoverningTrendPoints,
+  buildLatestPerCml,
+} from "@/lib/analytics/adapters";
+import { toMm } from "@/lib/calc/units";
 import type {
   ComponentMetadata,
   EvaluationResults,
@@ -121,6 +137,125 @@ function KpiCard({
   );
 }
 
+/** Hook testid for the heatmap→table highlight relay (VIS-03). */
+export const ROW_HIGHLIGHTED_TESTID = "results-row-highlighted";
+
+/**
+ * VIS-03 — collapsible "Visual Inspection Analytics" panel (Phase 09).
+ *
+ * Mounts the three web analytics components above the findings tabs/table.
+ * Everything is fed by the pure lib/analytics adapters from the REAL
+ * readings: the heatmap receives one item per evaluated CML
+ * (buildLatestPerCml — latest reading wins, dense row-major grid), the trend
+ * curve the governing CML's dated history (buildGoverningTrendPoints), and
+ * the gauge the governing CML's safety margin (t-actual vs t-required with
+ * t-nominal as the 100% reference, unit-converted like the eval engine) plus
+ * its governing CR. Clicking a heatmap cell relays the CML identity upward —
+ * the host table highlights the matching row (see ResultsTable's
+ * highlightedCmlId hook). Zero readings render the friendly empty state —
+ * never an empty SVG shell. Derives no engineering number: the geometry
+ * engine projects precomputed evaluate() outputs only.
+ */
+function VisualAnalyticsPanel({
+  readings,
+  metadata,
+  selectedCmlId,
+  onSelectCml,
+}: {
+  readings: ReadingResult[];
+  metadata: ComponentMetadata;
+  selectedCmlId: string | null;
+  onSelectCml: (cmlId: string | null) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  const heatmapItems = useMemo(() => buildLatestPerCml(readings), [readings]);
+  const governing = useMemo(
+    () => buildGoverningTrendPoints(readings),
+    [readings],
+  );
+  const gaugeReading = useMemo(
+    () =>
+      governing.points.length > 0
+        ? readings.find(
+            (r) =>
+              (r.cml ?? r.location) === governing.cmlId &&
+              r.date === governing.points[governing.points.length - 1].date,
+          ) ?? null
+        : null,
+    [readings, governing],
+  );
+  const tNominalMm = toMm(metadata.tNominal, "mm");
+
+  return (
+    <section
+      aria-label="Visual Inspection Analytics"
+      data-testid="visual-analytics-panel"
+      className="rounded-lg border border-border bg-card p-4"
+    >
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((prev) => !prev)}
+        className="flex w-full items-center justify-between gap-2 text-left"
+      >
+        <h2 className="text-sm font-semibold tracking-wide">
+          Visual Inspection Analytics
+        </h2>
+        <svg
+          viewBox="0 0 16 16"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          aria-hidden="true"
+          className={`transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
+        >
+          <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {expanded ? (
+        heatmapItems.length === 0 ? (
+          <p
+            data-testid="visual-analytics-empty"
+            className="mt-3 rounded border border-border bg-background px-3 py-2 text-sm text-muted-foreground"
+          >
+            No evaluated CML locations to visualize — run the evaluation on an
+            ingested register first.
+          </p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-4 xl:flex-row">
+            <div className="flex-[3]">
+              <CmlHeatmap
+                cmls={heatmapItems}
+                governingClause="API 570 §4.3 — thickness monitoring"
+                onSelect={(item) => onSelectCml(item?.cmlId ?? null)}
+                selectedCmlId={selectedCmlId}
+              />
+            </div>
+            <div className="flex flex-[2] flex-col gap-4">
+              <TrendCurve
+                points={governing.points}
+                tRequiredMm={governing.tRequiredMm}
+                crGoverningMmYr={governing.crGoverningMmYr ?? 0}
+                gaugeUncertaintyMm={toMm(metadata.gaugeUncertainty, "mm")}
+              />
+              <MetricGauge
+                label="Governing CML safety margin"
+                currentMm={gaugeReading?.tActualMm ?? 0}
+                tRequiredMm={governing.tRequiredMm}
+                tNominalMm={tNominalMm}
+                crMmYr={governing.crGoverningMmYr}
+              />
+            </div>
+          </div>
+        )
+      ) : null}
+    </section>
+  );
+}
+
 export interface ScreenResultsContentProps {
   results: EvaluationResults;
   units: { csvThickness: Unit; metadata: Unit };
@@ -163,6 +298,9 @@ export function ScreenResultsContent({
   const [unresolvedCitations, setUnresolvedCitations] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   const [savedVisible, setSavedVisible] = useState(false);
+  // VIS-03: the heatmap's selected CML — relayed straight into the results
+  // table's row-highlight hook (ResultsTable highlightedCmlId).
+  const [selectedCmlId, setSelectedCmlId] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const visibleReadings = useMemo(
@@ -246,6 +384,15 @@ export function ScreenResultsContent({
           <KpiCard label="Locations" value={summary.locations} />
         </section>
 
+        {/* VIS-03 — collapsible analytics panel, above the findings controls.
+            The heatmap onSelect relay drives the table row highlight below. */}
+        <VisualAnalyticsPanel
+          readings={results.readings}
+          metadata={metadata}
+          selectedCmlId={selectedCmlId}
+          onSelectCml={setSelectedCmlId}
+        />
+
         {/* Tabs + search + legend — LOCAL state only. */}
         <section aria-label="Findings controls" className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -304,6 +451,7 @@ export function ScreenResultsContent({
             onPageChange={onPageChange}
             metadata={metadata}
             evaluatedAt={evaluatedAt ?? undefined}
+            highlightedCmlId={selectedCmlId}
           />
         )}
 
