@@ -34,6 +34,9 @@ import {
 } from "@/lib/report/content";
 import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
+import { calcTrendCurveGeometry, type TrendPoint, type CmlHeatmapItem } from "@/lib/analytics/geometry";
+import { PdfTrendCurve } from "@/components/report/pdf-trend-curve";
+import { PdfHeatmap } from "@/components/report/pdf-heatmap";
 
 const styles = StyleSheet.create({
   body: { fontFamily: "Helvetica", fontSize: 9, color: "#111111", padding: 24, paddingBottom: 28 },
@@ -127,6 +130,68 @@ function flagsLine(reading: ReportSnapshot["readings"][number]): string {
   return labels.length > 0 ? labels : "—";
 }
 
+/**
+ * Phase 09 (VIS-01 sovereignty): pure adapters from snapshot readings to
+ * geometry-engine inputs — grouping/mapping ONLY, no engineering math (the
+ * thickness, t_required, and CR values are precomputed engine outputs passed
+ * through verbatim). Exported pure for the node test-suite.
+ */
+
+/** Severity order for picking the trend's governing CML: reject first, then re-check, then lowest RL. */
+function severityRank(r: ReportSnapshot["readings"][number]): number {
+  if (r.verdict === "reject") return 0;
+  if (r.verdict === "re_check") return 1;
+  return 2;
+}
+
+/**
+ * Picks the worst reading (reject > re-check > accept, ties by lowest RL,
+ * nulls last) and returns the (date, thickness) history of THAT CML sorted
+ * by date — the trend curve's precomputed input. CML identity falls back to
+ * location when no grid column exists. Single-survey histories are legal
+ * (VIS-02 "Insufficient History" edge renders a point + projection).
+ */
+export function buildGoverningTrendPoints(
+  readings: ReportSnapshot["readings"],
+): { points: TrendPoint[]; cmlId: string; crGoverningMmYr: number | null } {
+  if (readings.length === 0) {
+    return { points: [], cmlId: "", crGoverningMmYr: null };
+  }
+  const worst = [...readings].sort((a, b) => {
+    const rank = severityRank(a) - severityRank(b);
+    if (rank !== 0) return rank;
+    const rlA = a.rlYears ?? Number.POSITIVE_INFINITY;
+    const rlB = b.rlYears ?? Number.POSITIVE_INFINITY;
+    return rlA - rlB;
+  })[0];
+  const identity = worst.cml ?? worst.location;
+  const history = readings
+    .filter((r) => (r.cml ?? r.location) === identity)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((r) => ({ date: r.date, thicknessMm: r.tActualMm }));
+  return { points: history, cmlId: identity, crGoverningMmYr: worst.crGoverningMmYr };
+}
+
+/**
+ * Maps readings to heatmap layout items: verdict + thickness flow through
+ * verbatim; the spatial grid position is a dense row-major layout of the
+ * reading order (deterministic, no invented coordinates).
+ */
+export function toHeatmapItems(
+  readings: ReportSnapshot["readings"],
+): CmlHeatmapItem[] {
+  const cols = Math.max(1, Math.ceil(Math.sqrt(readings.length)));
+  return readings.map((r, i) => ({
+    cmlId: r.cml ?? r.location,
+    x: (i % cols) + 1,
+    y: Math.floor(i / cols) + 1,
+    tActualMm: r.tActualMm,
+    tRequiredMm: r.tRequiredMm,
+    verdict: r.verdict,
+    crMmYr: r.crGoverningMmYr,
+  }));
+}
+
 function telemetryLine(step: ReportAudit["steps"][number]): string {
   const total = (step.promptTokens ?? 0) + (step.completionTokens ?? 0);
   const tokens = total > 0
@@ -156,6 +221,27 @@ export function buildPdfDocument(
   const { governingReadings, isFiltered, totalCount } = getGoverningPdfReadings(
     snapshot.readings,
     100,
+  );
+
+  // Phase 09 visual analytics — pure adapters + the shared geometry engine
+  // (PDF-01/PDF-02). The heatmap summarizes every evaluated location on
+  // page 1; the trend curve projects the governing CML's degradation above
+  // the page-2 register. All values are precomputed engine outputs.
+  const heatmapItems = toHeatmapItems(snapshot.readings);
+  const { points: trendPoints, cmlId: trendCmlId, crGoverningMmYr: trendCr } =
+    buildGoverningTrendPoints(snapshot.readings);
+  const trendTRequired = trendPoints.length > 0
+    ? snapshot.readings.find(
+        (r) => (r.cml ?? r.location) === trendCmlId,
+      )?.tRequiredMm ?? 0
+    : 0;
+  const trendGeometry = calcTrendCurveGeometry(
+    trendPoints,
+    trendTRequired,
+    trendCr ?? 0,
+    snapshot.metadata.gaugeUncertainty,
+    420,
+    200,
   );
 
   // 06-01 dashboard derivations — pure compositions from the content seam.
@@ -260,6 +346,10 @@ export function buildPdfDocument(
             </Text>
           </View>
         </View>
+
+        {/* 3.5) Spatial severity matrix (PDF-02) — compact vector grid
+            adjacent to the top-10 table (CONTEXT decision 4). */}
+        <PdfHeatmap cmls={heatmapItems} width={300} height={130} />
 
         {/* 4) Top-10 worst locations — RL-ascending slice (null RL last). */}
         <Text style={styles.sectionLabel}>Top-10 worst locations</Text>
@@ -366,6 +456,14 @@ export function buildPdfDocument(
             ))}
           </View>
         )}
+
+        {/* Phase 09 (PDF-01): vector degradation projection of the governing
+            CML above the detailed register — same geometry as the web chart. */}
+        <PdfTrendCurve
+          geometry={trendGeometry}
+          title={`Degradation Projection — ${trendCmlId || "governing CML"}`}
+          caption={`Governing CR ${trendCr === null ? "—" : `${formatFixed(trendCr, 3)} mm/yr`} · gauge uncertainty ±${formatFixed(snapshot.metadata.gaugeUncertainty, 2)} mm · t_required ${formatFixed(trendTRequired, 2)} mm`}
+        />
 
         <Text style={styles.sectionLabel}>
           {isFiltered ? "Governing CML measurements (critical register)" : "CML measurements"}
