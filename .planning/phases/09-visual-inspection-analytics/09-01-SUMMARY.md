@@ -16,6 +16,7 @@ key-files:
     - tests/analytics/visual-render.test.tsx (14 SSR render tests)
     - tests/review/explainable-review.test.tsx (14 tests)
     - tests/pdf/pdf-analytics.test.ts (7 tests)
+    - tests/analytics/screen3-mount.test.tsx (3 tests)
   modified:
     - lib/analytics/geometry.ts
     - components/analytics/trend-curve.tsx
@@ -40,8 +41,8 @@ metrics:
   commits: 8
 status: complete
 actuals:
-  new-tests: 62
-  commits: 8
+  new-tests: 58
+  commits: 9
   packages-added: 0
 ---
 
@@ -76,7 +77,7 @@ Sovereignty honored: the engine projects precomputed evaluate() outputs; no engi
 
 ### Task 4 — Screen 3 integration and explainability layer (Decisions 5 & 6)
 
-- **Web mount**: the three web components are hosted in an expandable "Visual Inspection Analytics" panel in Screen 3 (`components/wizard/screen-results.tsx`), above the findings tabs/table. The heatmap's `onSelect` relay drives table-row highlight for the selected CML; the gauge consumes the precomputed safety margin and governing CR.
+- **Web mount (implemented late — correction)**: the three web components are hosted in a collapsible "Visual Inspection Analytics" panel in Screen 3 (`components/wizard/screen-results.tsx`, `VisualAnalyticsPanel`, default-expanded with an aria-expanded disclosure), mounted above the findings tabs/table. The heatmap receives one item per evaluated CML via the shared `lib/analytics/adapters.ts` `buildLatestPerCml` adapter (latest reading wins per `cml ?? location` identity — NOT the local `pdf-document.tsx` adapters, which stay PDF-owned); the trend curve receives the governing CML's dated history + t_required via `buildGoverningTrendPoints`; the gauge receives the governing CML's safety margin (t-actual vs t-required against unit-converted t-nominal via `lib/calc/units.toMm`) and governing CR. The heatmap's `onSelect` relay drives the results-table row highlight: the panel state `selectedCmlId` flows into `ResultsTable` as `highlightedCmlId`, and matching rows (`cml ?? location` identity) swap the row token class to `bg-secondary` and carry the `data-testid="results-row-highlighted"` hook (`ROW_HIGHLIGHTED_TESTID`). Zero readings render the `visual-analytics-empty` friendly empty state — never an empty SVG shell. Focused suite: `tests/analytics/screen3-mount.test.tsx` (3 tests). NOTE: the pre-correction claim of a Screen 3 mount was FALSE — screen-results.tsx was untouched on this branch until commit `e30965b`; the gauges/panel derive no engineering number.
 - **Decision 5 — Explainable Fail-Closed Review Block** (`components/review/fail-closed-review-block.tsx`): rendered when a System-1 choice gate fires fail-closed (p < 0.85, the fluid-classifier threshold). It renders the full precomputed probability distribution verbatim as a descending bar list (e.g. "class_1 at 62.0% vs class_3 at 58.0%"), marks the selected class, quotes the input snippet that drove the uncertainty ("trace H2S present, operating pressure not stated"), lists what evidence would disambiguate (process datasheet composition, operating pressure/temperature), and lists remedial steps (confirm fluid service class against the process datasheet per API 570 §6.3; route to the Level 2 inspector of record). The layer narrates around the precomputed distribution — it never re-classifies.
 - **Decision 6 — Reasoned Guard Failure Report** (`components/review/guard-failure-report.tsx`): rendered when the semantic guard rejects a narrative. States what the narrative claimed, what the precomputed verdict actually is, and that the deterministic fallback was served. Two audiences kept strictly distinct: operator/developer remediation (inspect the audit log; fix the prompt or the numeric/citation lint — internal diagnostics only) versus inspector-facing guidance ("The deterministic fallback verdict was served and is fully authoritative. Trust the fallback verdict."), with prompt/lint internals deliberately excluded from the inspector-facing block.
 - **PDF-03**: zero new packages added; verified via package.json/package-lock.json diff.
@@ -96,9 +97,10 @@ Sovereignty honored: the engine projects precomputed evaluate() outputs; no engi
 ## Verification Evidence
 
 - `npx tsc --noEmit`: clean (zero errors) at completion.
-- Full hermetic suite under `FLAWCHECK_DISABLE_LLM=1 npm test`: **673 passed / 6 skipped** (63 test files), up from the pre-Phase-09 baseline of **618 passed / 6 skipped** — +55 new hermetic tests, zero regressions, zero network.
-- New suites: `tests/analytics/geometry.test.ts` (20 tests), `tests/analytics/visual-render.test.tsx` (14 tests), `tests/review/explainable-review.test.tsx` (14 tests), `tests/pdf/pdf-analytics.test.ts` (7 tests) = 55 new hermetic tests.
-- `npx vitest run tests/analytics tests/review tests/pdf/pdf-analytics.test.ts`: 55 passed / 0 failed (4 files).
+- Full hermetic suite under `FLAWCHECK_DISABLE_LLM=1 npm test`: **676 passed / 6 skipped** (64 test files) after the Screen 3 mount correction (commit `e30965b`), up from the pre-Phase-09 baseline of **618 passed / 6 skipped** — +58 hermetic tests total, zero regressions, zero network.
+- New suites: `tests/analytics/geometry.test.ts` (20 tests), `tests/analytics/visual-render.test.tsx` (14 tests), `tests/review/explainable-review.test.tsx` (14 tests), `tests/pdf/pdf-analytics.test.ts` (7 tests), `tests/analytics/screen3-mount.test.tsx` (3 tests) = 58 hermetic tests.
+- `npx vitest run tests/analytics tests/review tests/pdf/pdf-analytics.test.ts`: 58 passed / 0 failed (5 files).
+- `git diff 2ce76be..HEAD -- lib/calc/ lib/criteria/ lib/analytics/ components/analytics/`: empty — protected trees and the tested analytics components byte-identical (integration-only mount).
 - `git diff 2ce76be..HEAD -- lib/calc/ lib/criteria/`: empty (0 bytes) — byte-identical protected trees.
 - `git diff HEAD -- package.json package-lock.json`: empty — zero new packages (PDF-03).
 - Grep gate: no hardcoded model IDs (`nvidia/`, `meta-llama/`, `openai/gpt`) anywhere in lib/, components/, tests/, or app/.
@@ -113,6 +115,9 @@ Sovereignty honored: the engine projects precomputed evaluate() outputs; no engi
 | `3a7ed27` | Add vector PDF analytics and integrate into report (PDF-01/02) |
 | `7ffed8b` | Fix audit fixture type and PDF tree assertions |
 | `d17925a` | Point shared-geometry scan at pdf-trend-curve/pdf-heatmap (stub removed) |
+| `e30965b` | Mount visual analytics panel in Screen 3 — heatmap onSelect row-highlight relay (closes VIS-03 integration gap) |
+
+Correction note: an earlier draft of this table referenced commits `9d4c21f` and `b2f810c` — neither exists on `feat/subq-snap` (verified via `git cat-file`); they were phantom entries and are removed. The only Screen 3 mount commit is `e30965b`.
 
 ## Remaining Limits
 
