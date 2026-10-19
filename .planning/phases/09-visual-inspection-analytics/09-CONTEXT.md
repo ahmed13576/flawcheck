@@ -49,6 +49,16 @@ This phase operates strictly at the presentation and geometry generation layer. 
 - PDF Page 2 or dedicated Analytics section will render the governing CML degradation trend curve directly above the detailed inspection register.
 - All typography inside PDF `<Svg>` elements uses standard system fonts (`Helvetica`, `Courier`) to prevent Next.js SSR font registration issues.
 
+### 5. Explainable Fail-Closed Review Block (from Phase 08 UAT deferred follow-up, test 1 — locked 2026-10-19)
+
+- When a System-1 choice gate fires fail-closed (p < 0.85), the surface that presents it renders an **explainable manual review block**: the competing classes with their full probability distribution (e.g. "Class 1 at 0.62 vs Class 3 at 0.58" — the distribution already travels on the choice result, never leaves the safe side of the seam), the input snippet that drove the uncertainty (e.g. "trace H2S present, operating pressure not stated"), what evidence would disambiguate, and remedial steps ("confirm fluid service class against process datasheet per API 570 §6.3").
+- **Invariant preserved**: the explanation layer narrates around the precomputed distribution — it never re-classifies. Same pattern as the System-2 narrative layer on the main repo.
+
+### 6. Reasoned Guard Failure Report (from Phase 08 UAT deferred follow-up, test 2 — locked 2026-10-19)
+
+- When the semantic guard rejects a narrative, the failure report states: what the narrative claimed, what the precomputed verdict actually is, and that the deterministic fallback was served instead.
+- **Two audiences kept distinct**: operator/developer remediation (inspect the audit log, fix the prompt or the lint) vs the inspector-facing remedial step, which is simply "trust the fallback verdict".
+
 </decisions>
 
 ## <specifics>
@@ -90,5 +100,10 @@ This phase operates strictly at the presentation and geometry generation layer. 
 - Full 3D C-scan corrosion point clouds (deferred to future hardware integration milestones).
 - Real-time animated telemetry streaming from live ultrasonic thickness gauges.
 - Interactive dragging or editing of projection lines (inspection math is read-only).
+
+### Promoted from Phase 08 UAT (2026-10-19) — folded into decisions 5 & 6 above
+
+- Explainable manual review block for fail-closed System-1 gates (decision 5).
+- Reasoned guard failure report with dual-audience remediation (decision 6).
 
 </deferred>
