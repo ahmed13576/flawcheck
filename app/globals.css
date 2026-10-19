@@ -176,3 +176,23 @@ body {
   padding: 0;
   margin: 0;
 }
+
+/* Phase 09 VIS-02: GPU-accelerated SVG line-draw (stroke-dashoffset is
+   compositor-friendly). The animation is applied ONLY via the inline style on
+   the history path — this keyframe simply defines it; every consumer element
+   also carries motion-reduce:animate-none so prefers-reduced-motion: reduce
+   renders the final state immediately (PDF-04). */
+@keyframes trend-draw {
+  from {
+    stroke-dashoffset: var(--trend-draw-length, 1000);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trend-draw-animated {
+    animation: none !important;
+  }
+}

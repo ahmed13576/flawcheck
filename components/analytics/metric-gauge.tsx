@@ -1,48 +1,72 @@
 "use client";
 
+/**
+ * VIS-04 — animated circular safety-margin gauge (web).
+ *
+ * The arc reveals the PRECOMPUTED safety-margin percent via an animated
+ * strokeDashoffset (GPU-accelerated transform-free paint). The color band
+ * carries the code semantics: ≥ 20% margin green, 0–20% amber, < 0% red —
+ * the banding is computed in the geometry engine, never here. All motion
+ * utilities include motion-reduce: variants so prefers-reduced-motion
+ * renders the final state immediately (PDF-04).
+ */
 import React from "react";
-import { Gauge, ShieldCheck, AlertTriangle } from "lucide-react";
-import { calcMetricGaugeGeometry } from "@/lib/analytics/geometry";
+import { Gauge, ShieldCheck, AlertTriangle, ShieldAlert } from "lucide-react";
+import { calcGaugeGeometry } from "@/lib/analytics/geometry";
 
 export interface MetricGaugeProps {
   label: string;
-  value: number;
-  min?: number;
-  max?: number;
-  unit?: string;
-  size?: number;
-  strokeWidth?: number;
+  /** Precomputed thickness measurement (t_actual), mm. */
+  currentMm: number;
+  /** Precomputed required thickness (t_required), mm. */
+  tRequiredMm: number;
+  /** Nominal thickness — the gauge's 100% reference, mm. */
+  tNominalMm: number;
+  /** Governing corrosion velocity for the sub-caption, mm/yr. */
+  crMmYr?: number | null;
+  radius?: number;
   className?: string;
 }
 
 export function MetricGauge({
   label,
-  value,
-  min = 0,
-  max = 100,
-  unit = "%",
-  size = 120,
-  strokeWidth = 10,
+  currentMm,
+  tRequiredMm,
+  tNominalMm,
+  crMmYr = null,
+  radius = 40,
   className = "",
 }: MetricGaugeProps) {
-  const geo = calcMetricGaugeGeometry(value, min, max, size, strokeWidth);
+  const geo = calcGaugeGeometry(currentMm, tRequiredMm, tNominalMm, radius);
+  const size = radius * 2 + geo.strokeWidth * 2;
+  const negative = geo.percent < 0;
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-3 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 ${className}`}
+      className={`flex flex-col items-center justify-center rounded-lg border border-border bg-card p-3 text-card-foreground ${className}`}
     >
-      <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="transform -rotate-90 select-none">
-          {/* Background circle */}
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <svg
+          width={size}
+          height={size}
+          role="img"
+          aria-label={`${label}: ${geo.percent.toFixed(1)}% safety margin`}
+          className="select-none -rotate-90 motion-reduce:transition-none"
+        >
+          {/* Background track */}
           <circle
             cx={geo.cx}
             cy={geo.cy}
             r={geo.radius}
-            stroke="#1e293b"
+            stroke="currentColor"
+            className="text-border"
             strokeWidth={geo.strokeWidth}
             fill="none"
           />
-          {/* Animated value arc */}
+          {/* Animated value arc — dashoffset transition on mount */}
           <circle
             cx={geo.cx}
             cy={geo.cy}
@@ -53,31 +77,38 @@ export function MetricGauge({
             strokeDasharray={geo.circumference}
             strokeDashoffset={geo.strokeDashoffset}
             strokeLinecap="round"
-            className="transition-all duration-700 ease-out motion-reduce:transition-none"
+            className="transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none motion-reduce:animate-none"
           />
         </svg>
 
         {/* Center metric display */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-xl font-bold tracking-tight text-slate-100">
-            {Math.round(value)}
-            <span className="text-xs font-normal text-slate-400 ml-0.5">{unit}</span>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <span className="font-mono text-xl font-bold tracking-tight">
+            {geo.percent.toFixed(0)}
+            <span className="ml-0.5 text-xs font-normal text-muted-foreground">%</span>
           </span>
-          <span className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5 flex items-center gap-1">
-            {geo.percent >= 50 ? (
-              <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+          <span className="mt-0.5 flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+            {negative ? (
+              <ShieldAlert className="size-2.5 text-fail" aria-hidden="true" />
+            ) : geo.percent >= 50 ? (
+              <ShieldCheck className="size-2.5 text-accept" aria-hidden="true" />
             ) : (
-              <AlertTriangle className="w-2.5 h-2.5 text-amber-400" />
+              <AlertTriangle className="size-2.5 text-recheck" aria-hidden="true" />
             )}
             Margin
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-300">
-        <Gauge className="w-3.5 h-3.5 text-sky-400" />
+      <div className="mt-2 flex items-center gap-1.5 text-xs font-medium">
+        <Gauge className="size-3.5 text-primary" aria-hidden="true" />
         <span>{label}</span>
       </div>
+      {crMmYr !== null ? (
+        <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+          CR {crMmYr.toFixed(3)} mm/yr
+        </div>
+      ) : null}
     </div>
   );
 }
