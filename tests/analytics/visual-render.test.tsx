@@ -197,11 +197,16 @@ describe("geometry sovereignty (source scan)", () => {
       resolve(ROOT, "components/analytics/trend-curve.tsx"),
       "utf8",
     );
-    const pdf = readFileSync(
-      resolve(ROOT, "components/report/pdf-analytics.tsx"),
+    const pdfTrend = readFileSync(
+      resolve(ROOT, "components/report/pdf-trend-curve.tsx"),
+      "utf8",
+    );
+    const pdfHeatmap = readFileSync(
+      resolve(ROOT, "components/report/pdf-heatmap.tsx"),
       "utf8",
     );
     expect(web).toContain("lib/analytics/geometry");
-    expect(pdf).toContain("lib/analytics/geometry");
+    expect(pdfTrend).toContain("lib/analytics/geometry");
+    expect(pdfHeatmap).toContain("lib/analytics/geometry");
   });
 });
