@@ -51,7 +51,7 @@ export function dimensionsLine(
 }
 
 const TOGGLE =
-  "inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary";
+  "inline-flex items-center gap-1.5 rounded-none border border-border px-3 py-1.5 text-sm hover:bg-secondary";
 const CHEVRON =
   "transition-transform motion-reduce:transition-none";
 
@@ -70,7 +70,7 @@ export function PtmtTriageList({
 
   if (indications.length === 0) {
     return (
-      <section aria-label="PT/MT triage" className="rounded-xl border border-border bg-card p-6">
+      <section aria-label="PT/MT triage" className="rounded-none border border-border bg-card p-6">
         <h2 className="text-xl font-semibold">PT/MT triage</h2>
         <p className="mt-2 text-sm font-semibold">No PT/MT indications recorded</p>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -92,9 +92,9 @@ export function PtmtTriageList({
         return (
           <article
             key={indication.id}
-            className="flex gap-4 rounded-xl border border-border bg-card p-6"
+            className="flex gap-4 rounded-none border border-border bg-card p-6"
           >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-400">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-none bg-amber-500/15 text-amber-400">
               <ArrowRight className="size-5" aria-hidden="true" />
             </div>
             <div className="flex flex-1 flex-col gap-3">

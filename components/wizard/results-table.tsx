@@ -80,7 +80,7 @@ const STICKY_VERDICT_TH = "sticky right-[9.5rem] max-md:static z-30 bg-card";
 const STICKY_VERDICT_TD = "sticky right-[9.5rem] max-md:static z-10 bg-background";
 
 const REASONING_TOGGLE =
-  "inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-xs font-semibold hover:border-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring";
+  "inline-flex h-6 items-center gap-1 rounded-none border border-border px-2 text-xs font-semibold hover:border-muted-foreground focus-visible:outline focus-visible:outline-1 focus-visible:outline-ring";
 
 /**
  * CML narrative request body (CR-01). Exported pure for the node test-suite.
@@ -198,7 +198,7 @@ export function ReasoningDetailRow({
               <button
                 type="button"
                 onClick={onRetry}
-                className="mt-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-secondary"
+                className="mt-2 rounded-none border border-border px-3 py-1.5 text-sm font-medium hover:bg-secondary"
               >
                 Retry narrative
               </button>
@@ -299,7 +299,7 @@ export function ResultsTable({
     };
 
   return (
-    <section aria-label="CML results" className="rounded-lg border border-border bg-card p-4">
+    <section aria-label="CML results" className="rounded-none border border-border bg-card p-4">
       <div className="overflow-x-auto">
         <p className="sr-only sm:not-sr-only text-[11px] text-muted-foreground pb-1">
           Tip: Scroll horizontally to view all measurements and verdicts. Sticky columns remain pinned.
@@ -482,18 +482,18 @@ export function ResultsTable({
           type="button"
           disabled={safePage <= 1}
           onClick={() => onPageChange(safePage - 1)}
-          className="rounded border border-border px-3 py-1.5 font-semibold hover:border-muted-foreground disabled:opacity-50"
+          className="rounded-none border border-border px-3 py-1.5 font-semibold hover:border-muted-foreground disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="text-xs text-muted-foreground">
+        <span className="font-mono text-xs text-muted-foreground">
           Page {safePage.toLocaleString("en-US")} of {pageCount.toLocaleString("en-US")}
         </span>
         <button
           type="button"
           disabled={safePage >= pageCount}
           onClick={() => onPageChange(safePage + 1)}
-          className="rounded border border-border px-3 py-1.5 font-semibold hover:border-muted-foreground disabled:opacity-50"
+          className="rounded-none border border-border px-3 py-1.5 font-semibold hover:border-muted-foreground disabled:opacity-50"
         >
           Next
         </button>

@@ -67,7 +67,7 @@ export function FindingsBrief({
   return (
     <section
       aria-label="What we found"
-      className="flex flex-col gap-2 rounded-xl border border-border bg-card p-6"
+      className="flex flex-col gap-2 rounded-none border border-border bg-card p-6"
     >
       <p className="text-lg font-semibold">{brief.dispositionSentence}</p>
       <p className="text-sm font-semibold">{brief.nextActionSentence}</p>

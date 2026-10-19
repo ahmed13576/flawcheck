@@ -122,15 +122,17 @@ function KpiCard({
   label,
   value,
   valueClass,
+  accentBorder,
 }: {
   label: string;
   value: number;
   valueClass?: string;
+  accentBorder?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 text-left">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={`font-mono text-xl ${valueClass ?? ""}`}>
+    <div className={`flex flex-col gap-2 rounded-none border border-border bg-card p-4 text-left ${accentBorder ?? ""}`}>
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
+      <span className={`font-mono text-2xl font-semibold ${valueClass ?? ""}`}>
         {value.toLocaleString("en-US")}
       </span>
     </div>
@@ -191,7 +193,7 @@ function VisualAnalyticsPanel({
     <section
       aria-label="Visual Inspection Analytics"
       data-testid="visual-analytics-panel"
-      className="rounded-lg border border-border bg-card p-4"
+      className="rounded-none border border-border bg-card p-4"
     >
       <button
         type="button"
@@ -210,7 +212,7 @@ function VisualAnalyticsPanel({
           stroke="currentColor"
           strokeWidth="1.5"
           aria-hidden="true"
-          className={`transition-transform motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
+          className={expanded ? "rotate-180" : ""}
         >
           <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -328,8 +330,8 @@ export function ScreenResultsContent({
 
   const summary = results.summary;
   const TAB_IDLE =
-    "rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-foreground";
-  const TAB_ACTIVE = "rounded-lg bg-secondary px-3 py-2 text-sm font-semibold";
+    "border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground hover:text-foreground";
+  const TAB_ACTIVE = "border-b-2 border-primary px-3 py-2 text-sm font-semibold text-foreground";
 
   return (
     <section aria-label="Screen 3 — Results">
@@ -355,10 +357,10 @@ export function ScreenResultsContent({
         <SummaryStrip summary={summary} />
 
         {/* Hero card — copy strings from Screen 3.png; n is the REAL count. */}
-        <section className="flex flex-col gap-2 rounded-xl border border-border bg-card p-8">
-          <span className="text-xs font-semibold uppercase tracking-[1.5px] text-primary">
+        <section className="flex flex-col gap-2 rounded-none border border-border bg-card p-6 sm:p-8">
+          <p className="text-sm text-muted-foreground">
             Evaluation complete
-          </span>
+          </p>
           <h1
             tabIndex={-1}
             data-screen-heading
@@ -380,7 +382,7 @@ export function ScreenResultsContent({
         <section aria-label="Finding metrics" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <KpiCard label="Accepted" value={summary.accept} valueClass="text-green-400" />
           <KpiCard label="Re-check" value={summary.reCheck} valueClass="text-amber-400" />
-          <KpiCard label="Fail" value={summary.fail} valueClass="text-red-400" />
+          <KpiCard label="Fail" value={summary.fail} valueClass="text-red-400" accentBorder="border-l-4 border-l-[var(--fail)]" />
           <KpiCard label="Locations" value={summary.locations} />
         </section>
 
@@ -396,7 +398,7 @@ export function ScreenResultsContent({
         {/* Tabs + search + legend — LOCAL state only. */}
         <section aria-label="Findings controls" className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2" role="group" aria-label="Findings filter">
+            <div className="flex items-center gap-2 border-b border-border sm:border-b-0" role="group" aria-label="Findings filter">
               <button
                 type="button"
                 aria-pressed={tab === "all"}
@@ -425,13 +427,13 @@ export function ScreenResultsContent({
                 placeholder="Search CML or location"
                 value={query}
                 onChange={(event) => changeQuery(event.target.value)}
-                className="w-full rounded-lg border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="w-full rounded-none border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
           </div>
           <div
             aria-label="Finding legend"
-            className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground"
+            className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground font-mono"
           >
             <span>Legend</span>
             <span className="text-green-400">● Accepted</span>
@@ -441,7 +443,7 @@ export function ScreenResultsContent({
         </section>
 
         {visibleReadings.length === 0 ? (
-          <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+          <p className="rounded-none border border-border bg-card p-6 text-sm text-muted-foreground">
             No readings match the current filters.
           </p>
         ) : (
@@ -522,7 +524,7 @@ export function ScreenResultsContent({
         </div>
 
         {/* Footer nav — Back left; Save review + disabled preview right. */}
-        <footer className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+        <footer className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-border bg-card px-4 py-3">
           <button
             type="button"
             onClick={onBackToMetadata}
@@ -532,7 +534,7 @@ export function ScreenResultsContent({
           </button>
           <div className="flex items-center gap-3">
             {savedVisible && (
-              <span role="status" className="text-xs text-muted-foreground">
+              <span role="status" className="font-mono text-xs text-muted-foreground">
                 Saved — this session only
               </span>
             )}
@@ -625,7 +627,7 @@ function StatusRegion() {
       {extraction.state === "failed" ? (
         <div
           role="alert"
-          className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="rounded-none border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
           Extraction failed: {extraction.message}. Narrative generation was
           skipped — verdicts below are computed and unaffected. Correct the
@@ -649,7 +651,7 @@ export function ScreenResults() {
         <h1 tabIndex={-1} data-screen-heading className="text-xl font-semibold">
           Results
         </h1>
-        <div className="mt-6 rounded-xl border border-border bg-card p-6">
+        <div className="mt-6 rounded-none border border-border bg-card p-6">
           <p className="text-sm font-semibold">No evaluation yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Ingest a CSV and confirm metadata, then run the evaluation to see verdicts here.

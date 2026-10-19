@@ -11,7 +11,7 @@ import type { EvaluationResults } from "@/lib/ingest/session";
 
 export function SummaryStrip({ summary }: { summary: EvaluationResults["summary"] }) {
   return (
-    <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4 text-sm shadow-sm">
+    <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 rounded-none border border-border bg-card p-4 text-sm">
       <div className="flex flex-wrap items-center gap-4">
         <span className="font-mono tabular-nums whitespace-nowrap">
           {summary.total.toLocaleString("en-US")} readings · {summary.locations} locations

@@ -12,14 +12,14 @@ import { useReasoning, type ExtractionStatus } from "@/components/wizard/reasoni
 import { useSyncExternalStore } from "react";
 
 const BADGE =
-  "inline-flex h-6 items-center rounded border border-border px-2 text-xs font-semibold text-muted-foreground";
+  "inline-flex h-6 items-center rounded-none border border-border px-2 text-xs font-semibold text-muted-foreground";
 const FAILED_BADGE =
-  "inline-flex h-6 items-center rounded border border-destructive/30 bg-destructive/10 px-2 text-xs font-semibold uppercase tracking-wide text-destructive";
+  "inline-flex h-6 items-center rounded-none border border-destructive/30 bg-destructive/10 px-2 text-xs font-semibold uppercase tracking-wide text-destructive";
 const FALLBACK_CHIP =
-  "inline-flex h-6 items-center rounded border border-border bg-secondary px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground";
+  "inline-flex h-6 items-center rounded-none border border-border bg-secondary px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 const METRICS = "text-xs text-muted-foreground font-mono tabular-nums whitespace-nowrap";
 const ROLE = "text-sm";
-const HEADING = "text-xs font-semibold uppercase tracking-[1.5px] text-muted-foreground";
+const HEADING = "text-xs font-semibold uppercase tracking-widest text-muted-foreground";
 
 function metricsText(promptTokens: number, completionTokens: number, latencyMs: number): string {
   const tokens = (promptTokens + completionTokens).toLocaleString("en-US");
@@ -122,7 +122,7 @@ export function PipelineStatusBar({
   })();
 
   return (
-    <section aria-label="Pipeline" className="rounded-lg border border-border bg-card p-4">
+    <section aria-label="Pipeline" className="rounded-none border border-border bg-card p-4">
       <p className={HEADING}>Pipeline</p>
       <dl className="mt-2 flex flex-wrap gap-2">
         <div className="flex flex-wrap items-center gap-2">
