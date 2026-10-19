@@ -238,7 +238,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 08-01-PLAN.md — SubQ Snap Decision API client, native question & multimodal image adapter, 4 domain spikes execution, and comparative benchmark harness.
+- [x] 08-01-PLAN.md — SubQ Snap Decision API client, native question & multimodal image adapter, 4 domain spikes execution, and comparative benchmark harness. **Complete 2026-10-19:** provider + spikes + honest benchmark harness verified 8/8 (08-VERIFICATION.md, ccb4abf); measured comparative benchmark deferred (needs Nebius run over this fork's 30-scenario set + verified pricing).
 
 ### Phase 9: Visual Inspection Analytics & Vector PDF Integration
 
@@ -274,5 +274,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. Demo Hardening, Deployment & Submission | Complete | Complete (deployed + audit, 2026-10-08) | 2026-10-08 |
 | 6. Report Digestibility & At-a-Glance Findings | 2/2 | Complete (verified 6/6 + 583 tests, 2026-10-10) | 2026-10-10 |
 | 7. Decision Provider Seam & Nebius Fast Engine (Fork A) | 0/1 | Planned | - |
-| 8. SubQ Snap Engine & Multimodal Benchmark (Fork B) | 0/1 | Planned | - |
+| 8. SubQ Snap Engine & Multimodal Benchmark (Fork B) | 1/1 | Complete (verified 8/8 requirements, 2026-10-19) | 2026-10-19 |
 | 9. Visual Inspection Analytics & Vector PDF | 0/1 | Planned | - |
