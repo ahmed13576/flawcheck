@@ -36,7 +36,7 @@ export function DemoBanner({ scope }: { scope: "subset" | "full" }) {
   return (
     <div
       role="status"
-      className="mb-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary"
+      className="mb-4 rounded-none border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary"
     >
       {copy}
     </div>
@@ -91,14 +91,17 @@ function WizardRoot() {
         ui.screen === 3 ? "max-w-6xl" : "max-w-4xl"
       }`}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <span className="flex items-center gap-2">
-          <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
-          <span className="text-base font-semibold">FlawCheck</span>
-        </span>
-        <span className="text-sm text-muted-foreground">NDT Inspection Copilot</span>
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2">
+            <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
+            <span className="text-lg font-semibold tracking-tight">FlawCheck</span>
+          </span>
+          <span className="h-4 w-px bg-border" aria-hidden="true" />
+          <span className="text-sm text-muted-foreground">NDT Inspection Copilot</span>
+        </div>
       </header>
-      <div className="mt-4">
+      <div className="mt-5">
         <StepIndicator current={ui.screen} />
       </div>
       <div className="mt-6">

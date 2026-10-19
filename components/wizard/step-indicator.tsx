@@ -23,7 +23,7 @@ export function StepIndicator({ current }: { current: 1 | 2 | 3 }) {
           return (
             <li key={step.label} className="flex items-center gap-2">
               {index > 0 && (
-                <span className="h-px w-6 bg-border sm:w-10" aria-hidden="true" />
+                <span className="h-px w-12 bg-border sm:w-20" aria-hidden="true" />
               )}
               <span
                 aria-current={isActive ? "step" : undefined}
