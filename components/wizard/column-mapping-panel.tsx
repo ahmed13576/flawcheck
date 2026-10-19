@@ -59,9 +59,9 @@ export function ColumnMappingPanel({
   return (
     <section
       aria-label="Column mapping"
-      className="rounded-xl border border-border bg-card p-6"
+      className="rounded-none border border-border bg-card p-6"
     >
-      <div className="flex items-center gap-2 border-b border-primary/40 pb-4">
+      <div className="flex items-center gap-2 border-b border-border pb-4">
         <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
         <h2 className="text-lg font-semibold">Map CSV columns</h2>
         {unmappedRequired.length > 0 && (
@@ -72,7 +72,7 @@ export function ColumnMappingPanel({
       </div>
 
       {unmappedRequired.length > 0 && (
-        <div role="alert" className="mt-4 flex flex-col gap-1 rounded-lg border border-fail/40 bg-fail/5 p-3">
+        <div role="alert" className="mt-4 flex flex-col gap-1 rounded-none border border-fail/40 bg-fail/5 p-4">
           {unmappedRequired.map(({ field }) => (
             <p key={field} className="text-sm text-fail">
               {`Required column '${UNMAPPED_COPY[field]}' is unmapped. Select the matching CSV column to continue.`}
@@ -81,13 +81,13 @@ export function ColumnMappingPanel({
         </div>
       )}
 
-      <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {TARGET_FIELDS.map(({ field, label, required, hint }) => {
           const value = mapping[field] ?? "";
           const invalid = required && !mapping[field];
           return (
             <div key={field} className="flex flex-col gap-2">
-              <label htmlFor={`mapping-${field}`} className="text-xs text-muted-foreground">
+              <label htmlFor={`mapping-${field}`} className="text-sm font-medium text-muted-foreground">
                 {label}
                 {required ? " *" : ""}
               </label>
@@ -95,7 +95,7 @@ export function ColumnMappingPanel({
                 id={`mapping-${field}`}
                 value={value}
                 onChange={(event) => onMap(field, event.target.value === "" ? null : event.target.value)}
-                className={`h-10 rounded-lg border bg-input px-3 text-sm ${
+                className={`h-10 rounded-none border bg-input px-3 text-sm focus:border-primary focus:outline-none ${
                   invalid ? "border-fail/50" : "border-border"
                 }`}
               >
@@ -107,20 +107,20 @@ export function ColumnMappingPanel({
                 ))}
               </select>
               {required && hint && (
-                <span className="text-muted-foreground">{hint}</span>
+                <span className="text-xs text-muted-foreground">{hint}</span>
               )}
             </div>
           );
         })}
         <div className="flex flex-col gap-2">
-          <label htmlFor="csv-thickness-unit" className="text-xs text-muted-foreground">
+          <label htmlFor="csv-thickness-unit" className="text-sm font-medium text-muted-foreground">
             CSV thickness unit
           </label>
           <select
             id="csv-thickness-unit"
             value={units.csvThickness}
             onChange={(event) => onCsvThicknessUnit(event.target.value as Unit)}
-            className="h-10 rounded-lg border border-border bg-input px-3 text-sm"
+            className="h-10 rounded-none border border-border bg-input px-3 text-sm focus:border-primary focus:outline-none"
           >
             <option value="mm">mm</option>
             <option value="in">in</option>

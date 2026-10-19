@@ -48,7 +48,7 @@ function PositiveNumberInput({
           if (candidate !== null && candidate > 0) onCommit(candidate);
         }}
         onBlur={() => setRaw(String(value))}
-        className={`w-24 rounded-lg border bg-input px-2 py-1 text-sm font-mono tabular-nums whitespace-nowrap ${
+        className={`w-24 rounded-none border bg-input px-2 py-1 text-sm font-mono tabular-nums whitespace-nowrap focus:border-primary focus:outline-none ${
           invalid ? "border-fail/50" : "border-border"
         }`}
       />
@@ -67,9 +67,9 @@ function IndicationRow({
 }) {
   const [description, setDescription] = useState(indication.description ?? "");
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border p-3">
+    <div className="flex flex-wrap items-end gap-3 rounded-none border border-border p-4 bg-background">
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-muted-foreground">Method</span>
+        <span className="text-xs font-medium text-muted-foreground">Method</span>
         <div className="flex gap-2 text-sm">
           {(["PT", "MT"] as const).map((method) => (
             <label key={method} className="flex items-center gap-1">
@@ -86,7 +86,7 @@ function IndicationRow({
       </div>
 
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-muted-foreground">Morphology</span>
+        <span className="text-xs font-medium text-muted-foreground">Morphology</span>
         <div className="flex gap-2 text-sm">
           {(["linear", "rounded"] as const).map((morphology) => (
             <label key={morphology} className="flex items-center gap-1">
@@ -131,7 +131,7 @@ function IndicationRow({
       )}
 
       <div className="flex min-w-40 flex-1 flex-col gap-1">
-        <label htmlFor={`desc-${indication.id}`} className="text-xs text-muted-foreground">
+        <label htmlFor={`desc-${indication.id}`} className="text-xs font-medium text-muted-foreground">
           Description (optional)
         </label>
         <input
@@ -142,7 +142,7 @@ function IndicationRow({
             setDescription(event.target.value);
             onUpdate({ description: event.target.value });
           }}
-          className="rounded-lg border border-border bg-input px-2 py-1 text-sm"
+          className="rounded-none border border-border bg-input px-2 py-1 text-sm focus:border-primary focus:outline-none"
         />
       </div>
 
@@ -150,7 +150,7 @@ function IndicationRow({
         type="button"
         onClick={onRemove}
         aria-label={`Remove indication ${indication.id}`}
-        className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:border-fail/50 hover:text-fail"
+        className="rounded-none border border-border px-3 py-1.5 text-sm font-medium hover:border-fail/50 hover:text-fail"
       >
         Remove indication
       </button>
@@ -171,9 +171,9 @@ export function PtmtEntry({
   return (
     <section
       aria-label="PT/MT entry"
-      className="rounded-xl border border-border bg-card p-6"
+      className="rounded-none border border-border bg-card p-6"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/40 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
         <div className="flex items-center gap-2">
           <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
           <h2 className="text-lg font-semibold">PT/MT Indications (optional)</h2>
@@ -181,14 +181,14 @@ export function PtmtEntry({
         <button
           type="button"
           onClick={() => dispatch({ type: "add-indication" })}
-          className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary"
+          className="rounded-none border border-border px-4 py-2 text-sm font-medium hover:bg-secondary"
         >
           Add indication
         </button>
       </div>
 
       <div className="mt-4 flex flex-col gap-2">
-        <label htmlFor="ptmt-notes" className="text-xs text-muted-foreground">
+        <label htmlFor="ptmt-notes" className="text-sm font-medium text-muted-foreground">
           PT/MT notes (optional)
         </label>
         <textarea
@@ -196,7 +196,7 @@ export function PtmtEntry({
           value={notes}
           onChange={(event) => onNotes(event.target.value)}
           rows={3}
-          className="rounded-lg border border-border bg-input px-3 py-2 text-sm"
+          className="rounded-none border border-border bg-input px-3 py-2 text-sm focus:border-primary focus:outline-none"
         />
       </div>
 

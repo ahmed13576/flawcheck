@@ -63,7 +63,7 @@ const RowTr = memo(function RowTr({
               aria-invalid={invalid || undefined}
               aria-describedby={describedBy || undefined}
               onChange={(event) => onEditCell(row.row, header, event.target.value)}
-              className={`w-full min-w-24 rounded border bg-transparent px-2 py-1 text-sm ${
+              className={`w-full min-w-24 rounded-none border bg-transparent px-2 py-1 text-sm focus:border-primary focus:outline-none ${
                 invalid ? "border-fail/50" : "border-transparent hover:border-border"
               } font-mono tabular-nums whitespace-nowrap`}
             />
@@ -169,8 +169,8 @@ export function ParsedRowTable({
   const end = Math.min(safePage * PAGE_SIZE, rowCount);
 
   return (
-    <section aria-label="Parsed rows" className="rounded-xl border border-border bg-card p-6">
-      <div className="flex items-center gap-2 border-b border-primary/40 pb-4">
+    <section aria-label="Parsed rows" className="rounded-none border border-border bg-card p-6">
+      <div className="flex items-center gap-2 border-b border-border pb-4">
         <h2 className="text-lg font-semibold">Parsed readings</h2>
       </div>
       <div className="mt-4 overflow-x-auto">
@@ -212,18 +212,18 @@ export function ParsedRowTable({
           type="button"
           disabled={safePage <= 1}
           onClick={() => onPageChange(safePage - 1)}
-          className="rounded-md border border-border px-3 py-1.5 font-medium hover:bg-secondary disabled:opacity-50"
+          className="rounded-none border border-border px-3 py-1.5 font-medium hover:bg-secondary disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground font-mono">
           Page {safePage.toLocaleString("en-US")} of {pageCount.toLocaleString("en-US")}
         </span>
         <button
           type="button"
           disabled={safePage >= pageCount}
           onClick={() => onPageChange(safePage + 1)}
-          className="rounded-md border border-border px-3 py-1.5 font-medium hover:bg-secondary disabled:opacity-50"
+          className="rounded-none border border-border px-3 py-1.5 font-medium hover:bg-secondary disabled:opacity-50"
         >
           Next
         </button>
@@ -231,7 +231,7 @@ export function ParsedRowTable({
       {errorRowCount > 0 && (
         <div
           role="alert"
-          className="mt-4 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/10 p-4"
+          className="mt-4 flex items-center gap-3 rounded-none border border-primary/30 bg-primary/10 p-4"
         >
           <AlertTriangle className="size-5 text-primary" aria-hidden="true" />
           <span className="text-sm text-primary">

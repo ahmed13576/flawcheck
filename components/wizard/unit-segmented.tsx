@@ -18,7 +18,7 @@ export function UnitSegmented({
   ariaLabel: string;
 }) {
   return (
-    <div role="group" aria-label={ariaLabel} className="inline-flex rounded-lg border border-border p-1">
+    <div role="group" aria-label={ariaLabel} className="inline-flex rounded-none border border-border p-0.5 bg-background">
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -27,7 +27,7 @@ export function UnitSegmented({
             type="button"
             aria-pressed={active}
             onClick={() => onChange(option.value)}
-            className={`rounded-md px-3 py-1 text-sm font-medium ${
+            className={`rounded-none px-3 py-1 text-sm font-medium font-mono ${
               active
                 ? "bg-primary text-primary-foreground"
                 : "bg-transparent text-muted-foreground hover:text-foreground"

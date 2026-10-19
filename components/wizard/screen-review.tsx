@@ -76,7 +76,7 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
 
   return (
     <section aria-label="Screen 2 — Review & Metadata">
-      <div className="rounded-2xl border border-border bg-card p-8">
+      <div className="rounded-none border border-border bg-card p-6 sm:p-8">
         <h1
           tabIndex={-1}
           data-screen-heading
@@ -84,33 +84,33 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
         >
           Review your inspection setup
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-base text-muted-foreground">
           Everything looks ready for evaluation. Take a moment to confirm the highlighted
           assumptions.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+          <span className="rounded-none border border-border bg-secondary px-3 py-1 text-xs text-secondary-foreground font-mono">
             {state.csv.rowCount.toLocaleString("en-US")} readings parsed
           </span>
           {attentionItems > 0 && (
-            <span className="rounded-full bg-primary/15 px-3 py-1 text-xs text-primary">
+            <span className="rounded-none border border-primary/30 bg-primary/15 px-3 py-1 text-xs text-primary font-mono">
               {attentionItems} attention {attentionItems === 1 ? "item" : "items"}
             </span>
           )}
           {state.source.isDemo && (
-            <span className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+            <span className="rounded-none border border-border bg-secondary px-3 py-1 text-xs text-secondary-foreground font-mono">
               Sample data
             </span>
           )}
         </div>
         {state.source.filename && (
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-3 font-mono text-sm text-muted-foreground">
             Register: {state.source.filename} · CSV thickness unit: {state.units.csvThickness}
           </p>
         )}
       </div>
 
-      <div className="mt-4 flex flex-col gap-4">
+      <div className="mt-6 flex flex-col gap-6">
         <ColumnMappingPanel
           headers={state.csv.headers}
           mapping={state.mapping}
@@ -130,21 +130,21 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
         {children}
       </div>
 
-      <div className="sticky bottom-0 z-20 mt-6 flex w-full max-w-full flex-wrap items-center justify-between gap-3 border-t border-border bg-card/95 px-2 py-3 backdrop-blur-sm pb-safe">
+      <div className="sticky bottom-0 z-20 mt-8 flex w-full max-w-full flex-wrap items-center justify-between gap-3 border-t border-border bg-background px-2 py-3 pb-safe">
         <button
           type="button"
           onClick={() => dispatch({ type: "set-screen", screen: 1 })}
-          className="rounded-md px-2 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+          className="rounded-none px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           Back to ingest
         </button>
-        <span className="hidden text-xs text-muted-foreground lg:inline">
+        <span className="hidden text-xs text-muted-foreground lg:inline font-mono">
           Step 2 of 4 · Review complete when required fields are resolved
         </span>
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <p
             aria-live="polite"
-            className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs sm:text-sm text-primary"
+            className="rounded-none border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs sm:text-sm text-primary font-mono"
           >
             {blockerSummary({
               rowErrors: blockers.rowErrors,
@@ -161,7 +161,7 @@ export function ScreenReview({ children }: { children?: ReactNode }) {
               // Yield a frame so Evaluating… paints before the sync compute.
               setTimeout(() => dispatch({ type: "run-evaluation" }), 30);
             }}
-            className="rounded-md bg-primary px-4 py-2 sm:px-5 sm:py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="rounded-none bg-primary px-4 py-2 sm:px-5 sm:py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             {state.ui.evaluating ? "Evaluating…" : "Run evaluation"}
           </button>
