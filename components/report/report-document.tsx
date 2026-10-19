@@ -141,7 +141,7 @@ export function ReportDocument({
       {/* Top banner — on the dark chrome, per the mock. */}
       {variant === "preview" ? (
         <section
-          className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-primary"
+          className="flex items-start gap-3 rounded-none border border-primary/30 bg-primary/10 px-4 py-3 text-primary"
           aria-label="Report preview ready"
         >
           <LockKeyhole className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -158,17 +158,17 @@ export function ReportDocument({
       <article
         data-appearance="light"
         aria-label="Printable inspection report"
-        className="flex flex-col gap-6 rounded-xl border border-border bg-background p-8 text-foreground shadow-[0px_18px_45px_rgba(0,_0,_0,_0.28)]"
+        className="flex flex-col gap-6 rounded-none border border-border bg-background p-8 text-foreground"
       >
         <header className="flex flex-col gap-4 border-b border-border pb-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="size-3 rounded-full bg-accept" aria-hidden="true" />
+              <span className="size-3 rounded-none bg-accept" aria-hidden="true" />
               <h1 className="text-2xl font-semibold tracking-tight">
                 FlawCheck Inspection Report
               </h1>
             </div>
-            <span className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-wide ${gateOpen ? "border-accept/40 bg-card text-accept" : "border-recheck/40 bg-card text-recheck"}`}>
+            <span className={`whitespace-nowrap rounded-none border px-3 py-1.5 text-[11px] uppercase tracking-wide ${gateOpen ? "border-accept/40 bg-card text-accept" : "border-recheck/40 bg-card text-recheck"}`}>
               {gateOpen ? `SIGNED OFF — ${signOffName}` : "Pending inspector sign-off"}
             </span>
           </div>
@@ -200,7 +200,7 @@ export function ReportDocument({
 
         <section className="flex flex-col gap-4 border-b border-border pb-6">
           <h2 className="text-xl font-semibold tracking-tight">Component context</h2>
-          <dl className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-card p-4 text-sm">
+          <dl className="grid grid-cols-2 gap-4 rounded-none border border-border bg-card p-4 text-sm">
             <div>
               <dt className="text-xs text-muted-foreground">OD</dt>
               <dd className="font-mono">{`${formatFixed(snapshot.metadata.od, 1)} ${unit}`}</dd>
@@ -233,7 +233,7 @@ export function ReportDocument({
           <h2 className="text-xl font-semibold tracking-tight">Inspector sign-off</h2>
           <div className="grid gap-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="inspector-name" className="text-xs">
+              <label htmlFor="inspector-name" className="text-xs font-medium">
                 Name <span aria-hidden="true" className="text-destructive">*</span>
                 <span className="sr-only">required</span>
               </label>
@@ -244,11 +244,11 @@ export function ReportDocument({
                 onChange={(e) =>
                   onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), name: e.target.value })
                 }
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
+                className="h-10 rounded-none border border-input bg-card px-3 text-sm outline-none focus:border-primary"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="certification" className="text-xs">
+              <label htmlFor="certification" className="text-xs font-medium">
                 Certification <span aria-hidden="true" className="text-destructive">*</span>
                 <span className="sr-only">required</span>
               </label>
@@ -259,11 +259,11 @@ export function ReportDocument({
                 onChange={(e) =>
                   onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), certification: e.target.value })
                 }
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
+                className="h-10 rounded-none border border-input bg-card px-3 text-sm outline-none focus:border-primary"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="signoff-date" className="text-xs">
+              <label htmlFor="signoff-date" className="text-xs font-medium">
                 Date <span aria-hidden="true" className="text-destructive">*</span>
                 <span className="sr-only">required</span>
               </label>
@@ -275,11 +275,11 @@ export function ReportDocument({
                 onChange={(e) =>
                   onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), date: e.target.value })
                 }
-                className="h-12 rounded-lg border border-input bg-card px-3 outline-none"
+                className="h-10 rounded-none border border-input bg-card px-3 text-sm outline-none focus:border-primary"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="signoff-signature" className="text-xs">
+              <label htmlFor="signoff-signature" className="text-xs font-medium">
                 Signature <span aria-hidden="true" className="text-destructive">*</span>
                 <span className="sr-only">required</span>
               </label>
@@ -291,7 +291,7 @@ export function ReportDocument({
                 onChange={(e) =>
                   onSignOffChange?.({ ...(signOff ?? EMPTY_SIGN_OFF), signature: e.target.value })
                 }
-                className="rounded-lg border border-input bg-card px-3 py-2 outline-none"
+                className="rounded-none border border-input bg-card px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -306,7 +306,7 @@ export function ReportDocument({
               </span>
             )}
           </div>
-          <div className="overflow-x-auto rounded-lg border border-border">
+          <div className="overflow-x-auto rounded-none border border-border">
             <table className="w-full table-fixed text-left text-xs">
               <thead className="bg-card text-muted-foreground">
                 <tr>
@@ -364,7 +364,7 @@ export function ReportDocument({
                   type="button"
                   disabled={safeTablePage <= 1}
                   onClick={() => setTablePage(safeTablePage - 1)}
-                  className="rounded border border-border px-2.5 py-1 hover:bg-secondary disabled:opacity-40"
+                  className="rounded-none border border-border px-2.5 py-1 hover:bg-secondary disabled:opacity-40"
                 >
                   Previous
                 </button>
@@ -372,7 +372,7 @@ export function ReportDocument({
                   type="button"
                   disabled={safeTablePage >= totalPages}
                   onClick={() => setTablePage(safeTablePage + 1)}
-                  className="rounded border border-border px-2.5 py-1 hover:bg-secondary disabled:opacity-40"
+                  className="rounded-none border border-border px-2.5 py-1 hover:bg-secondary disabled:opacity-40"
                 >
                   Next
                 </button>
@@ -388,7 +388,7 @@ export function ReportDocument({
               No PT/MT indications recorded for this evaluation.
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
+            <div className="overflow-x-auto rounded-none border border-border">
               <table className="w-full text-left text-sm">
                 <thead className="bg-card text-xs text-muted-foreground">
                   <tr>
@@ -433,7 +433,7 @@ export function ReportDocument({
               {conclusions.map((line, i) => (
                 <li
                   key={`${i}-${line.citationId ?? "nocite"}`}
-                  className="rounded-sm border-l-2 border-l-primary border-y border-r border-y-primary/40 border-r-primary/40 bg-card px-4 py-3"
+                  className="rounded-none border-l-2 border-l-primary border-y border-r border-border bg-card px-4 py-3"
                 >
                   {line.text}
                   {line.citationId && (
@@ -447,7 +447,7 @@ export function ReportDocument({
               the PDF page-1 footer and the Screen 3 footer — one constant, every
               renderer. Real text (never a tooltip/title), clause sub-lines composed
               ONLY via citationRef — cite-don't-quote, zero hardcoded clause strings. */}
-          <div aria-label="Verdict glossary" className="mt-1 flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
+          <div aria-label="Verdict glossary" className="mt-1 flex flex-col gap-2 rounded-none border border-border bg-card p-4">
             {VERDICT_GLOSSARY_ORDER.map((verdict) => {
               const entry = VERDICT_GLOSSARY[verdict];
               return (
@@ -466,7 +466,7 @@ export function ReportDocument({
         </section>
 
         {nextInspection && (
-          <section className="rounded-lg border border-recheck/40 bg-recheck/10 p-5">
+          <section className="rounded-none border border-recheck/40 bg-recheck/10 p-5">
             <p className="text-xl font-semibold tracking-tight text-recheck">
               {`Next inspection: ${nextInspection}`}
             </p>
@@ -528,13 +528,13 @@ export function ReportDocument({
         <button
           type="button"
           onClick={onBack}
-          className="h-10 rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+          className="h-10 rounded-none border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
         >
           Back to results
         </button>
         <div className="flex items-center gap-3">
           {pdfError ? (
-            <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <p role="alert" className="rounded-none border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {pdfError}
             </p>
           ) : null}
@@ -543,14 +543,14 @@ export function ReportDocument({
             disabled={!gateOpen || pdfPending}
             aria-busy={pdfPending || undefined}
             onClick={onDownloadPdf}
-            className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 rounded-none bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Download PDF
           </button>
           <button
             type="button"
             onClick={onPrint}
-            className="h-10 rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+            className="h-10 rounded-none border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
           >
             Print report
           </button>
