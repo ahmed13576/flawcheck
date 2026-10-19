@@ -1,16 +1,22 @@
 /**
  * Spike C: ASME B31.3 PT/MT Morphology Classifier
- * 
+ *
  * Classifies defect indications into linear vs rounded indications per
- * ASME B31.3-2024 Section 344.4.2 (Liquid Penetrant) & Section 344.3.2 (Magnetic Particle):
- * - Relevance threshold: Dimension > 1.5 mm
- * - Linear indication: Length L > 3 * Width W -> Strictly REJECT
- * - Rounded indication: Length L <= 3 * Width W -> Accept if L <= 5.0 mm and not clustered
- * 
- * Supports textual notes and optional multi-modal image inspection.
+ * ASME B31.3-2024 Section 344.4.2 (Liquid Penetrant) & Section 344.3.2 (Magnetic Particle),
+ * with every threshold loaded from lib/criteria/ptmt-criteria.json via
+ * lib/calc/criteria.ts (criteria sovereignty — no numeric threshold literals here):
+ * - Relevance threshold: max dimension > relevance_threshold_mm
+ * - Linear indication: Length L > 3 * Width W -> strictly REJECT
+ * - Rounded indication: Length L <= 3 * Width W -> accept if within
+ *   max_rounded_dimension_mm and not clustered (cluster evaluation stays in lib/calc/ptmt.ts)
+ *
+ * Strict invariant (0 false negatives): the deterministic geometric rule
+ * (L > 3W) OVERRIDES any model "rounded" call — pure TypeScript enforces the
+ * code definition, the System-1 model only classifies visual/feature signals.
  */
 
 import type { DecisionProvider, DecisionContext, ChoiceOptions, DecisionImage } from "../types";
+import { criteria } from "@/lib/calc/criteria";
 
 export type MorphologyType = "linear" | "rounded";
 export type AsmeVerdict = "ACCEPT" | "REJECT";
@@ -47,10 +53,13 @@ export async function classifyIndicationMorphology(
   method: "pt" | "mt" = "pt",
   signal?: AbortSignal
 ): Promise<MorphologyClassificationResult> {
-  const isRelevant = indication.dimensionLengthMm > 1.5;
+  const c = criteria.ptmt;
+  const maxDimensionMm = Math.max(indication.dimensionLengthMm, indication.dimensionWidthMm);
+  const isRelevant = maxDimensionMm > c.relevance_threshold_mm;
   const citation = method === "mt" ? "asme_b31_3_344_3_2" : "asme_b31_3_344_4_2";
 
-  // Deterministic geometric rule check (ASME B31.3 definition)
+  // Deterministic geometric rule check (ASME B31.3 definition, strict > :
+  // L == 3W is rounded per code). Pure TS overrides the model below.
   const isStrictlyLinearByGeometry = indication.dimensionLengthMm > 3 * indication.dimensionWidthMm;
 
   const context: DecisionContext = {
@@ -73,7 +82,7 @@ export async function classifyIndicationMorphology(
   };
 
   const choiceResult = await provider.choice<MorphologyType>(context, options);
-  const morphology = isStrictlyLinearByGeometry ? "linear" : choiceResult.choice;
+  const morphology: MorphologyType = isStrictlyLinearByGeometry ? "linear" : choiceResult.choice;
 
   // Crack check gate
   const crackGate = await provider.noul(
@@ -97,10 +106,10 @@ export async function classifyIndicationMorphology(
     asmeVerdict = "ACCEPT";
   } else if (morphology === "linear" || isCrackSuspect) {
     asmeVerdict = "REJECT";
-    rejectionReason = "Linear or crack-suspect indication exceeds 1.5 mm relevance threshold.";
-  } else if (indication.dimensionLengthMm > 5.0) {
+    rejectionReason = "Linear or crack-suspect indication exceeds the relevance threshold.";
+  } else if (maxDimensionMm > c.limits.max_rounded_dimension_mm) {
     asmeVerdict = "REJECT";
-    rejectionReason = "Rounded indication exceeds 5.0 mm maximum acceptable size limit.";
+    rejectionReason = "Rounded indication exceeds the maximum acceptable dimension limit.";
   }
 
   return {
