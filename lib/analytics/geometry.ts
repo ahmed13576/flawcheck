@@ -1,29 +1,20 @@
 /**
- * Pure TypeScript chart geometry math — Phase 09 VIS-01.
+ * Pure TypeScript Chart Geometry Math — Phase 09 VIS-01
  *
- * Every visual projection (trend curves, heatmaps, gauges) is computed here as
- * plain functions over precomputed numbers: coordinates, viewBox bounds,
- * scales, axis ticks, and SVG path strings (`d="M... L... Z"`). Zero DOM, zero
- * React, zero external chart dependencies (PDF-03) — the identical output is
- * consumed by:
- *   - interactive web components (components/analytics/*.tsx, HTML <svg>), and
- *   - certified PDF renderers (components/report/pdf-trend-curve.tsx and
- *     pdf-heatmap.tsx, @react-pdf/renderer vector primitives).
+ * Computes coordinate transformations, bounding boxes, scales, ticks, and SVG
+ * path strings for shared consumption by interactive web components
+ * (components/analytics/*) and certified PDF downloads
+ * (components/report/pdf-* via @react-pdf/renderer vector primitives).
  *
- * Sovereignty: these functions only PROJECT values that lib/calc/evaluate.ts
- * already computed (thickness, t_required, governing CR). No engineering
- * number is ever derived here — geometry concerns only.
- *
- * Edge coverage (09-SPEC): CR = 0 (horizontal line, no intercept), CR < 0
- * (measurement anomaly — trajectory suppressed), single reading, t_actual
- * <= t_required (intercept already due — clamped to last survey year),
- * degenerate viewports (min plot clamps, no NaN/Infinity anywhere).
+ * Invariants:
+ *  - Pure TypeScript, zero DOM, zero external chart dependencies (PDF-03).
+ *  - Projects PRECOMPUTED values only (from lib/calc evaluate() results);
+ *    no engineering arithmetic is performed here (per AGENTS.md).
+ *  - Never emits NaN/Infinity; clamps all drawn geometry into the scale domain.
  */
 
 export interface TrendPoint {
-  /** ISO date string of the UT survey (e.g. "2023-04-15"). */
-  date: string;
-  /** Thickness measured at that date, mm. */
+  date: string; // ISO date string
   thicknessMm: number;
 }
 
@@ -34,70 +25,55 @@ export interface Padding {
   left: number;
 }
 
-export interface AxisTick {
-  /** Pixel coordinate of the tick along its axis. */
+export interface Tick {
+  /** Pixel coordinate along the axis (same value as x for xTicks, y for yTicks). */
+  pos: number;
+  /** Pixel X coordinate of the tick/label. */
   x: number;
+  /** Pixel Y coordinate of the tick/label. */
   y: number;
   label: string;
-}
-
-export interface TrendDataPoint {
-  x: number;
-  y: number;
-  /** ISO date of the reading (echoed for hover tooltips). */
-  date: string;
-  thicknessMm: number;
 }
 
 export interface TrendCurveGeometry {
   width: number;
   height: number;
   padding: Padding;
-  /** SVG path string for the historical readings polyline. */
+  /** SVG path string for historical readings polyline */
   historyPath: string;
-  /** SVG path string for the projected degradation line. */
+  /** SVG path string for projected degradation line */
   trajectoryPath: string;
   /** Dashed anomaly marker path (CR < 0) — empty string when none. */
   anomalyPath: string;
-  /** SVG polygon path for the gauge-uncertainty envelope (± uncertainty). */
+  /** SVG polygon path for uncertainty envelope (e.g. +/- 0.1mm) */
   uncertaintyPath: string;
-  /** Exact t_required intercept point, or null when no crossing exists. */
+  /** Coordinates of the t_required intercept point */
   interceptPoint: { x: number; y: number; date: string } | null;
-  /** Y pixel of the t_required horizontal limit line. */
+  /** Y-coordinate of t_required horizontal line */
   tRequiredY: number;
-  xTicks: AxisTick[];
-  yTicks: AxisTick[];
-  /** Projected data points with pixel coordinates for interactive overlays. */
-  dataPoints: TrendDataPoint[];
+  xTicks: Tick[];
+  yTicks: Tick[];
+  dataPoints: Array<{ x: number; y: number; date: string; thicknessMm: number }>;
 }
 
 export interface CmlHeatmapItem {
   cmlId: string;
-  /** Layout grid position (1-based cell coordinates). */
   x: number;
   y: number;
   tActualMm: number;
   tRequiredMm: number;
   verdict: "accept" | "re_check" | "reject";
+  /** Governing corrosion rate (null when history is insufficient). */
   crMmYr: number | null;
 }
 
 export interface CmlHeatmapGeometry {
   width: number;
   height: number;
-  /** Cell size in px after the uniform scale (max-dimensized fit). */
+  /** Uniform square cell size in pixels (0 when there are no items). */
   cellSize: number;
-  /** Data bounding box in layout cells. */
   bounds: { minX: number; maxX: number; minY: number; maxY: number };
-  items: Array<
-    CmlHeatmapItem & {
-      pixelX: number;
-      pixelY: number;
-      color: string;
-      /** Safety margin percent above t_required (precomputed projection). */
-      marginPct: number;
-    }
-  >;
+  items: Array<CmlHeatmapItem & { pixelX: number; pixelY: number; color: string; marginPct: number }>;
 }
 
 export interface MetricGaugeGeometry {
@@ -105,27 +81,39 @@ export interface MetricGaugeGeometry {
   cy: number;
   radius: number;
   strokeWidth: number;
-  /** Full-circle stroke length (2·π·r) used as strokeDasharray. */
   circumference: number;
-  /** strokeDashoffset that reveals the `percent` fraction of the arc. */
   strokeDashoffset: number;
-  /** Clamped safety-margin percent (may be negative — never NaN). */
   percent: number;
   color: string;
 }
 
-const TICK_FRACTION = 1 / 6;
-
-function safeNumber(value: number, fallback: number): number {
+/** Sanitize to a finite number, clamping NaN/Infinity to a fallback. */
+function finite(value: number, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
 }
 
+/** Round to fixed decimals without float noise. */
+function round(value: number, decimals = 2): number {
+  const f = Math.pow(10, decimals);
+  return Math.round(value * f) / f;
+}
+
 /**
- * Time-series wall-loss trend geometry (VIS-01/VIS-02/PDF-01).
- *
- * Accepts PRECOMPUTED thickness history + governing CR + t_required and
- * produces all path strings, scales, ticks, and the exact t_required
- * intercept. Pure — throws nothing, never yields NaN/Infinity.
+ * Parse an ISO date (YYYY-MM-DD or full ISO timestamp) to a fractional year.
+ * Month m maps to (m - 1) / 12 of a year elapsed since Jan 1 of that year,
+ * so 2024-06 → 2024 + 5/12.
+ */
+function parseFractionalYear(date: string): number {
+  const m = /^(\d{4})-(\d{2})/.exec(date);
+  if (!m) return NaN;
+  const year = parseInt(m[1], 10);
+  const month = parseInt(m[2], 10);
+  return year + (month - 1) / 12;
+}
+
+/**
+ * Calculates time-series wall loss velocity and degradation trajectory geometry.
+ * Pure: deterministic given (points, tRequiredMm, crGoverningMmYr, u, w, h).
  */
 export function calcTrendCurveGeometry(
   points: TrendPoint[],
@@ -138,6 +126,11 @@ export function calcTrendCurveGeometry(
   const padding: Padding = { top: 20, right: 30, bottom: 40, left: 50 };
   const plotWidth = Math.max(10, width - padding.left - padding.right);
   const plotHeight = Math.max(10, height - padding.top - padding.bottom);
+
+  // Degenerate/safe defaults for hostile inputs.
+  const tReq = finite(tRequiredMm, 0);
+  const cr = finite(crGoverningMmYr, 0);
+  const u = finite(gaugeUncertaintyMm, 0);
 
   if (points.length === 0) {
     return {
@@ -157,75 +150,57 @@ export function calcTrendCurveGeometry(
   }
 
   const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
-  const firstDate = sorted[0].date;
+  const firstYear = finite(parseFractionalYear(sorted[0].date), 0);
   const last = sorted[sorted.length - 1];
+  const lastYear = finite(parseFractionalYear(last.date), firstYear + 1);
 
-  const toYear = (date: string): number => {
-    const parsed = Date.parse(date);
-    if (!Number.isNaN(parsed)) {
-      // Fractional Gregorian years keep tick labels readable (e.g. 2025.21).
-      return new Date(parsed).getUTCFullYear() + new Date(parsed).getUTCMonth() / 12;
-    }
-    const y = Number.parseFloat(date.slice(0, 4));
-    return Number.isNaN(y) ? 0 : y;
-  };
+  // Projection window extends 10 years beyond the last survey.
+  const windowEnd = lastYear + 10;
+  const yearRange = Math.max(1, windowEnd - firstYear);
+  const thicknesses = sorted.map((p) => finite(p.thicknessMm, tReq));
+  const minT = Math.min(tReq - 0.5, ...thicknesses);
+  const maxT = Math.max(tReq + 1, ...thicknesses);
+  const tRange = Math.max(0.1, maxT - minT);
 
-  const firstYear = toYear(firstDate);
-  const lastYear = toYear(last.date);
-  // Projection headroom: show 10 years of future degradation.
-  const maxYear = lastYear + 10;
-  const yearRange = Math.max(1, maxYear - firstYear);
-
-  const finiteThicknesses = sorted
-    .map((p) => p.thicknessMm)
-    .filter((t) => Number.isFinite(t));
-  const thicknessMin =
-    finiteThicknesses.length > 0 ? Math.min(...finiteThicknesses) : tRequiredMm;
-  const thicknessMax =
-    finiteThicknesses.length > 0 ? Math.max(...finiteThicknesses) : tRequiredMm;
-  const minThickness = Math.min(tRequiredMm - 0.5, thicknessMin);
-  const maxThickness = Math.max(tRequiredMm + 1.0, thicknessMax);
-  const thicknessRange = Math.max(0.1, maxThickness - minThickness);
-
-  const scaleX = (year: number): number =>
+  const scaleX = (year: number) =>
     padding.left + ((year - firstYear) / yearRange) * plotWidth;
-  const scaleY = (thickness: number): number =>
-    padding.top + plotHeight - ((thickness - minThickness) / thicknessRange) * plotHeight;
+  const scaleY = (t: number) =>
+    padding.top + plotHeight - ((finite(t, tReq) - minT) / tRange) * plotHeight;
 
-  // Historical polyline.
   const dataPoints = sorted.map((p) => ({
-    x: scaleX(toYear(p.date)),
-    y: scaleY(safeNumber(p.thicknessMm, tRequiredMm)),
+    x: round(scaleX(parseFractionalYear(p.date)), 2),
+    y: round(scaleY(finite(p.thicknessMm, tReq)), 2),
     date: p.date,
-    thicknessMm: p.thicknessMm,
+    thicknessMm: finite(p.thicknessMm, tReq),
   }));
+
   const historyPath = dataPoints.reduce(
     (acc, pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`),
     "",
   );
 
-  const cr = Number.isFinite(crGoverningMmYr) ? crGoverningMmYr : 0;
-  const startX = scaleX(lastYear);
-  const startY = scaleY(last.thicknessMm);
+  const lastPoint = dataPoints[dataPoints.length - 1];
+  const startX = lastPoint.x;
+  const startY = lastPoint.y;
 
   // Degradation projection + t_required intercept (VIS-02/PDF-01). The
   // intercept date resolves exactly where the trajectory crosses t_required:
   //   - future crossing: within the 10-year projection window;
   //   - t_actual <= t_required (immediate failure): clamped to the last
-  //     survey date — the marker renders red AT today, never in the past
-  //     beyond the data (SPEC edge "Immediate Failure");
+  //     survey date — the marker renders red AT today (SPEC "Immediate
+  //     Failure" edge);
   //   - CR <= 0: horizontal trajectory, no crossing exists (SPEC edges
   //     "Zero Corrosion" — indefinite; "Thickness Gain" — anomaly stub).
   let interceptDate: string | null = null;
-  let endYear = maxYear;
+  let endYear = windowEnd;
   if (cr > 0) {
-    const yearsToReq = (last.thicknessMm - tRequiredMm) / cr;
+    const yearsToReq = (last.thicknessMm - tReq) / cr;
     if (Number.isFinite(yearsToReq)) {
       if (yearsToReq < 0) {
-        // Already at/below t_required — intercept at the last survey.
+        // Already at/below t_required — intercept at the last survey date.
         interceptDate = last.date;
         endYear = lastYear;
-      } else if (yearsToReq <= maxYear - lastYear) {
+      } else if (yearsToReq <= windowEnd - lastYear) {
         const crossYear = lastYear + yearsToReq;
         const crossYearInt = Math.floor(crossYear);
         const crossMonth = Math.min(11, Math.round((crossYear - crossYearInt) * 12));
@@ -235,26 +210,27 @@ export function calcTrendCurveGeometry(
     }
   }
   // Clamp the projected segment into the viewBox (never paints outside).
-  endYear = Math.max(firstYear, Math.min(maxYear, endYear));
-  const endX = scaleX(endYear);
+  endYear = Math.max(firstYear, Math.min(windowEnd, endYear));
+  const endX = round(scaleX(endYear), 2);
   const rawEndThickness = last.thicknessMm - cr * (endYear - lastYear);
   // A negative CR projects thickness ABOVE the y-axis max — clamp the drawn
   // thickness into the scale domain so every coordinate stays inside bounds.
-  const endThickness = Math.max(minThickness, Math.min(maxThickness, rawEndThickness));
-  const endY = scaleY(endThickness);
+  const endThickness = Math.max(minT, Math.min(maxT, rawEndThickness));
+  const endY = round(scaleY(endThickness), 2);
   const trajectoryPath = `M ${startX} ${startY} L ${endX} ${endY}`;
 
   // Measurement-anomaly flag (thickness gain, CR < 0): dashed stub path.
   const anomalyPath = cr < 0 ? `M ${startX} ${startY} L ${endX} ${endY}` : "";
 
   // Gauge-uncertainty envelope: parallelogram around the projection (± u).
-  const upperStartY = scaleY(last.thicknessMm + gaugeUncertaintyMm);
-  const lowerStartY = scaleY(last.thicknessMm - gaugeUncertaintyMm);
-  const upperEndY = scaleY(endThickness + gaugeUncertaintyMm);
-  const lowerEndY = scaleY(endThickness - gaugeUncertaintyMm);
-  const uncertaintyPath = `M ${startX} ${upperStartY} L ${endX} ${upperEndY} L ${endX} ${lowerEndY} L ${startX} ${lowerStartY} Z`;
+  const uTopStart = round(scaleY(last.thicknessMm + u), 2);
+  const uTopEnd = round(scaleY(endThickness + u), 2);
+  const uBotStart = round(scaleY(last.thicknessMm - u), 2);
+  const uBotEnd = round(scaleY(endThickness - u), 2);
+  const uncertaintyPath = `M ${startX} ${uTopStart} L ${endX} ${uTopEnd} L ${endX} ${uBotEnd} L ${startX} ${uBotStart} Z`;
 
-  const tRequiredY = scaleY(tRequiredMm);
+  // Unrounded — callers needing pixel-grid alignment may round for display.
+  const tRequiredY = scaleY(tReq);
 
   const interceptPoint =
     interceptDate !== null
@@ -262,19 +238,19 @@ export function calcTrendCurveGeometry(
       : null;
 
   // Ticks — first / middle / last of each axis.
-  const midYear = firstYear + (maxYear - firstYear) * TICK_FRACTION * 3;
+  const midYear = firstYear + (windowEnd - firstYear) * 0.5;
   const fmtYear = (y: number): string => String(Math.round(y));
-  const xTicks: AxisTick[] = [
-    { x: scaleX(firstYear), y: height - 10, label: fmtYear(firstYear) },
-    { x: scaleX(midYear), y: height - 10, label: fmtYear(midYear) },
-    { x: scaleX(maxYear), y: height - 10, label: fmtYear(maxYear) },
+  const xTicks: Tick[] = [
+    { pos: round(scaleX(firstYear), 2), x: round(scaleX(firstYear), 2), y: height - 10, label: fmtYear(firstYear) },
+    { pos: round(scaleX(midYear), 2), x: round(scaleX(midYear), 2), y: height - 10, label: fmtYear(midYear) },
+    { pos: round(scaleX(windowEnd), 2), x: round(scaleX(windowEnd), 2), y: height - 10, label: fmtYear(windowEnd) },
   ];
-  const midThickness = minThickness + (maxThickness - minThickness) * 0.5;
+  const midThickness = minT + (maxT - minT) * 0.5;
   const fmtMm = (t: number): string => `${t.toFixed(1)}mm`;
-  const yTicks: AxisTick[] = [
-    { x: padding.left - 6, y: scaleY(minThickness), label: fmtMm(minThickness) },
-    { x: padding.left - 6, y: scaleY(midThickness), label: fmtMm(midThickness) },
-    { x: padding.left - 6, y: scaleY(maxThickness), label: fmtMm(maxThickness) },
+  const yTicks: Tick[] = [
+    { pos: round(scaleY(minT), 2), x: padding.left - 6, y: round(scaleY(minT), 2), label: fmtMm(minT) },
+    { pos: round(scaleY(midThickness), 2), x: padding.left - 6, y: round(scaleY(midThickness), 2), label: fmtMm(midThickness) },
+    { pos: round(scaleY(maxT), 2), x: padding.left - 6, y: round(scaleY(maxT), 2), label: fmtMm(maxT) },
   ];
 
   return {
@@ -293,21 +269,9 @@ export function calcTrendCurveGeometry(
   };
 }
 
-/** Web heatmap palette (VIS-03) — distinct from the PDF-compact palette. */
-export const CML_VERDICT_COLORS = {
-  accept: "#16a34a",
-  re_check: "#d97706",
-  reject: "#dc2626",
-} as const;
-
 /**
- * CML spatial severity heatmap geometry (VIS-03/PDF-02).
- *
- * Layout cells (x, y in 1-based grid coordinates) scale uniformly so every
- * cell stays square; the grid is centered in the viewBox. Margins clamp to
- * ±200% (only |margin| beyond that saturates the gauge band colors — VIS-04
- * parity). Registers > 100 locations: the caller may pass all — layout is
- * derived purely from cells and stays O(n).
+ * Calculates spatial piping severity heatmap coordinates and color mapping.
+ * Colors: accept #16a34a, re_check #d97706, reject #dc2626.
  */
 export function calcCmlHeatmapGeometry(
   cmls: CmlHeatmapItem[],
@@ -326,44 +290,59 @@ export function calcCmlHeatmapGeometry(
 
   const xs = cmls.map((c) => c.x);
   const ys = cmls.map((c) => c.y);
-  const bounds = {
-    minX: Math.min(...xs),
-    maxX: Math.max(...xs),
-    minY: Math.min(...ys),
-    maxY: Math.max(...ys),
-  };
-  const spanX = Math.max(1, bounds.maxX - bounds.minX + 1);
-  const spanY = Math.max(1, bounds.maxY - bounds.minY + 1);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
 
-  // Uniform cell size keeps cells square (no distortion) — the smaller of
-  // width/height fits, the larger axis is centered.
+  const spanX = Math.max(1, maxX - minX + 1);
+  const spanY = Math.max(1, maxY - minY + 1);
+
+  // Uniform square cells (no distortion); the smaller dimension governs fit
+  // and the larger axis is centered in the viewBox. Dense registers (>100
+  // locations) shrink cells instead of overflowing the viewBox.
   const cellSize = Math.max(4, Math.floor(Math.min(width / spanX, height / spanY)));
   const offsetX = (width - spanX * cellSize) / 2;
   const offsetY = (height - spanY * cellSize) / 2;
 
   const items = cmls.map((cml) => {
-    const marginMm = cml.tActualMm - cml.tRequiredMm;
-    const marginPct =
-      cml.tRequiredMm > 0 ? safeNumber((marginMm / cml.tRequiredMm) * 100, 0) : 0;
-    const pixelX = offsetX + (cml.x - bounds.minX) * cellSize + cellSize / 2;
-    const pixelY = offsetY + (cml.y - bounds.minY) * cellSize + cellSize / 2;
-    const color = CML_VERDICT_COLORS[cml.verdict] ?? CML_VERDICT_COLORS.accept;
-    return { ...cml, pixelX, pixelY, color, marginPct };
+    const pixelX = round(offsetX + (cml.x - minX) * cellSize + cellSize / 2, 2);
+    const pixelY = round(offsetY + (cml.y - minY) * cellSize + cellSize / 2, 2);
+    const color =
+      cml.verdict === "reject"
+        ? "#dc2626"
+        : cml.verdict === "re_check"
+        ? "#d97706"
+        : "#16a34a";
+
+    return {
+      ...cml,
+      pixelX,
+      pixelY,
+      color,
+      marginPct:
+        cml.tRequiredMm > 0
+          ? ((cml.tActualMm - cml.tRequiredMm) / cml.tRequiredMm) * 100
+          : 0,
+    };
   });
 
-  return { width, height, cellSize, bounds, items };
+  return {
+    width,
+    height,
+    cellSize,
+    bounds: { minX, maxX, minY, maxY },
+    items,
+  };
 }
 
 /**
- * Circular safety-margin gauge geometry (VIS-04) — plan-name:
- * `calcGaugeGeometry(currentMm, tRequiredMm, tNominalMm, radius)`.
- *
- * `percent` is the precomputed safety margin ((t_actual − t_required) /
- * t_required × 100). The arc shows the |clamped| value (a gauge cannot paint
- * a negative fraction of a circle); the COLOR carries the sign: negative
- * margins render red at zero fill. Acceptance band: ≥ 20% green, 0–20%
- * amber, < 0% red (09-CONTEXT decision on gauge banding). `tNominalMm`
- * bounds the reference circumference end-stop (gauge saturates at nominal).
+ * Calculates circular metric gauge arc and stroke offsets. `currentMm` is the
+ * precomputed t_actual; `tRequiredMm` the precomputed t_required; the arc's
+ * 100% reference is tNominalMm. `percent` may exceed [0, 100] (the raw
+ * margin relative to nominal); the arc FILL is clamped to [0, 100] while the
+ * COLOR carries the sign: negative margins render red at zero fill.
+ * Bands: >= 20% green, 0-20% amber, < 0% red.
  */
 export function calcGaugeGeometry(
   currentMm: number,
@@ -375,10 +354,11 @@ export function calcGaugeGeometry(
   const size = radius * 2 + strokeWidth * 2;
   const circumference = 2 * Math.PI * radius;
 
+  const cur = finite(currentMm, tRequiredMm > 0 ? tRequiredMm : 0);
   const refMm = tNominalMm > tRequiredMm ? tNominalMm : tRequiredMm + 1;
   const rawPercent =
-    refMm > 0 ? safeNumber(((currentMm - tRequiredMm) / (refMm - tRequiredMm)) * 100, 0) : 0;
-  const percent = safeNumber(rawPercent, 0);
+    refMm > tRequiredMm ? ((cur - tRequiredMm) / (refMm - tRequiredMm)) * 100 : 0;
+  const percent = finite(rawPercent, 0);
   const fillPct = Math.max(0, Math.min(100, percent));
   const strokeDashoffset = circumference - (fillPct / 100) * circumference;
 
