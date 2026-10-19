@@ -2,15 +2,15 @@
 gsd_state_version: "1.0"
 milestone_version: "v3"
 milestone: "v3"
-current_phase: 7
-current_phase_name: decision-provider-seam
-current_plan: 07-01-PLAN.md
-status: ready_to_execute
-stopped_at: "Phase 7 planned, 07-01-PLAN.md ready for execution"
-last_updated: "2026-10-15T01:00:00.000Z"
-last_activity: 2026-10-15
-last_activity_desc: "Milestone v3 planning layer scaffolded (Phases 07–09 specs, context, and plans staged)"
-state_head: 73def31
+current_phase: 8
+current_phase_name: subq-snap-decision-engine
+current_plan: 08-01-PLAN.md
+status: verifying
+stopped_at: "Phase 8 implemented + reviewed (08-REVIEW.md); verification pending"
+last_updated: "2026-10-19T13:30:00.000Z"
+last_activity: 2026-10-19
+last_activity_desc: "Phase 8 fresh deep review committed (fe3f57a); prior 6 findings verified resolved, 1 new blocker fixed (e51e077)"
+state_head: fe3f57a
 progress:
   total_phases: 9
   completed_phases: 6
@@ -24,17 +24,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-24)
 
 **Core value:** Raw inspection data in → a defensible, code-cited acceptance decision and report out. If the acceptance reasoning is wrong, nothing else matters.
-**Current focus:** Milestone v3 — System-1 Fast Decision Architectures (Phase 7: Decision Provider Seam & Nebius Fast Decision Engine)
+**Current focus:** Milestone v3 — System-1 Fast Decision Architectures (Fork B: Phase 8 verification → Phase 9; Phase 7 belongs to Fork A ../flawcheck-nvidia-system1)
 
 ## Current Position
 
-Phase: 7 (decision-provider-seam) — READY TO EXECUTE
-Current Plan: 07-01-PLAN.md
+Phase: 8 (subq-snap-decision-engine) — VERIFYING
+Current Plan: 08-01-PLAN.md (executed; 08-01-SUMMARY.md exists)
 Total Plans in Phase: 1
-Status: Ready to execute
-Last activity: 2026-10-15 — Milestone v3 planning layer scaffolded (Phases 07–09 specs, context, and plans staged)
+Status: Implemented + reviewed; verification (verify-work) pending
+Last activity: 2026-10-19 — fresh deep review (08-REVIEW.md, fe3f57a): all 6 prior findings verified resolved, 1 new blocker (hermetic env hygiene) fixed in e51e077; 618/6 tests green in both ambient and FLAWCHECK_DISABLE_LLM=1 modes
 
-Progress: [████████████░░░░░░] 67% (6/9 phases complete)
+**Fork B scope note (reconciled 2026-10-19):** Phase 7's plan targets ../flawcheck-nvidia-system1 — it is NOT executable here. This worktree's phases are 8 → 9. The stale `current_phase: 7` pointer was corrected; see agent-handoff.md §3.
+
+Progress: [████████████░░░░░░] 67% (6/9 phases complete — phases 8, 9 open in this fork; 7 open in Fork A)
 
 ## Performance Metrics
 
@@ -114,6 +116,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T01:00:00.000Z
-Stopped at: Phase 7 planned, 07-01-PLAN.md ready for execution
-Resume file: .planning/phases/07-decision-provider-seam/07-01-PLAN.md
+Last session: 2026-10-19T13:30:00.000Z
+Stopped at: Phase 8 implemented + reviewed (08-REVIEW.md); verification pending
+Resume file: .planning/phases/08-subq-snap-decision-engine/08-01-PLAN.md (verify-work next)
+Resume command: /gsd:verify-work 8

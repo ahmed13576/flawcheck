@@ -49,7 +49,7 @@ Worktree: `C:\Users\moham\Documents\flawcheck-subq-snap`, branch `feat/subq-snap
 
 An executor run implemented 08-01 across 6 commits: the SubQ provider, spike tests, multi-modal image validation, the benchmark harness (with the adversarial-review fix: comparisons are marked "measured" only when BOTH providers have successful observations — pending/failed otherwise, with failure counts + diagnostics in the report), and live-SubQ verification tests. Tests are now **617 passed / 6 skipped (56 files)**. The deep-review artifact is `.planning/phases/08-subq-snap-decision-engine/REVIEW.md` (10 files reviewed).
 
-Live-SubQ reality: preflight found **no accessible `SUBQ_API_KEY`** (placeholder in `.env.local`), so live execution and *measured* benchmark data remain unavailable until the user supplies the key. Hermetic implementation + mocked tests are complete. Remaining likely work: supply key → run live spikes/benchmark → regenerate `docs/system1-benchmark-report.json` with real measurements → Phase 08 wrap (summary, STATE update) → Phase 09.
+Live-SubQ reality (updated 2026-10-19): the user supplied the real `SUBQ_API_KEY` in `.env.local` and a minimal live request to `subq-snap-preview` succeeded (valid `noul` response, 105 input tokens, 0 output tokens — see Temp handoff of 2026-10-19). Hermetic implementation + mocked tests are complete, and `08-01-SUMMARY.md` now exists. Remaining: fresh adversarial review (done 2026-10-19 → `08-REVIEW.md`), verify-work, live measured benchmark (still blocked on a Fork A Nebius baseline + verified pricing — do not invent either), then Phase 09.
 
 - GSD state: `milestone_version: v3`, 9 phases registered, 0 MVP-mode.
 - `node_modules` is an **NTFS junction** → `C:\Users\moham\Documents\Nebuis\node_modules` (see §6 caveat 1).
@@ -88,7 +88,7 @@ Requirements locked: **SUBQ-01..04, BENCH-01..04** (8 must-haves in `08-SPEC.md`
 ## 6. Environment & Platform Caveats
 
 1. **NTFS junction `node_modules`** → root repo's install. Zero disk duplication, but an `npm install <new-dep>` in Fork B mutates the shared lockfile state for root AND Fork A. If Phase 08 needs a dependency, either install at root deliberately (affects all three trees, needs user approval per §7) or break the junction for a real local `node_modules` (decouples CI realism, costs disk).
-2. **`.env.local`** (git-ignored): `SUBQ_API_KEY=your-subq-api-key-here` — **a placeholder. The user must supply the real SubQ key before any live spike/benchmark run.** Also carries real Nebius credentials (needed by inherited test suites + base routes), `FLAWCHECK_DECISION_ENGINE=subq`, `SUBQ_BASE_URL=https://api.subq.ai`, `SUBQ_MODEL=subq-snap-preview`. Keep out of every commit.
+2. **`.env.local`** (git-ignored): `SUBQ_API_KEY` — **real key supplied by the user 2026-10-19; treat as secret: never print, copy into artifacts, or log its value.** Also carries real Nebius credentials (needed by inherited test suites + base routes), `FLAWCHECK_DECISION_ENGINE=subq`, `SUBQ_BASE_URL=https://api.subq.ai`, `SUBQ_MODEL=subq-snap-preview`. Keep out of every commit.
 3. **Hermeticity machinery** (v2, still true): vitest loads `.env.local` via a zero-dep loader → keys present in every test run → fallback-contract tests MUST set `FLAWCHECK_DISABLE_LLM=1` in beforeEach; live tests gated behind `FLAWCHECK_LIVE_LLM=1` (skipIf pattern, `tests/llm/hello-fixture.test.ts` is the template). Hermetic suite = **583 tests, zero network, key-independent**.
 4. **Windows/Git Bash**: no complex multiline inline Python in PowerShell — write scratch scripts to `scratch/` (gitignored) and run via `python <path>` with `sys.stdout.reconfigure(encoding='utf-8')`. Standards text contains `−`, `°`, `’` — sanitize before console printing.
 5. **PDF standards**: never open standards `.pdf`s with view tools; use `pypdf` (`PdfReader`) — `pdfplumber` times out on 500+-page files.
@@ -123,7 +123,7 @@ Requirements locked: **SUBQ-01..04, BENCH-01..04** (8 must-haves in `08-SPEC.md`
 
 ## 9. Run Order Status (v3.1)
 
-1. ~~Pre-flight~~ — done; Fork A has NOT executed Phase 07, so the benchmark runs degraded (comparisons stay pending until a Nebius baseline is ported). **`SUBQ_API_KEY` is still a placeholder** — live runs blocked until user supplies it.
+1. ~~Pre-flight~~ — done; Fork A has NOT executed Phase 07, so the benchmark runs degraded (comparisons stay pending until a Nebius baseline is ported). ~~**`SUBQ_API_KEY` is still a placeholder** — live runs blocked until user supplies it.~~ **Resolved 2026-10-19: real key supplied; a live smoke test succeeded.** Measured *comparative* benchmark data still awaits the Fork A baseline + verified pricing.
 2. ~~Execute 08-01 tasks 1–4~~ — done across commits `241607a`…`dfea9a6` (617/6 tests).
 3. Remaining gates: live spikes + measured benchmark once key is set → regenerate `docs/system1-benchmark-report.json`; keep `FLAWCHECK_DISABLE_LLM=1` fully hermetic; `lib/calc/`/`lib/criteria/` byte-identical; fail-closed p<0.85 paths tested.
 4. Wrap Phase 08 (summary, STATE update). Phase 09 (visual analytics) is the remaining v3 phase — components stubbed and shared across both forks.
