@@ -218,7 +218,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 07-01-PLAN.md — Pluggable DecisionProvider interface, Nebius Nemotron-3.5-Lightning adapter, 4 domain spikes with fail-closed gates, and pure calc invariant verification.
+- [x] 07-01-PLAN.md — Pluggable DecisionProvider interface, Nebius Nemotron-3.5-Lightning adapter, 4 domain spikes with fail-closed gates, and pure calc invariant verification.
 
 ### Phase 8: SubQ.ai Snap Decision Engine & Multi-Modal Benchmark (Fork B)
 
@@ -273,6 +273,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Report Rendering | 4/4 | Complete (verified 2026-10-05) | 2026-10-05 |
 | 5. Demo Hardening, Deployment & Submission | Complete | Complete (deployed + audit, 2026-10-08) | 2026-10-08 |
 | 6. Report Digestibility & At-a-Glance Findings | 2/2 | Complete (verified 6/6 + 583 tests, 2026-10-10) | 2026-10-10 |
-| 7. Decision Provider Seam & Nebius Fast Engine (Fork A) | 0/1 | Planned | - |
+| 7. Decision Provider Seam & Nebius Fast Engine (Fork A) | 1/1 | Complete (verified 621/5 tests + 24 live calls, 2026-10-19) | 2026-10-19 |
 | 8. SubQ Snap Engine & Multimodal Benchmark (Fork B) | 0/1 | Planned | - |
 | 9. Visual Inspection Analytics & Vector PDF | 0/1 | Planned | - |
