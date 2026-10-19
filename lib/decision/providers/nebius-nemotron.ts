@@ -53,7 +53,9 @@ export interface NebiusProviderOptions {
   model?: string;
   /** low|medium|high ONLY — the reasoning_effort enum rejects anything wider. Default: low (System-1 latency). */
   reasoningEffort?: "low" | "medium" | "high";
-  /** Output budget; visible reasoning counts inside it (verified quirk). Default 2048. */
+  /** Output budget; visible reasoning counts inside it (verified quirk: guard-style
+   *  evaluation can emit >8k reasoning tokens, and a truncated budget returns EMPTY
+   *  content with finish_reason "length"). Default 6000. */
   maxCompletionTokens?: number;
 }
 
@@ -88,7 +90,7 @@ export class NebiusNemotronDecisionProvider implements DecisionProvider {
     // explicit caller-supplied value) — no vendor model-ID literals here.
     this.modelId = options?.model ?? getExtractionModel();
     this.reasoningEffort = options?.reasoningEffort ?? "low";
-    this.maxCompletionTokens = options?.maxCompletionTokens ?? 2048;
+    this.maxCompletionTokens = options?.maxCompletionTokens ?? 6000;
     this.injectedClient = options?.client;
     if (!this.injectedClient && (options?.apiKey || options?.baseURL)) {
       this.customClient = new OpenAI({
