@@ -1,10 +1,17 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DecisionProviderError, DecisionValidationError, type DecisionBatchQuestions } from "../../lib/decision/types";
 import { SubQSnapDecisionProvider } from "../../lib/decision/providers/subq-snap";
 
 const context = { state: { observation: "test state" } };
 
 describe("SubQSnapDecisionProvider", () => {
+  beforeEach(() => {
+    // Vitest loads .env.local, so FLAWCHECK_DISABLE_LLM may be ambient — the hermetic
+    // suite must be key-independent: clear it before every test (pattern from
+    // tests/reasoning/narrative-route.test.ts).
+    vi.stubEnv("FLAWCHECK_DISABLE_LLM", "");
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
@@ -115,5 +122,17 @@ describe("SubQSnapDecisionProvider", () => {
     expect(fetchMock.mock.calls[0][0]).toBe("https://mock.example/v1/systemone");
     expect(() => new SubQSnapDecisionProvider({ apiKey: "test-key", baseURL: "http://mock.example/v1" }))
       .toThrow("SubQ base URL must use HTTPS");
+  });
+
+  it("fails closed with 503 before any network when FLAWCHECK_DISABLE_LLM=1", async () => {
+    vi.stubEnv("FLAWCHECK_DISABLE_LLM", "1");
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const provider = new SubQSnapDecisionProvider({ apiKey: "test-key" });
+    await expect(provider.noul(context, { instructions: "Check" })).rejects.toMatchObject({
+      statusCode: 503,
+      providerId: "subq",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

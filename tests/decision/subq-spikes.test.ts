@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SubQSnapDecisionProvider } from "../../lib/decision/providers/subq-snap";
 import { classifyFluidService } from "../../lib/decision/spikes/fluid-classifier";
 import { triageFleetBatch, type TriageReading } from "../../lib/decision/spikes/fleet-triage";
@@ -34,6 +34,13 @@ function mockSubQ() {
 }
 
 describe("SubQ domain spike contracts (mocked API)", () => {
+  beforeEach(() => {
+    // Vitest loads .env.local, so FLAWCHECK_DISABLE_LLM may be ambient — the hermetic
+    // suite must be key-independent: clear it before every test (pattern from
+    // tests/reasoning/narrative-route.test.ts).
+    vi.stubEnv("FLAWCHECK_DISABLE_LLM", "");
+  });
+
   afterEach(() => vi.unstubAllGlobals());
 
   it("Spike A: uses the 0.85 fail-closed fluid confidence gate", async () => {

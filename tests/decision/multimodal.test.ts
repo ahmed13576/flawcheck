@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DecisionValidationError } from "../../lib/decision/types";
 import { SubQSnapDecisionProvider } from "../../lib/decision/providers/subq-snap";
 
@@ -23,6 +23,13 @@ function successfulResponse() {
 }
 
 describe("SubQ image payloads", () => {
+  beforeEach(() => {
+    // Vitest loads .env.local, so FLAWCHECK_DISABLE_LLM may be ambient — the hermetic
+    // suite must be key-independent: clear it before every test (pattern from
+    // tests/reasoning/narrative-route.test.ts).
+    vi.stubEnv("FLAWCHECK_DISABLE_LLM", "");
+  });
+
   afterEach(() => vi.unstubAllGlobals());
 
   it.each([1, 2, 4])("sends %i supported images with raw base64", async (imageCount) => {
