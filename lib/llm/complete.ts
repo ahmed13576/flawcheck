@@ -96,8 +96,12 @@ export async function runValidatedCompletion<T>(o: ValidatedCallOptions<T>): Pro
  * first BALANCED `{…}` block (string/escape aware) and parse that. This is
  * transport hardening, not a content lint — validation (schema.parse) is
  * unchanged and the bounded retry still applies.
+ *
+ * Exported: the System-1 decision provider (lib/decision/) reuses this exact
+ * tolerant parser — the decision seam must not grow a second, diverging
+ * brace-recovery implementation.
  */
-function parseJsonLoose(raw: string): unknown {
+export function parseJsonLoose(raw: string): unknown {
   try {
     return JSON.parse(raw);
   } catch {
