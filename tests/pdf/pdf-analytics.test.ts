@@ -198,7 +198,22 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
       {
         evaluatedAt: "2026-10-05T00:00:00Z",
         inputHash: "a".repeat(64),
-        steps: [],
+        steps: [
+          {
+            step: "extraction" as const,
+            model: null,
+            promptTokens: null,
+            completionTokens: null,
+            latencyMs: null,
+          },
+          {
+            step: "narrative" as const,
+            model: null,
+            promptTokens: null,
+            completionTokens: null,
+            latencyMs: null,
+          },
+        ],
       },
     );
     const names = flatten(doc);

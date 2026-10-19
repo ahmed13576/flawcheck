@@ -101,7 +101,7 @@ function round(value: number, decimals = 2): number {
 /**
  * Parse an ISO date (YYYY-MM-DD or full ISO timestamp) to a fractional year.
  * Month m maps to (m - 1) / 12 of a year elapsed since Jan 1 of that year,
- * so 2024-06 → 2024 + 5/12.
+ * so 2024-06 maps to 2024 + 5/12.
  */
 function parseFractionalYear(date: string): number {
   const m = /^(\d{4})-(\d{2})/.exec(date);
