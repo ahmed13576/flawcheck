@@ -83,11 +83,11 @@ function snapshot(readings: ReadingResult[]): ReportSnapshot {
 
 /**
  * Normalize a React element type to a comparable name. React-pdf primitives
- * are elements whose `type` is an uppercase string ("DOCUMENT", "SVG",
- * "PATH", ...); react function components carry a function type.
+ * are elements whose `type` is a string ("svg", "path", ... — compared
+ * case-insensitively); react function components carry a function type.
  */
 function typeName(type: unknown): string | null {
-  if (typeof type === "string") return type.toUpperCase();
+  if (typeof type === "string") return type.toLowerCase();
   if (typeof type === "function") return type.name;
   return "?";
 }
@@ -202,12 +202,12 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
       },
     );
     const names = flatten(doc);
-    expect(names).toContain("Svg");
-    expect(names).toContain("Path");
-    expect(names).toContain("Line");
-    expect(names).toContain("Circle");
-    expect(names).toContain("Rect");
-    expect(names).not.toContain("Image");
+    expect(names).toContain("svg");
+    expect(names).toContain("path");
+    expect(names).toContain("line");
+    expect(names).toContain("circle");
+    expect(names).toContain("rect");
+    expect(names).not.toContain("image");
   }, 30_000);
 
   it("labels the trend curve with the governing CML identity", () => {
@@ -252,7 +252,7 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
       reading({ readingId: "r-a", cml: "CML-01", rlYears: 20 }),
       reading({ readingId: "r-b", cml: "CML-02", verdict: "reject", rlYears: 0 }),
     ];
-    const top10 = getTop10Worst(snapshot(readings));
+    const top10 = getTop10Worst(readings);
     expect(top10).toHaveLength(2);
     expect(top10[0].readingId).toBe("r-b");
   });
