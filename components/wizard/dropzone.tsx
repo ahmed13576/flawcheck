@@ -45,10 +45,10 @@ export function Dropzone({
         }}
         onDragLeave={() => setDragover(false)}
         onDrop={handleDrop}
-        className={`flex min-h-56 w-full flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-8 text-sm transition-colors disabled:opacity-50 ${
+        className={`flex min-h-56 w-full flex-col items-center justify-center gap-4 rounded-none border-2 p-8 text-sm transition-colors disabled:opacity-50 ${
           dragover
             ? "border-primary bg-primary/5"
-            : "border-border bg-transparent hover:border-muted-foreground/50"
+            : "border-border bg-transparent hover:border-muted-foreground/40"
         }`}
       >
         <Upload className="size-8 text-primary" aria-hidden="true" />
@@ -58,7 +58,7 @@ export function Dropzone({
             CSV up to 25 MB · Your file stays in this workspace
           </span>
         </span>
-        <span className="rounded-md bg-secondary px-6 py-2.5 text-sm font-medium text-secondary-foreground">
+        <span className="rounded-none bg-secondary px-6 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80">
           Browse files
         </span>
       </button>
