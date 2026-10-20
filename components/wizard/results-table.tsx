@@ -20,7 +20,7 @@
  * resultRowKey namespacing and the locked order of the first ten columns
  * untouched.
  */
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentMetadata, ReadingResult, ReadingFlag, Unit } from "@/lib/ingest/session";
 import {
   formatFixed,
@@ -236,6 +236,25 @@ export function ResultsTable({
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [reasoningOpen, setReasoningOpen] = useState<Record<string, boolean>>({});
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const [hasMoreRight, setHasMoreRight] = useState(true);
+
+  const handleScroll = useCallback(() => {
+    const el = tableWrapperRef.current;
+    if (!el) return;
+    setHasMoreRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    handleScroll();
+    const el = tableWrapperRef.current;
+    el?.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    return () => {
+      el?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [handleScroll]);
   // CR-01/WR-01: ONE provider-owned store + narration gate for the whole app —
   // a second module-level store here would double the FIFO cap, hide CML
   // narratives from the status bar, and bypass the UI-41 allowNarration gate.
@@ -301,11 +320,16 @@ export function ResultsTable({
 
   return (
     <section aria-label="CML results" className="rounded-none border border-border bg-card p-4">
-      <div className="overflow-x-auto">
-        <p className="sr-only sm:not-sr-only text-[11px] text-muted-foreground pb-1">
-          Tip: Scroll horizontally to view all measurements and verdicts. Sticky columns remain pinned.
-        </p>
-        <table className="min-w-[1100px] w-full border-collapse text-sm">
+      <div className="relative">
+        <div
+          ref={tableWrapperRef}
+          className="overflow-x-auto"
+          onScroll={handleScroll}
+        >
+          <p className="sr-only sm:not-sr-only text-[11px] text-muted-foreground pb-1">
+            Tip: Scroll horizontally to view all measurements and verdicts. Sticky columns remain pinned.
+          </p>
+          <table className="min-w-[1100px] w-full border-collapse text-sm">
           <caption className="px-1 pb-2 text-left text-xs text-muted-foreground">
             {formatCaption(start, end, readings.length)}
           </caption>
@@ -480,7 +504,20 @@ export function ResultsTable({
             })}
           </tbody>
         </table>
+        </div>
+        {/* Right fade shadow — hidden when scrolled to end */}
+        {hasMoreRight && (
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[var(--background)] to-transparent z-20"
+            aria-hidden="true"
+          />
+        )}
       </div>
+      {hasMoreRight && (
+        <p className="mt-1 text-right text-xs text-muted-foreground select-none">
+          Scroll right to see all columns →
+        </p>
+      )}
       <div className="mt-3 flex items-center justify-between text-sm">
         <button
           type="button"
