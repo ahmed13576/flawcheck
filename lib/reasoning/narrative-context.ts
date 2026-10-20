@@ -54,7 +54,7 @@ export interface NarrativeContextInput {
   metadataUnit?: Unit;
   /** Required for kind "ptmt". */
   indication?: PtmIndicationResult;
-  /** The Lightning evaluation context pack — worded fields only. */
+  /** The Super-120B evaluation context pack — worded fields only. */
   extraction: ExtractionResult | null;
   /** CML history values (open-question resolution 4); omitted when null. */
   history?: NarrativeHistory | null;
