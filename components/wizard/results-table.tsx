@@ -40,6 +40,7 @@ import type { NarrativeRequest, ExtractionResult } from "@/lib/reasoning/schemas
 import type { NarrativeHistory } from "@/lib/reasoning/narrative-context";
 
 export const RESULTS_PAGE_SIZE = 50;
+const TODAY = new Date().toISOString().slice(0, 10);
 
 const TOGGLEABLE_FLAGS: ReadingFlag[] = ["measurement_inconsistency", "outlier"];
 
@@ -365,6 +366,9 @@ export function ResultsTable({
                           <span className="ml-1 text-xs text-muted-foreground">
                             {`(interval ${next.intervalYears.toFixed(1)} yr)`}
                           </span>
+                          {next.date < TODAY && (
+                            <span className="text-xs text-amber-500 block">(past due)</span>
+                          )}
                         </>
                       ) : (
                         <span>—</span>
