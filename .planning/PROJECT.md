@@ -65,6 +65,25 @@ Raw inspection data in → a defensible, code-cited acceptance decision and repo
 | TypeScript computes every number; LLM only extracts, structures, narrates | LLM arithmetic is where models confidently fail; a wrong digit flips pass→fail on pressure-retaining components (ARCHITECTURE.md invariant, lint-enforced) | — Pending |
 | Stack: Next.js 16 + @react-pdf/renderer on Vercel Hobby; fixed pipeline, no agentic loops | One language/repo, SSE streaming, free tier with verified 300s limit; fixed pipeline protects credits and credibility (STACK.md) | — Pending |
 
+## Milestone v4 — Hackathon Submission Polish
+**Status:** In Progress  
+**Started:** 2026-10-20  
+**Deadline:** 2026-10-30 22:30 GMT+5:30  
+**Goal:** Ship a polished, reliable FlawCheck demo for hackathon judges featuring NVIDIA Nemotron models prominently in both extraction and reasoning pipeline steps.
+
+### Hackathon Requirement
+- Primary model: `nvidia/nemotron-3-super-120b-a12b` (Super-120B, 120B MoE, 12B active parameters)
+- Used in: (1) Structured JSON extraction from inspection notes, (2) Engineering reasoning & verdict narration
+- Both pipeline steps run on Nebius Token Factory at $0.30/$0.90 per 1M tokens
+
+### Key Deliverables
+1. ✅ UI Redesign — Industrial precision dark theme (completed in v3)
+2. 🔧 Extraction pipeline fix — Switch from Lightning to Super-120B (Workstream A)
+3. 🔧 Historical date UI indicator — Flag past-due dates from demo dataset (Workstream B)  
+4. 📖 README update — Highlight Nemotron usage for hackathon judges
+5. 🔀 Branch merge — Merge redesign/web-interface into main
+6. ✅ Final browser verification — End-to-end pipeline smoke test
+
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
@@ -83,4 +102,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-24 after initialization*
+*Last updated: 2026-10-20 for Milestone v4*

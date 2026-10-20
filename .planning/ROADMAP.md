@@ -24,6 +24,13 @@ FlawCheck ships as a five-phase vertical build for the Nebius x NVIDIA hackathon
 - [ ] **Phase 8: SubQ.ai Snap Decision Engine & Multi-Modal Benchmark (Fork B)** - `SubQSnapDecisionProvider` on `feat/subq-snap` calling `POST /v1/systemone` (`subq-snap-preview`) with native questions & multimodal image support, 4 domain spikes, and comparative benchmark suite.
 - [ ] **Phase 9: Visual Inspection Analytics & Vector PDF Integration** - Animated SVG/CSS inspection aids (wall loss trend curves, CML spatial severity heatmap, safety margin metric gauges) and lossless vector serialization into `@react-pdf/renderer` PDF reports.
 
+### Milestone v4 — Hackathon Submission Polish
+
+- [ ] **Phase 10: Extraction Reliability (Super-120B)** - Fix extraction pipeline by switching NEBIUS_MODEL_EXTRACTION to nemotron-3-super-120b-a12b
+- [ ] **Phase 11: Historical Date UX** - Add past-due amber indicator for historical inspection dates in report and results table
+- [ ] **Phase 12: Hackathon Documentation & README** - Update README.md to prominently feature NVIDIA Nemotron models for hackathon judges
+- [ ] **Phase 13: Branch Merge & Final Verification** - Merge redesign/web-interface and verify full pipeline end-to-end
+
 ## Phase Details
 
 ### Phase 1: Platform Spike & App Skeleton
@@ -260,10 +267,46 @@ Plans:
 
 - [ ] 09-01-PLAN.md — Shared SVG geometry math, interactive web analytics components (trend curve, heatmap, gauge), and certified @react-pdf/renderer vector serialization.
 
+## Milestone v4 — Hackathon Submission Polish
+
+### Phase 10: Extraction Reliability (Super-120B)
+**Status:** In Progress  
+**Goal:** Fix extraction pipeline by switching NEBIUS_MODEL_EXTRACTION to nemotron-3-super-120b-a12b  
+**Tasks:**
+- Change NEBIUS_MODEL_EXTRACTION env var
+- Update any UI references to extraction model name
+- Verify Zod schema passes on first attempt
+- Run full test suite (690 tests)
+
+### Phase 11: Historical Date UX
+**Status:** In Progress  
+**Goal:** Add past-due amber indicator for historical inspection dates in report and results table  
+**Tasks:**
+- Add past-due check in report-document.tsx
+- Add past-due check in results-table.tsx
+- TypeScript clean, tests pass
+
+### Phase 12: Hackathon Documentation & README
+**Status:** Planned  
+**Goal:** Update README.md to prominently feature NVIDIA Nemotron models for hackathon judges  
+**Tasks:**
+- Add NVIDIA Nemotron badge/section to README
+- Document both pipeline steps using Super-120B
+- Add Nebius Token Factory API setup instructions
+- Add architecture diagram showing where Nemotron is used
+
+### Phase 13: Branch Merge & Final Verification
+**Status:** Planned  
+**Goal:** Merge redesign/web-interface and verify full pipeline end-to-end  
+**Tasks:**
+- Merge redesign/web-interface → main (or feat/subq-snap)
+- Run final browser smoke test: CSV upload → evaluation → extraction → narrative → report
+- Confirm all 690 tests pass on merged branch
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -276,3 +319,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Decision Provider Seam & Nebius Fast Engine (Fork A) | 0/1 | Planned | - |
 | 8. SubQ Snap Engine & Multimodal Benchmark (Fork B) | 1/1 | Complete (verified 8/8 requirements, 2026-10-19) | 2026-10-19 |
 | 9. Visual Inspection Analytics & Vector PDF | 1/1 | Complete (verified 8/8 requirements, 2026-10-19) | 2026-10-19 |
+| 10. Extraction Reliability (Super-120B) | 0/1 | In Progress | - |
+| 11. Historical Date UX | 0/1 | In Progress | - |
+| 12. Hackathon Documentation & README | 0/1 | Planned | - |
+| 13. Branch Merge & Final Verification | 0/1 | Planned | - |
