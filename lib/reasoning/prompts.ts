@@ -62,7 +62,7 @@ OUTPUT CONTRACT: plain prose, 120-180 words, chain in order, each claim cited on
 }
 
 /* ------------------------------------------------------------------ */
-/* Extraction prompts (Lightning, once per evaluation)                 */
+/* Extraction prompts (Super-120B, once per evaluation)               */
 /* ------------------------------------------------------------------ */
 
 /** Population digest the CLIENT computes deterministically (R1 request slice). */

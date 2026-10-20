@@ -1,6 +1,6 @@
 /**
  * POST /api/reasoning/extract — 03-02 Task 2 (Pattern R1: batched context
- * pack, one Lightning call via runValidatedCompletion, loud failure).
+ * pack, one Super-120B call via runValidatedCompletion, loud failure).
  *
  * Contract (SC1 / REAS-01): 400 on malformed JSON or strict-schema violation
  * naming the first Zod issue; 200 `{ disabled: true }` when the LLM is off
@@ -76,10 +76,10 @@ export async function POST(req: Request) {
       ),
       schema: ExtractionResultSchema,
       schemaHint: EXTRACTION_SCHEMA_HINT,
-      // Live finding (A11, 2026-09-27): Lightning's visible chain-of-thought
-      // counts inside max_completion_tokens and truncated the JSON at 800.
-      // 3000 leaves ample room for thinking + the answer; schema.parse still
-      // rejects anything malformed and the bounded retry still applies.
+      // Finding: Super-120B's visible chain-of-thought counts inside
+      // max_completion_tokens. 3000 leaves ample room for thinking (~197 tokens)
+      // + the answer (~108 tokens); schema.parse still rejects anything malformed
+      // and the bounded retry still applies.
       maxCompletionTokens: 3000,
       reasoningEffort: "low",
       usageSink: (u) => {
