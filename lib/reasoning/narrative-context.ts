@@ -84,6 +84,13 @@ export function numericAllowlist(values: Iterable<number>): Set<number> {
     allowed.add(Number(v.toFixed(1)));
     allowed.add(Number(v.toFixed(2)));
     allowed.add(Number(v.toFixed(3)));
+    if (v < 0) {
+      const pos = Math.abs(v);
+      allowed.add(Number(pos.toFixed(6)));
+      allowed.add(Number(pos.toFixed(1)));
+      allowed.add(Number(pos.toFixed(2)));
+      allowed.add(Number(pos.toFixed(3)));
+    }
   }
   return allowed;
 }
