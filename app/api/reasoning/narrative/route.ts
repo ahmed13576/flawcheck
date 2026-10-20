@@ -176,6 +176,7 @@ export async function POST(req: Request) {
           if (cutoff === 0) continue;
           const relayPart = buffer.slice(0, cutoff);
           if (!numericConsistency(relayPart, ctx.allowedNumbers)) {
+            console.error('[narrative-lint] mid-stream numeric_lint relayPart=%s', JSON.stringify(relayPart.slice(0, 200)));
             send({ type: "rejected", reason: "numeric_lint", fallback: fallbackText });
             safeEnqueue("data: [DONE]\n\n");
             safeClose();
@@ -192,9 +193,10 @@ export async function POST(req: Request) {
         return;
       }
 
-      const fullText = relayed + buffer;
+      const fullText = (relayed + buffer).trim();
       const final = runFinalLints(fullText, lintCtx);
       if (!final.ok) {
+        console.error('[narrative-lint] REJECTED reason=%s text=%s', final.reason, JSON.stringify(fullText.slice(0, 500)));
         send({ type: "rejected", reason: final.reason, fallback: fallbackText });
         safeEnqueue("data: [DONE]\n\n");
         safeClose();
@@ -240,7 +242,7 @@ function openStream(
         { role: "user" as const, content: buildNarrativeUserPrompt(ctx, verdictLabel) },
       ],
       stream: true,
-      max_completion_tokens: 1200,
+      max_completion_tokens: 4000,
       reasoning_effort: "low",
       stream_options: { include_usage: true },
     },

@@ -28,10 +28,10 @@ export const NARRATIVE_SYSTEM_PROMPT = `You are the narration step of a pipe-thi
 The verdict and every number were computed in code. You explain; you never calculate.
 
 Rules:
-1. State ONLY numbers that appear verbatim in PRECOMPUTED VALUES, with their units. Never derive, round, convert, or invent any number. Do not state dates, reading ids, clause numbers, edition years, or any digit-bearing identifier.
+1. State ONLY numbers that appear verbatim in PRECOMPUTED VALUES, with their units. Never derive, calculate differences/margins (e.g. do NOT compute t_actual minus t_required), round, convert, or invent any number. Do not state dates, reading ids, clause numbers, section numbers, standard names or numbers (e.g. do NOT write 'API 574', 'API 570', 'ASME B31.3' in prose — refer to them generically as 'the standard' or 'the code'), edition years, percentage values, count values, or any digit-bearing identifier that is NOT in PRECOMPUTED VALUES. Always use standard ASCII hyphens (-) for negative numbers, never unicode dashes. If you want to say something is significant, use words not numbers.
 2. Follow the chain in order: measured inputs -> governing clause (cite it) -> the limit -> the verdict.
-3. Cite by emitting [[cite:<citation_id>]] using ONLY ids from ALLOWED CITATIONS. Cite each claim once. Paraphrase clause meaning; NEVER quote standard text.
-4. End with exactly one final line: "Verdict: ACCEPT." or "Verdict: RE-CHECK." or "Verdict: FAIL." — matching VERDICT below, spelled exactly.
+3. Cite by emitting [[cite:<citation_id>]] using ONLY ids from ALLOWED CITATIONS. Cite each claim once. Paraphrase clause meaning; NEVER quote standard text, clause numbers, or section numbers in prose — cite them ONLY via the [[cite:<id>]] token.
+4. End with exactly one final line: "Verdict: ACCEPT." or "Verdict: RE-CHECK." or "Verdict: FAIL." — matching VERDICT below, spelled exactly. No text after this line. No newline after this line. This must be the absolute last characters you output.
 5. 120-180 words of plain prose. No markdown, headings, or lists. No preamble.`;
 
 /**
@@ -55,10 +55,10 @@ export function buildNarrativeUserPrompt(
 PRECOMPUTED VALUES (the ONLY numbers you may state — copy them verbatim, with their units; the evaluation_context block inside is the qualitative EVALUATION CONTEXT gathered earlier):
 ${ctx.payload}
 
-ALLOWED CITATIONS (cite ONLY these ids, exactly in the [[cite:<id>]] form):
+ALLOWED CITATIONS (cite ONLY these ids, exactly in the [[cite:<id>]] form; do NOT write the standard names or clause numbers in prose):
 ${citationLines.join("\n")}
 
-OUTPUT CONTRACT: plain prose, 120-180 words, chain in order, each claim cited once, and the very last line must be exactly "Verdict: ${verdictLabel}." — nothing after it.`;
+OUTPUT CONTRACT: plain prose, 120-180 words. Use ONLY the numbers listed in PRECOMPUTED VALUES — no derived values, no margins/deltas, no percentages, no counts, no years, and no standard names or clause numbers in prose (use only [[cite:<id>]]). Negative numbers must use standard ASCII '-' (e.g. -0.244). End with exactly: "Verdict: ${verdictLabel}." as the very last line with nothing after it.`;
 }
 
 /* ------------------------------------------------------------------ */
