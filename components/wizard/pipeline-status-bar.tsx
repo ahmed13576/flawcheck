@@ -9,6 +9,7 @@
  * region order).
  */
 import { useReasoning, type ExtractionStatus } from "@/components/wizard/reasoning-context";
+import { Loader2 } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
 const BADGE =
@@ -43,14 +44,22 @@ export function PipelineStatusBar({
     () => store.version(),
   );
 
+  const isExtractionRunning = extraction.state === "running";
+  const isNarrativeRunning =
+    extraction.state !== "failed" &&
+    extraction.state !== "disabled" &&
+    !store.fallbackServed() &&
+    store.streamingCount() > 0;
+
   const extractionRow = (() => {
     switch (extraction.state) {
       case "pending":
-        return <span className={METRICS}>pending</span>;
+        return <span className={`${METRICS} animate-pulse`}>pending</span>;
       case "running":
         return (
-          <span className={METRICS} role="status">
-            running…
+          <span className={`${METRICS} inline-flex items-center gap-1.5`} role="status">
+            <Loader2 className="h-3 w-3 animate-spin text-orange-400" aria-hidden="true" />
+            <span>running…</span>
           </span>
         );
       case "complete":
@@ -102,15 +111,16 @@ export function PipelineStatusBar({
     const streaming = store.streamingCount();
     if (streaming > 0) {
       return (
-        <span className={METRICS} role="status">
-          running…
+        <span className={`${METRICS} inline-flex items-center gap-1.5`} role="status">
+          <Loader2 className="h-3 w-3 animate-spin text-orange-400" aria-hidden="true" />
+          <span>running…</span>
         </span>
       );
     }
     const totals = store.totals();
     const hasAny = totals.promptTokens > 0 || totals.completionTokens > 0 || totals.latencyMs > 0;
     if (!hasAny) {
-      return <span className={METRICS}>pending</span>;
+      return <span className={`${METRICS} animate-pulse`}>pending</span>;
     }
     const model = store.narrativeModel();
     return (
@@ -125,11 +135,19 @@ export function PipelineStatusBar({
     <section aria-label="Pipeline" className="rounded-none border border-border bg-card p-4">
       <p className={HEADING}>Pipeline</p>
       <dl className="mt-2 flex flex-wrap gap-2">
-        <div className="flex flex-wrap items-center gap-2">
+        <div
+          className={`flex flex-wrap items-center gap-2 ${
+            isExtractionRunning ? "border-l-2 border-orange-400 pl-2 bg-orange-400/5 animate-pulse" : ""
+          }`}
+        >
           <dt className={ROLE}>Extraction</dt>
           {extractionRow}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div
+          className={`flex flex-wrap items-center gap-2 ${
+            isNarrativeRunning ? "border-l-2 border-orange-400 pl-2 bg-orange-400/5 animate-pulse" : ""
+          }`}
+        >
           <dt className={ROLE}>Narrative</dt>
           {narrativeRow}
         </div>
