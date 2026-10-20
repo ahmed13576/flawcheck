@@ -62,6 +62,8 @@ function dateOnly(iso: string): string {
   return iso.slice(0, 10);
 }
 
+const TODAY = new Date().toISOString().slice(0, 10);
+
 /** Empty sign-off base for controlled-field merges. */
 const EMPTY_SIGN_OFF: ReportSignOff = { name: "", certification: "", date: "", signature: "" };
 
@@ -335,11 +337,20 @@ export function ReportDocument({
                           : `${formatFixed(reading.rlYears, 1)} yr`}
                     </td>
                     <td className={PAPER_TD}>
-                      {reading.nextInspection
-                        ? reading.nextInspection.date
-                        : reading.flags.includes("immediate_inspection")
-                          ? "Immediate inspection required"
-                          : "—"}
+                      {reading.nextInspection ? (
+                        <>
+                          {reading.nextInspection.date}
+                          {reading.nextInspection.date < TODAY && (
+                            <span className="text-xs text-amber-500 ml-1 font-normal">
+                              (historical data — verify current inspection status)
+                            </span>
+                          )}
+                        </>
+                      ) : reading.flags.includes("immediate_inspection") ? (
+                        "Immediate inspection required"
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className={`${PAPER_TD} font-sans`}>
                       {reading.flags.length === 0
@@ -469,6 +480,11 @@ export function ReportDocument({
           <section className="rounded-none border border-recheck/40 bg-recheck/10 p-5">
             <p className="text-xl font-semibold tracking-tight text-recheck">
               {`Next inspection: ${nextInspection}`}
+              {nextInspection < TODAY && (
+                <span className="text-xs text-amber-500 ml-1 font-normal">
+                  (historical data — verify current inspection status)
+                </span>
+              )}
             </p>
             {ruleRef && (
               <p className="mt-2 font-mono text-xs text-muted-foreground">
