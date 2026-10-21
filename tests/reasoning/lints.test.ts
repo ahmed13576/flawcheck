@@ -102,6 +102,8 @@ describe("numericConsistency", () => {
       true,
     );
     expect(numericConsistency("Section B31.3 governs here.", allowed)).toBe(true);
+    expect(numericConsistency("Escalate indication to Level 2/3 inspector.", allowed)).toBe(true);
+    expect(numericConsistency("Requires evaluation by a Level 2 or Level 3 inspector.", allowed)).toBe(true);
   });
 
   it("rejects a literal that only the 2dp display value was injected for", () => {

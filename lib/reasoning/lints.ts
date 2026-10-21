@@ -27,7 +27,8 @@ const CITE_TOKEN = /\[\[cite:[a-z0-9_]+\]\]/g;
 // Mandatory designator strip (Pitfall 1): "ASME B31.3" scans as 31.3 and 3 —
 // neither is a precomputed chain value; without the strip every narrative
 // naming the code lands in the fallback.
-const DESIGNATORS = /ASME B31\.3|API 570|API 574|B31\.3/g;
+const DESIGNATORS =
+  /ASME\s*B31\.3|API\s*570|API\s*574|B31\.3|Level\s*[123](?:\s*(?:\/|or)\s*(?:Level\s*)?[123])?|Level\s*[123]/gi;
 const NUMBER_LITERAL = /-?\d+(?:\.\d+)?/g;
 const VERDICT_LINE = /Verdict:\s*(ACCEPT|RE-CHECK|FAIL)\.?\s*$/;
 
