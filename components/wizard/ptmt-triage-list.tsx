@@ -21,7 +21,7 @@ import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { FlagBadge } from "@/components/wizard/flag-badge";
 import { ReasoningPane } from "@/components/wizard/reasoning-pane";
 import { useReasoning } from "@/components/wizard/reasoning-context";
-import { narrativeKey } from "@/hooks/use-narrative-stream";
+import { narrativeKey, useNarrativeStream } from "@/hooks/use-narrative-stream";
 import { criteria } from "@/lib/calc/criteria";
 
 function clauseRefForMethod(method: "PT" | "MT"): string {
@@ -65,6 +65,7 @@ export function PtmtTriageList({
   onUnresolvedCitation?: (id: string) => void;
 }) {
   const { store, allowNarration } = useReasoning();
+  const { getEntry } = useNarrativeStream(store);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const toggle = (id: string) => setOpen((prev) => ({ ...prev, [id]: !prev[id] }));
 
@@ -87,7 +88,7 @@ export function PtmtTriageList({
         const isOpen = Boolean(open[indication.id]);
         const entry =
           evaluatedAt !== null
-            ? store.get(narrativeKey(evaluatedAt, "ptmt", indication.id))
+            ? getEntry(narrativeKey(evaluatedAt, "ptmt", indication.id))
             : undefined;
         return (
           <article
@@ -117,7 +118,7 @@ export function PtmtTriageList({
                   if (
                     !isOpen &&
                     evaluatedAt !== null &&
-                    store.get(narrativeKey(evaluatedAt, "ptmt", indication.id)) === undefined
+                    getEntry(narrativeKey(evaluatedAt, "ptmt", indication.id)) === undefined
                   ) {
                     store.open(
                       narrativeKey(evaluatedAt, "ptmt", indication.id),
