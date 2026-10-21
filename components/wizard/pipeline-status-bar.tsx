@@ -48,7 +48,6 @@ export function PipelineStatusBar({
   const isNarrativeRunning =
     extraction.state !== "failed" &&
     extraction.state !== "disabled" &&
-    !store.fallbackServed() &&
     store.streamingCount() > 0;
 
   const extractionRow = (() => {
@@ -97,6 +96,15 @@ export function PipelineStatusBar({
         </>
       );
     }
+    const streaming = store.streamingCount();
+    if (streaming > 0) {
+      return (
+        <span className={`${METRICS} inline-flex items-center gap-1.5`} role="status">
+          <Loader2 className="h-3 w-3 animate-spin text-orange-400" aria-hidden="true" />
+          <span>running…</span>
+        </span>
+      );
+    }
     if (extraction.state === "disabled" || store.fallbackServed()) {
       // A served fallback means at least one pane shows the deterministic
       // narrative — the chip replaces the badge and metrics stay dashes
@@ -108,15 +116,7 @@ export function PipelineStatusBar({
         </>
       );
     }
-    const streaming = store.streamingCount();
-    if (streaming > 0) {
-      return (
-        <span className={`${METRICS} inline-flex items-center gap-1.5`} role="status">
-          <Loader2 className="h-3 w-3 animate-spin text-orange-400" aria-hidden="true" />
-          <span>running…</span>
-        </span>
-      );
-    }
+
     const totals = store.totals();
     const hasAny = totals.promptTokens > 0 || totals.completionTokens > 0 || totals.latencyMs > 0;
     if (!hasAny) {
