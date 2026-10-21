@@ -166,4 +166,18 @@ describe("PipelineStatusBar markup", () => {
     expect(html).toContain("deterministic fallback");
     expect(html).toContain("— · — · —");
   });
+
+  it("active streaming takes precedence over fallbackServed flag and shows running spinner", async () => {
+    const { __getFallbackStoreForTests } = await import("@/components/wizard/reasoning-context");
+    const store = __getFallbackStoreForTests();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Promise(() => {})),
+    );
+    store.open(narrativeKey("E1", "ptmt", "ind-1"), { kind: "ptmt", evaluatedAt: "E1", indication: {} as any }, { allowNarration: true });
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, { extractionOverride: { state: "complete", pack: {} as any, usage: { promptTokens: 10, completionTokens: 10, latencyMs: 100, model: "test" } } }),
+    );
+    expect(html).toContain("running…");
+  });
 });
