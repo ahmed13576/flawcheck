@@ -35,6 +35,7 @@ import {
 import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
 import { calcTrendCurveGeometry, type TrendPoint, type CmlHeatmapItem } from "@/lib/analytics/geometry";
+import { buildLatestPerCml } from "@/lib/analytics/adapters";
 import { PdfTrendCurve } from "@/components/report/pdf-trend-curve";
 import { PdfHeatmap } from "@/components/report/pdf-heatmap";
 
@@ -180,16 +181,7 @@ export function buildGoverningTrendPoints(
 export function toHeatmapItems(
   readings: ReportSnapshot["readings"],
 ): CmlHeatmapItem[] {
-  const cols = Math.max(1, Math.ceil(Math.sqrt(readings.length)));
-  return readings.map((r, i) => ({
-    cmlId: r.cml ?? r.location,
-    x: (i % cols) + 1,
-    y: Math.floor(i / cols) + 1,
-    tActualMm: r.tActualMm,
-    tRequiredMm: r.tRequiredMm,
-    verdict: r.verdict,
-    crMmYr: r.crGoverningMmYr,
-  }));
+  return buildLatestPerCml(readings);
 }
 
 function telemetryLine(step: ReportAudit["steps"][number]): string {

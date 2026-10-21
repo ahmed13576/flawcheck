@@ -180,6 +180,16 @@ describe("heatmap adapter (pure)", () => {
     expect(items[0]).toMatchObject({ cmlId: "CML-01", x: 1, y: 1, tActualMm: 6.5, verdict: "accept" });
     expect(items[1]).toMatchObject({ cmlId: "CML-02", x: 2, y: 1, verdict: "reject" });
   });
+
+  it("deduplicates readings sharing a CML identity, keeping latest (prevents duplicate React keys in PDF)", () => {
+    const readings = [
+      reading({ readingId: "r-a1", cml: "CML-01", date: "2015-01-01", tActualMm: 6.8 }),
+      reading({ readingId: "r-a2", cml: "CML-01", date: "2016-01-01", tActualMm: 6.5 }),
+    ];
+    const items = toHeatmapItems(readings);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ cmlId: "CML-01", tActualMm: 6.5 });
+  });
 });
 
 describe("PDF vector tree (PDF-01/PDF-02)", () => {
