@@ -42,6 +42,9 @@ import type { NarrativeHistory } from "@/lib/reasoning/narrative-context";
 export const RESULTS_PAGE_SIZE = 50;
 const TODAY = new Date().toISOString().slice(0, 10);
 
+/** VIS-03: rows matching the heatmap-selected CML carry this testid. */
+export const ROW_HIGHLIGHTED_TESTID = "results-row-highlighted";
+
 const TOGGLEABLE_FLAGS: ReadingFlag[] = ["measurement_inconsistency", "outlier"];
 
 const NUMERIC_CELL = "border border-border px-3 py-2 font-mono tabular-nums whitespace-nowrap";
@@ -209,6 +212,7 @@ export function ResultsTable({
   onPageChange,
   metadata,
   evaluatedAt,
+  highlightedCmlId = null,
 }: {
   readings: ReadingResult[];
   page: number;
@@ -217,6 +221,8 @@ export function ResultsTable({
    * error state; the demo path always supplies both via Screen 3). */
   metadata?: ComponentMetadata;
   evaluatedAt?: string;
+  /** VIS-03: selected heatmap CML identity (`cml ?? location`) — matching rows highlight. */
+  highlightedCmlId?: string | null;
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [reasoningOpen, setReasoningOpen] = useState<Record<string, boolean>>({});
@@ -340,9 +346,18 @@ export function ResultsTable({
               // is positionally aligned to it (groupByCml 1:1 with inputs).
               const dataIndex = start - 1 + i;
               const rowKey = resultRowKey(reading.readingId, dataIndex);
+              // VIS-03: the heatmap's selected CML highlights every matching
+              // row (identity `cml ?? location` — same seam as the heatmap).
+              const isHighlighted =
+                highlightedCmlId !== null &&
+                (reading.cml ?? reading.location) === highlightedCmlId;
               return (
                 [
-                  <tr key={rowKey} className="bg-background">
+                  <tr
+                    key={rowKey}
+                    className={isHighlighted ? "bg-secondary" : "bg-background"}
+                    data-testid={isHighlighted ? ROW_HIGHLIGHTED_TESTID : undefined}
+                  >
                     <td className={`border border-border px-3 py-2 ${STICKY_LEFT_TD}`}>
                       <span
                         className="block max-w-[14rem] truncate"

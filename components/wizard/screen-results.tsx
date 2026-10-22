@@ -48,6 +48,14 @@ import {
 } from "@/lib/report/content";
 import { FindingsBrief } from "@/components/wizard/findings-brief";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
+import { CmlHeatmap } from "@/components/analytics/cml-heatmap";
+import { TrendCurve } from "@/components/analytics/trend-curve";
+import { MetricGauge } from "@/components/analytics/metric-gauge";
+import {
+  buildGoverningTrendPoints,
+  buildLatestPerCml,
+} from "@/lib/analytics/adapters";
+import type { CmlHeatmapItem } from "@/lib/analytics/geometry";
 import type {
   ComponentMetadata,
   EvaluationResults,
@@ -59,6 +67,88 @@ import type {
 import type { TargetField } from "@/lib/ingest/session";
 
 export type ResultsTab = "all" | "attention";
+
+/** VIS-03: rows matching the heatmap-selected CML carry this testid. */
+export const ROW_HIGHLIGHTED_TESTID = "results-row-highlighted";
+
+/**
+ * Visual Inspection Analytics panel (Phase 9 / VIS-02..04): collapsible mount
+ * above the findings tabs — spatial heatmap, governing-CML trend curve, and
+ * safety-margin gauge. All values are precomputed evaluate() outputs projected
+ * by lib/analytics (zero arithmetic here); the heatmap's selected CML is
+ * relayed straight into the results table's row-highlight hook.
+ */
+function VisualAnalyticsPanel({
+  readings,
+  metadata,
+  selectedCmlId,
+  onSelectCml,
+}: {
+  readings: ReadingResult[];
+  metadata: ComponentMetadata;
+  selectedCmlId: string | null;
+  onSelectCml: (cmlId: string | null) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const heatmapItems = useMemo(() => buildLatestPerCml(readings), [readings]);
+  const governing = useMemo(() => buildGoverningTrendPoints(readings), [readings]);
+
+  if (readings.length === 0) {
+    return (
+      <section
+        data-testid="visual-analytics-empty"
+        className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground"
+      >
+        Visual analytics appear once readings are evaluated.
+      </section>
+    );
+  }
+
+  return (
+    <section
+      data-testid="visual-analytics-panel"
+      aria-label="Visual Inspection Analytics"
+      className="rounded-xl border border-border bg-card p-6"
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold tracking-tight">
+          Visual Inspection Analytics
+        </h2>
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((v) => !v)}
+          className="rounded px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          {expanded ? "Hide" : "Show"}
+        </button>
+      </div>
+      {expanded && (
+        <div className="mt-4 flex flex-col gap-6">
+          <CmlHeatmap
+            cmls={heatmapItems}
+            selectedCmlId={selectedCmlId}
+            onSelect={(item: CmlHeatmapItem | null) => onSelectCml(item?.cmlId ?? null)}
+          />
+          {governing.points.length > 0 && governing.crGoverningMmYr !== null && (
+            <TrendCurve
+              points={governing.points}
+              tRequiredMm={governing.tRequiredMm}
+              crGoverningMmYr={governing.crGoverningMmYr}
+            />
+          )}
+          <MetricGauge
+            label="Governing CML safety margin"
+            currentMm={governing.points.at(-1)?.thicknessMm ?? 0}
+            tRequiredMm={governing.tRequiredMm}
+            tNominalMm={metadata.tNominal}
+            crMmYr={governing.crGoverningMmYr}
+          />
+        </div>
+      )}
+    </section>
+  );
+}
 
 /**
  * Filter changes (tab or query) always reset the table's page to 1 — the
@@ -163,6 +253,9 @@ export function ScreenResultsContent({
   const [unresolvedCitations, setUnresolvedCitations] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   const [savedVisible, setSavedVisible] = useState(false);
+  // VIS-03: the heatmap's selected CML — relayed straight into the results
+  // table's row-highlight hook.
+  const [selectedCmlId, setSelectedCmlId] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const visibleReadings = useMemo(
@@ -238,6 +331,15 @@ export function ScreenResultsContent({
             wrapper spacing). Fed exclusively by the 06-01 pure builder. */}
         <FindingsBrief summary={summary} readings={results.readings} />
 
+        {/* Visual Inspection Analytics (Phase 9 / VIS-02..04) — heatmap click
+            relays the selected CML into the table's row-highlight below. */}
+        <VisualAnalyticsPanel
+          readings={results.readings}
+          metadata={metadata}
+          selectedCmlId={selectedCmlId}
+          onSelectCml={setSelectedCmlId}
+        />
+
         {/* KPI stat cards — real evaluation counts only (never mock numbers). */}
         <section aria-label="Finding metrics" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <KpiCard label="Accepted" value={summary.accept} valueClass="text-green-400" />
@@ -304,6 +406,7 @@ export function ScreenResultsContent({
             onPageChange={onPageChange}
             metadata={metadata}
             evaluatedAt={evaluatedAt ?? undefined}
+            highlightedCmlId={selectedCmlId}
           />
         )}
 

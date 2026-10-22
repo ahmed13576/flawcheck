@@ -35,6 +35,10 @@ import {
 } from "@/lib/report/content";
 import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
+import { calcTrendCurveGeometry, type TrendPoint, type CmlHeatmapItem } from "@/lib/analytics/geometry";
+import { buildLatestPerCml } from "@/lib/analytics/adapters";
+import { PdfTrendCurve } from "@/components/report/pdf-trend-curve";
+import { PdfHeatmap } from "@/components/report/pdf-heatmap";
 
 const styles = StyleSheet.create({
   body: { fontFamily: "Helvetica", fontSize: 9, color: "#111111", padding: 24, paddingBottom: 28 },
@@ -149,6 +153,42 @@ export function getTop10Worst(
   return [...readings].sort(compareReadingSeverity).slice(0, 10);
 }
 
+/**
+ * Governing-CML degradation history for the page-2 trend curve (Phase 9):
+ * worst CML by severity, its dated thickness points sorted by date, the
+ * t_required line, and the governing corrosion rate — all precomputed
+ * evaluate() outputs projected by lib/analytics/geometry (no new arithmetic).
+ */
+export function buildGoverningTrendPoints(
+  readings: ReportSnapshot["readings"],
+): { points: TrendPoint[]; cmlId: string; tRequiredMm: number; crGoverningMmYr: number | null } {
+  const worst = [...readings].sort(compareReadingSeverity)[0];
+  if (!worst) return { points: [], cmlId: "", tRequiredMm: 0, crGoverningMmYr: null };
+  const identity = worst.cml ?? worst.location;
+  const points = readings
+    .filter((r) => (r.cml ?? r.location) === identity)
+    .map((r) => ({ date: r.date ?? "", thicknessMm: r.tActualMm }))
+    .filter((p) => p.date !== "")
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return {
+    points,
+    cmlId: identity,
+    tRequiredMm: worst.tRequiredMm,
+    crGoverningMmYr: worst.crGoverningMmYr,
+  };
+}
+
+/**
+ * Heatmap cells for the page-1 spatial severity matrix (Phase 9 / F-03):
+ * deduplicates readings sharing a CML identity, keeping the LATEST reading —
+ * duplicate React keys in the PDF tree crash the renderer otherwise.
+ */
+export function toHeatmapItems(
+  readings: ReportSnapshot["readings"],
+): CmlHeatmapItem[] {
+  return buildLatestPerCml(readings);
+}
+
 function flagsLine(reading: ReportSnapshot["readings"][number]): string {
   const labels = reading.flags.map((f) => formatFlagLabel(f)).join(", ");
   return labels.length > 0 ? labels : "—";
@@ -184,6 +224,11 @@ export function buildPdfDocument(
   // 06-01 dashboard derivations — pure compositions from the content seam.
   const breakdown = buildCodeBreakdown(snapshot.summary, snapshot.readings);
   const top10 = getTop10Worst(snapshot.readings);
+
+  // Phase 9 analytics derivations — heatmap grid (page 1) and the governing
+  // CML's degradation history (page 2). All values precomputed by evaluate().
+  const heatmapItems = toHeatmapItems(snapshot.readings);
+  const trend = buildGoverningTrendPoints(snapshot.readings);
 
   // CR-02: Make disposition aware of both UT summary and PT/MT surface indications
   const hasPtmtReject = (snapshot.indications ?? []).some((i) => i.verdict === "reject");
@@ -344,6 +389,19 @@ export function buildPdfDocument(
           ))}
         </View>
 
+        {/* 4b) Spatial severity heatmap — verdict-coded matrix of the latest
+               reading per CML (Phase 9 / PDF-02; 100% vector via PdfHeatmap). */}
+        {heatmapItems.length > 0 && (
+          <View style={{ marginTop: 10 }}>
+            <Text style={styles.sectionLabel}>Spatial severity heatmap</Text>
+            <PdfHeatmap cmls={heatmapItems} />
+            <Text style={styles.monoSmall}>
+              Green: accept · Amber: re-check · Red: fail — one cell per CML
+              (latest reading). Vector art, no rasterization.
+            </Text>
+          </View>
+        )}
+
         {/* 5) What-to-do-next line (UI-6.18 / CR-02). */}
         <Text style={styles.summaryStat}>{whatToDoNext}</Text>
 
@@ -420,6 +478,28 @@ export function buildPdfDocument(
                 <Text style={styles.cellWide}>{citationRef(ind.citationId) || "—"}</Text>
               </View>
             ))}
+          </View>
+        )}
+
+        {/* Governing-CML degradation projection — vector trend curve above
+            the detail register (Phase 9 / PDF-01). */}
+        {trend.points.length > 0 && (
+          <View style={{ marginTop: 8 }}>
+            <Text style={styles.sectionLabel}>
+              {`Degradation Projection — ${trend.cmlId}`}
+            </Text>
+            <PdfTrendCurve
+              geometry={calcTrendCurveGeometry(
+                trend.points,
+                trend.tRequiredMm,
+                trend.crGoverningMmYr ?? 0,
+              )}
+              title={`Degradation Projection — ${trend.cmlId}`}
+              caption={`Governing corrosion rate: ${trend.crGoverningMmYr === null ? "—" : `${formatFixed(trend.crGoverningMmYr, 3)} mm/yr`} · ±0.1 mm gauge-uncertainty envelope`}
+            />
+            <Text style={styles.monoSmall}>
+              {`Historical thickness readings with the linear degradation slope, the t-required limit, and the ±0.1 mm gauge-uncertainty envelope. Governing corrosion rate: ${trend.crGoverningMmYr === null ? "—" : `${formatFixed(trend.crGoverningMmYr, 3)} mm/yr`}.`}
+            </Text>
           </View>
         )}
 

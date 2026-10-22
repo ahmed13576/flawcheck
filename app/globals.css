@@ -176,3 +176,23 @@ body {
   padding: 0;
   margin: 0;
 }
+
+/* --- Visual analytics animation (Phase 9, VIS-02/PDF-04) ---
+   The line-draw animation is driven by an inline stroke-dashoffset transition
+   (GPU-compositor-friendly). This keyframe defines the draw; every consumer
+   element also carries motion-reduce:animate-none so
+   prefers-reduced-motion: reduce renders the final state immediately. */
+@keyframes trend-draw {
+  from {
+    stroke-dashoffset: var(--trend-draw-length, 1000);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trend-draw-animated {
+    animation: none !important;
+  }
+}

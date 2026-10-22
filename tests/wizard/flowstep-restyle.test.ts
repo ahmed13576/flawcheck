@@ -401,8 +401,15 @@ describe("FS-09 Screen 3 hero card + 4 KPI stat cards fed by real summary counts
     expect(markup).toContain("21"); // fail
     expect(markup).toContain("37"); // locations
     // The mock's placeholder numbers are data — they must never render.
+    // Scope: the KPI section only (the pin's original target — the four stat
+    // cards). The analytics panel (Phase 9) renders SVG geometry whose float
+    // attributes (e.g. stroke-dashoffset="66.26447212…224…") can coincidentally
+    // contain digit runs like "224" — those are layout math, not data, and
+    // every mock number is additionally asserted absent from the KPI block.
+    const kpiRegion = markup.match(/<section aria-label="Finding metrics"[\s\S]*?<\/section>/)?.[0] ?? "";
+    expect(kpiRegion).not.toBe("");
     for (const mockNumber of ["3,812", "876", "224", "4,912"]) {
-      expect(markup).not.toContain(mockNumber);
+      expect(kpiRegion).not.toContain(mockNumber);
     }
   });
 });
