@@ -56,7 +56,7 @@ Parse → Calculate → Narrate → Render
 | Role | Model | Usage |
 |---|---|---|
 | Acceptance narrative | `nvidia/nemotron-3-super-120b-a12b` | Streaming SSE, reasoning_effort: low |
-| Extraction + structuring | `nvidia/Nemotron-3_5-Lightning` | Batched, json_object mode |
+| Extraction + structuring | `nvidia/nemotron-3-super-120b-a12b` | Batched, json_object mode |
 | Deterministic fallback | — (pure TypeScript) | Always available, zero cost |
 
 Model IDs are env-configured and validated at startup against the live `/v1/models` catalog.
@@ -87,7 +87,7 @@ The app is a stock Next.js 16 project (Node-runtime API routes, SSE streaming, r
 | `NEBIUS_API_KEY` | yes | your Token Factory key |
 | `NEBIUS_BASE_URL` | no | defaults to `https://api.tokenfactory.nebius.com/v1/` |
 | `NEBIUS_MODEL_REASONING` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |
-| `NEBIUS_MODEL_EXTRACTION` | no | defaults to `nvidia/Nemotron-3_5-Lightning` |
+| `NEBIUS_MODEL_EXTRACTION` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |
 | `TAVILY_API_KEY` | no | enables the code-edition source lookup |
 | `FLAWCHECK_DISABLE_LLM` | no | `1` = deterministic fallback mode, zero LLM calls |
 
