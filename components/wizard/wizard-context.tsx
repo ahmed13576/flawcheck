@@ -25,9 +25,9 @@ interface WizardContextValue {
 
 const WizardContext = createContext<WizardContextValue | null>(null);
 
-const WIZARD_SESSION_KEY = "flawcheck:wizard-state:v1";
+export const WIZARD_SESSION_KEY = "flawcheck:wizard-state:v1";
 
-function serializeWizardState(state: WizardState): string {
+export function serializeWizardState(state: WizardState): string {
   if (state.source.isDemo) {
     // For demo scenario, save compact descriptor to prevent hitting browser 5MB sessionStorage quota
     return JSON.stringify({
@@ -52,8 +52,10 @@ function serializeWizardState(state: WizardState): string {
  * exists (server renders Screen 1, client restores Screen 3) and Next discards
  * the server HTML — the hydration-mismatch crash seen on deployed builds.
  * Initial state is always createInitialState() so it byte-matches the server.
+ *
+ * Exported pure for the node test-suite (never called during render).
  */
-function readSavedWizardState(): WizardState | null {
+export function readSavedWizardState(): WizardState | null {
   if (typeof sessionStorage === "undefined") return null;
   try {
     const saved = sessionStorage.getItem(WIZARD_SESSION_KEY);

@@ -31,6 +31,7 @@ import {
   buildWhatToDoNextLine,
   VERDICT_GLOSSARY,
   VERDICT_GLOSSARY_ORDER,
+  REINSPECTION_CITATION_ID,
 } from "@/lib/report/content";
 import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
@@ -48,10 +49,16 @@ const styles = StyleSheet.create({
   table: { marginTop: 8 },
   tableRow: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: "#cccccc", paddingVertical: 3 },
   tableHeader: { fontWeight: 700, borderBottomWidth: 1, borderBottomColor: "#111111" },
-  cellName: { width: "22%", fontSize: 8 },
-  cellNum: { width: "11%", fontSize: 8, fontFamily: "Courier" },
-  cellWide: { width: "15%", fontSize: 8 },
-  cellFlags: { width: "13%", fontSize: 8 },
+  // Page 1 Top-10 columns (sum to exactly 100%: 34 + 16 + 16 + 16 + 18 = 100%)
+  cellNameP1: { width: "34%", fontSize: 8 },
+  cellNumP1: { width: "16%", fontSize: 8, fontFamily: "Courier" },
+  cellWideP1: { width: "18%", fontSize: 8 },
+  // Page 2 detail table columns (sum to exactly 100%: 20 + 10 + 10 + 11 + 10 + 14 + 15 + 10 = 100%)
+  cellName: { width: "20%", fontSize: 8 },
+  cellNum: { width: "10%", fontSize: 8, fontFamily: "Courier" },
+  cellNumGov: { width: "11%", fontSize: 8, fontFamily: "Courier" },
+  cellWide: { width: "14%", fontSize: 8 },
+  cellFlags: { width: "15%", fontSize: 8 },
   monoSmall: { fontFamily: "Courier", fontSize: 7, color: "#444444" },
   callout: { backgroundColor: "#fdf3d8", padding: 8, marginTop: 10 },
   calloutTitle: { fontSize: 11, fontWeight: 700 },
@@ -67,6 +74,25 @@ const styles = StyleSheet.create({
 
 function dateOnly(iso: string): string {
   return iso.slice(0, 10);
+}
+
+function compareReadingSeverity(
+  a: ReportSnapshot["readings"][number],
+  b: ReportSnapshot["readings"][number],
+): number {
+  const aImm = a.flags.includes("immediate_inspection") ? 0 : 1;
+  const bImm = b.flags.includes("immediate_inspection") ? 0 : 1;
+  if (aImm !== bImm) return aImm - bImm;
+
+  const verdictRank = (v: string) => (v === "reject" ? 0 : v === "re_check" ? 1 : 2);
+  const aRank = verdictRank(a.verdict);
+  const bRank = verdictRank(b.verdict);
+  if (aRank !== bRank) return aRank - bRank;
+
+  if (a.rlYears === null && b.rlYears === null) return 0;
+  if (a.rlYears === null) return 1;
+  if (b.rlYears === null) return -1;
+  return a.rlYears - b.rlYears;
 }
 
 export function getGoverningPdfReadings(
@@ -88,38 +114,39 @@ export function getGoverningPdfReadings(
       r.verdict === "re_check" ||
       r.flags.includes("immediate_inspection"),
   );
-  const flaggedIds = new Set(flagged.map((r) => r.readingId));
 
+  if (flagged.length >= limit) {
+    const sortedFlagged = [...flagged].sort(compareReadingSeverity).slice(0, limit);
+    return { governingReadings: sortedFlagged, isFiltered: true, totalCount };
+  }
+
+  const flaggedIds = new Set(flagged.map((r) => r.readingId));
   const others = readings.filter((r) => !flaggedIds.has(r.readingId));
   others.sort((a, b) => {
-    const rlA = a.rlYears ?? Number.POSITIVE_INFINITY;
-    const rlB = b.rlYears ?? Number.POSITIVE_INFINITY;
-    return rlA - rlB;
+    if (a.rlYears === null && b.rlYears === null) return 0;
+    if (a.rlYears === null) return 1;
+    if (b.rlYears === null) return -1;
+    return a.rlYears - b.rlYears;
   });
 
-  const remainingQuota = Math.max(0, limit - flagged.length);
+  const remainingQuota = limit - flagged.length;
   const selectedOthers = others.slice(0, remainingQuota);
 
-  const combined = [...flagged, ...selectedOthers].slice(0, limit);
+  const combined = [...flagged, ...selectedOthers];
   return { governingReadings: combined, isFiltered: true, totalCount };
 }
 
 /**
- * Top-10 worst locations (06-01, UI-6.17): takes the flagged-first governing
- * slice getGoverningPdfReadings(readings, 10).governingReadings and RL-sorts
- * THAT SLICE ascending with null RL last (the locked RL-ascending decision
- * for the top-10 slice ONLY — the page-2+ register keeps the unsorted
- * governing ordering). Exported pure for the node test-suite.
+ * Top-10 worst locations (06-01, UI-6.17 / CR-01): takes all candidate readings,
+ * ranks by severity (immediate_inspection first, then rejects, then re-checks,
+ * then rlYears ascending with null RL last) before slicing to 10. Avoids
+ * pre-sort truncation that hid critical defects beyond row 10.
+ * Exported pure for the node test-suite.
  */
 export function getTop10Worst(
   readings: ReportSnapshot["readings"],
 ): ReportSnapshot["readings"] {
-  const { governingReadings } = getGoverningPdfReadings(readings, 10);
-  return [...governingReadings].sort((a, b) => {
-    const rlA = a.rlYears ?? Number.POSITIVE_INFINITY;
-    const rlB = b.rlYears ?? Number.POSITIVE_INFINITY;
-    return rlA - rlB;
-  });
+  return [...readings].sort(compareReadingSeverity).slice(0, 10);
 }
 
 function flagsLine(reading: ReportSnapshot["readings"][number]): string {
@@ -148,10 +175,6 @@ export function buildPdfDocument(
   );
   const conclusions = buildConclusions(snapshot);
   const nextInsp = earliestNextInspection(snapshot);
-  const ruleCite =
-    snapshot.readings.find((r) => r.verdict !== "accept")?.citations[0] ??
-    snapshot.readings[0]?.citations[1] ??
-    null;
 
   const { governingReadings, isFiltered, totalCount } = getGoverningPdfReadings(
     snapshot.readings,
@@ -161,19 +184,52 @@ export function buildPdfDocument(
   // 06-01 dashboard derivations — pure compositions from the content seam.
   const breakdown = buildCodeBreakdown(snapshot.summary, snapshot.readings);
   const top10 = getTop10Worst(snapshot.readings);
-  const dispositionHeading =
-    snapshot.summary.fail > 0
-      ? "ACTION REQUIRED — DEFECTS DETECTED"
-      : snapshot.summary.reCheck > 0
-        ? "ATTENTION — RE-CHECK REQUIRED"
-        : "ACCEPTABLE FOR CONTINUED SERVICE";
+
+  // CR-02: Make disposition aware of both UT summary and PT/MT surface indications
+  const hasPtmtReject = (snapshot.indications ?? []).some((i) => i.verdict === "reject");
+  const hasPtmtReCheck = (snapshot.indications ?? []).some((i) => i.verdict === "re_check");
+  const hasFail = snapshot.summary.fail > 0 || hasPtmtReject;
+  const hasReCheck = snapshot.summary.reCheck > 0 || hasPtmtReCheck;
+
+  const dispositionHeading = hasFail
+    ? "ACTION REQUIRED — DEFECTS DETECTED"
+    : hasReCheck
+      ? "ATTENTION — RE-CHECK REQUIRED"
+      : "ACCEPTABLE FOR CONTINUED SERVICE";
+
   // WR-01: amber for the RE-CHECK tone — green is reserved for the all-accept
   // disposition; "ATTENTION — RE-CHECK REQUIRED" must not read as acceptable.
-  const dispositionTone = snapshot.summary.fail > 0
+  const dispositionTone = hasFail
     ? "#991b1b"
-    : snapshot.summary.reCheck > 0
+    : hasReCheck
       ? "#b45309"
       : "#047857";
+
+  let dispositionSentence: string;
+  if (hasPtmtReject) {
+    if (snapshot.summary.fail > 0) {
+      dispositionSentence = `${buildDispositionBannerSentence(snapshot.summary)} Rejected PT/MT weld indications detected.`;
+    } else {
+      dispositionSentence = "PT/MT surface examination revealed rejected weld indications — action required before continued service.";
+    }
+  } else if (hasPtmtReCheck && snapshot.summary.fail === 0 && snapshot.summary.reCheck === 0) {
+    dispositionSentence = "PT/MT surface examination revealed indications requiring re-check before disposition.";
+  } else {
+    dispositionSentence = buildDispositionBannerSentence(snapshot.summary);
+  }
+
+  let whatToDoNext: string;
+  if (hasPtmtReject) {
+    if (snapshot.summary.fail > 0) {
+      whatToDoNext = "Immediate action: re-measure failing locations and disposition rejected PT/MT weld indications before continued service.";
+    } else {
+      whatToDoNext = "Immediate action: evaluate and disposition the rejected PT/MT weld indications before continued service.";
+    }
+  } else if (hasPtmtReCheck && snapshot.summary.fail === 0 && snapshot.summary.reCheck === 0) {
+    whatToDoNext = "Next action: re-examine the flagged PT/MT weld indications before disposition.";
+  } else {
+    whatToDoNext = buildWhatToDoNextLine(snapshot.summary);
+  }
   const count = (n: number) => n.toLocaleString("en-US");
 
   // The page-number footer renders on EVERY page (UI-6.13) — one render node
@@ -210,7 +266,7 @@ export function buildPdfDocument(
           <Text style={[styles.summaryDisposition, { color: dispositionTone }]}>
             {dispositionHeading}
           </Text>
-          <Text style={styles.summaryStat}>{buildDispositionBannerSentence(snapshot.summary)}</Text>
+          <Text style={styles.summaryStat}>{dispositionSentence}</Text>
         </View>
 
         {/* 2) Executive summary card (moved onto page 1; "Total CMLs" → "Total readings" — P5). */}
@@ -265,42 +321,42 @@ export function buildPdfDocument(
         <Text style={styles.sectionLabel}>Top-10 worst locations</Text>
         <View style={styles.table}>
           <View wrap={false} style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={styles.cellName}>CML / Location</Text>
-            <Text style={styles.cellNum}>t-actual (mm)</Text>
-            <Text style={styles.cellNum}>t-required (mm)</Text>
-            <Text style={styles.cellNum}>RL (yr)</Text>
-            <Text style={styles.cellWide}>Verdict</Text>
+            <Text style={styles.cellNameP1}>CML / Location</Text>
+            <Text style={styles.cellNumP1}>t-actual (mm)</Text>
+            <Text style={styles.cellNumP1}>t-required (mm)</Text>
+            <Text style={styles.cellNumP1}>RL (yr)</Text>
+            <Text style={styles.cellWideP1}>Verdict</Text>
           </View>
           {top10.map((r) => (
             <View key={r.readingId} wrap={false} style={styles.tableRow}>
-              <Text style={styles.cellName}>{r.cml ?? r.location}</Text>
-              <Text style={styles.cellNum}>{formatFixed(r.tActualMm, 2)}</Text>
-              <Text style={styles.cellNum}>{formatFixed(r.tRequiredMm, 2)}</Text>
-              <Text style={styles.cellNum}>
+              <Text style={styles.cellNameP1}>{r.cml ?? r.location}</Text>
+              <Text style={styles.cellNumP1}>{formatFixed(r.tActualMm, 2)}</Text>
+              <Text style={styles.cellNumP1}>{formatFixed(r.tRequiredMm, 2)}</Text>
+              <Text style={styles.cellNumP1}>
                 {r.rlYears === null
                   ? "—"
                   : r.rlYears <= 0
                     ? "0.0 (RETIRED)"
                     : formatFixed(r.rlYears, 1)}
               </Text>
-              <Text style={styles.cellWide}>{verdictLabel(r.verdict)}</Text>
+              <Text style={styles.cellWideP1}>{verdictLabel(r.verdict)}</Text>
             </View>
           ))}
         </View>
 
-        {/* 5) What-to-do-next line (UI-6.18). */}
-        <Text style={styles.summaryStat}>{buildWhatToDoNextLine(snapshot.summary)}</Text>
+        {/* 5) What-to-do-next line (UI-6.18 / CR-02). */}
+        <Text style={styles.summaryStat}>{whatToDoNext}</Text>
 
         {/* 6) CSV pointer — static text, no hyperlink this phase (UI-6.19). */}
         <Text style={styles.footer}>{buildCsvPointerLine(totalCount)}</Text>
 
-        {/* 7) Verdict glossary footer — sub-lines ONLY via citationRef (UI-6.12). */}
+        {/* 7) Verdict glossary footer — sub-lines ONLY via citationRef (UI-6.12 / WR-01). */}
         <Text style={styles.gridLabel}>Verdict glossary</Text>
         {VERDICT_GLOSSARY_ORDER.map((verdict) => {
           const entry = VERDICT_GLOSSARY[verdict];
           return (
             <View key={verdict}>
-              <Text style={styles.footer}>{entry.plain}</Text>
+              <Text style={styles.footer}>{`${verdictLabel(verdict)} — ${entry.plain}`}</Text>
               <Text style={styles.monoSmall}>
                 {entry.citationId ? citationRef(entry.citationId) : ""}
               </Text>
@@ -376,11 +432,11 @@ export function buildPdfDocument(
           </Text>
         )}
         <View style={styles.table}>
-          <View wrap={false} style={[styles.tableRow, styles.tableHeader]}>
+          <View fixed wrap={false} style={[styles.tableRow, styles.tableHeader]}>
             <Text style={styles.cellName}>CML / Location</Text>
             <Text style={styles.cellNum}>t-actual (mm)</Text>
             <Text style={styles.cellNum}>t-required (mm)</Text>
-            <Text style={styles.cellNum}>CR gov. (mm/yr)</Text>
+            <Text style={styles.cellNumGov}>CR gov. (mm/yr)</Text>
             <Text style={styles.cellNum}>RL (yr)</Text>
             <Text style={styles.cellWide}>Next inspection</Text>
             <Text style={styles.cellFlags}>Flags</Text>
@@ -391,7 +447,7 @@ export function buildPdfDocument(
               <Text style={styles.cellName}>{r.cml ?? r.location}</Text>
               <Text style={styles.cellNum}>{formatFixed(r.tActualMm, 2)}</Text>
               <Text style={styles.cellNum}>{formatFixed(r.tRequiredMm, 2)}</Text>
-              <Text style={styles.cellNum}>{r.crGoverningMmYr === null ? "—" : formatFixed(r.crGoverningMmYr, 3)}</Text>
+              <Text style={styles.cellNumGov}>{r.crGoverningMmYr === null ? "—" : formatFixed(r.crGoverningMmYr, 3)}</Text>
               <Text style={styles.cellNum}>
                 {r.rlYears === null
                   ? "—"
@@ -422,7 +478,7 @@ export function buildPdfDocument(
         {nextInsp ? (
           <View style={styles.callout}>
             <Text style={styles.calloutTitle}>Next inspection: {nextInsp.split(" ")[0] ?? nextInsp}</Text>
-            <Text style={styles.monoSmall}>Rule applied: {ruleCite ? citationRef(ruleCite) : "—"}</Text>
+            <Text style={styles.monoSmall}>Rule applied: {citationRef(REINSPECTION_CITATION_ID)}</Text>
           </View>
         ) : null}
 
