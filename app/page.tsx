@@ -17,6 +17,7 @@ import { ScreenResults } from "@/components/wizard/screen-results";
 import { MetadataForm } from "@/components/wizard/metadata-form";
 import { PtmtEntry } from "@/components/wizard/ptmt-entry";
 import { ConfirmDialog } from "@/components/wizard/confirm-dialog";
+import { DemoBanner } from "@/components/wizard/demo-banner";
 import { metadataProblems, type MetadataDraftField } from "@/lib/wizard/reducer";
 import {
   buildReportSnapshot,
@@ -24,24 +25,10 @@ import {
 } from "@/lib/report/session-snapshot";
 
 /**
- * Demo provenance banner (UI-21, 06-02 UI-6.23): scope-aware — the copy
- * distinguishes the committed WBT-S6 subset from the full-register scale
- * demo; both retain "(sample data)". Exported pure for the node test-suite.
+ * Demo provenance banner — rendered from components/wizard/demo-banner.tsx
+ * (kept in a component module: Next.js forbids extra named exports from page
+ * files, and the node test-suite imports the pure component directly).
  */
-export function DemoBanner({ scope }: { scope: "subset" | "full" }) {
-  const copy =
-    scope === "full"
-      ? "Demo scenario loaded — Zenodo record 16780668 full register (sample data)"
-      : "Demo scenario loaded — Zenodo record 16780668 subset (sample data)";
-  return (
-    <div
-      role="status"
-      className="mb-4 rounded-none border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary"
-    >
-      {copy}
-    </div>
-  );
-}
 
 function WizardRoot() {
   const { state, dispatch } = useWizard();
