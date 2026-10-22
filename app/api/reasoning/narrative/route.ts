@@ -42,8 +42,6 @@ import { checkRateLimit, clientIp, rateLimitedResponse } from "@/lib/api/rate-li
 
 export const runtime = "nodejs";
 
-export { isLlmDisabled };
-
 /** citations.json prose corpus for the verbatim n-gram lint. */
 function citationCorpus(): string[] {
   return criteria.citations.flatMap((c) => [c.title, c.scope_note]);

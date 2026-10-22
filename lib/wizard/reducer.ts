@@ -142,7 +142,12 @@ export type WizardAction =
   | { type: "remove-indication"; id: string }
   | { type: "evaluation-start" }
   | { type: "run-evaluation"; evaluateFn?: EvaluateFn }
-  | { type: "reset" };
+  | { type: "reset" }
+  /** Replace the whole state with a saved session. Fired from a
+   * post-hydration effect only (WizardProvider) — never during render.
+   * Server and first client render must produce identical trees, so
+   * storage reads may never happen inside the reducer's initializer. */
+  | { type: "restore-session"; state: WizardState };
 
 // --- presets ------------------------------------------------------------------
 
@@ -868,6 +873,9 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
 
     case "reset":
       return createInitialState();
+
+    case "restore-session":
+      return action.state;
 
     default:
       return state;
