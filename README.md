@@ -4,7 +4,7 @@ Turn raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into code-
 
 **Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackathons)** · Track: Best Apps and Agents
 
-![tests](https://img.shields.io/badge/tests-504%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16-black) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%20on%20Nebius-76b900)
+![tests](https://img.shields.io/badge/tests-648%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16-black) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%20on%20Nebius-76b900)
 
 > **The invariant:** TypeScript computes every number — the LLM never touches arithmetic. Every verdict is deterministic, every citation is renderer-locked, every report is audit-stamped.
 
@@ -68,7 +68,7 @@ Tavily performs a post-acceptance code-edition lookup (one basic search per eval
 ## Testing
 
 ```bash
-npm test          # 504 hermetic tests (zero network, key-independent)
+npm test          # 648 hermetic tests (zero network, key-independent)
 npm run typecheck # strict TS
 npm run lint      # eslint (0 errors)
 npm run build     # production build
