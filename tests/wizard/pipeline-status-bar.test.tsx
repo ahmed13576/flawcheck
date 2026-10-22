@@ -11,7 +11,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { PipelineStatusBar } from "@/components/wizard/pipeline-status-bar";
-import { ReasoningProvider } from "@/components/wizard/reasoning-context";
+import type { PtmIndicationResult } from "@/lib/ingest/session";
+import type { ExtractionResult } from "@/lib/reasoning/schemas";
 import {
   createNarrativeStore,
   narrativeKey,
@@ -174,9 +175,19 @@ describe("PipelineStatusBar markup", () => {
       "fetch",
       vi.fn(async () => new Promise(() => {})),
     );
-    store.open(narrativeKey("E1", "ptmt", "ind-1"), { kind: "ptmt", evaluatedAt: "E1", indication: {} as any }, { allowNarration: true });
+    store.open(
+      narrativeKey("E1", "ptmt", "ind-1"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult },
+      { allowNarration: true },
+    );
     const html = renderToStaticMarkup(
-      createElement(PipelineStatusBar, { extractionOverride: { state: "complete", pack: {} as any, usage: { promptTokens: 10, completionTokens: 10, latencyMs: 100, model: "test" } } }),
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 10, latencyMs: 100, model: "test" },
+        },
+      }),
     );
     expect(html).toContain("running…");
   });
