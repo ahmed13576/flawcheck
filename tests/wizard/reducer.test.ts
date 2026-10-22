@@ -744,3 +744,47 @@ describe("wizard reducer — run-evaluation (UI-23)", () => {
     expect(started.ui.evaluationError).toBeNull();
   });
 });
+
+describe("CR-04 wizard navigation — set-screen forward and back rules", () => {
+  it("allows back-navigation (screen 2 to 1, and 3 to 2)", () => {
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    expect(demo.ui.screen).toBe(2);
+    const backTo1 = wizardReducer(demo, { type: "set-screen", screen: 1 });
+    expect(backTo1.ui.screen).toBe(1);
+
+    const evaluated = wizardReducer(demo, { type: "run-evaluation" });
+    expect(evaluated.ui.screen).toBe(3);
+    const backTo2 = wizardReducer(evaluated, { type: "set-screen", screen: 2 });
+    expect(backTo2.ui.screen).toBe(2);
+  });
+
+  it("CR-04 fix: allows forward navigation from Screen 1 to Screen 2 when rows are loaded", () => {
+    // 1. User loads demo or file -> lands on Screen 2
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    expect(demo.ui.screen).toBe(2);
+    expect(demo.csv.rowCount).toBeGreaterThan(0);
+
+    // 2. User clicks 'Back' to return to Screen 1
+    const backTo1 = wizardReducer(demo, { type: "set-screen", screen: 1 });
+    expect(backTo1.ui.screen).toBe(1);
+
+    // 3. User clicks 'Continue to review' (set-screen: 2) -> advances back to Screen 2
+    const forwardTo2 = wizardReducer(backTo1, { type: "set-screen", screen: 2 });
+    expect(forwardTo2.ui.screen).toBe(2);
+  });
+
+  it("prevents arbitrary forward navigation when empty or jumping to Screen 3", () => {
+    // Empty state: cannot advance to Screen 2
+    const initial = createInitialState();
+    expect(initial.ui.screen).toBe(1);
+    const emptyAdvance = wizardReducer(initial, { type: "set-screen", screen: 2 });
+    expect(emptyAdvance.ui.screen).toBe(1);
+
+    // Cannot jump directly from Screen 1 to Screen 3
+    const demo = wizardReducer(createInitialState(), { type: "load-demo" });
+    const onScreen1 = wizardReducer(demo, { type: "set-screen", screen: 1 });
+    const jumpTo3 = wizardReducer(onScreen1, { type: "set-screen", screen: 3 });
+    expect(jumpTo3.ui.screen).toBe(1);
+  });
+});
+

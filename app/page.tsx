@@ -29,7 +29,6 @@ import {
  * (kept in a component module: Next.js forbids extra named exports from page
  * files, and the node test-suite imports the pure component directly).
  */
-
 function WizardRoot() {
   const { state, dispatch } = useWizard();
   const { ui } = state;

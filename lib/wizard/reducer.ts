@@ -144,7 +144,9 @@ export type WizardAction =
   | { type: "run-evaluation"; evaluateFn?: EvaluateFn }
   | { type: "reset" }
   /** Replace the whole state with a saved session. Fired from a
-   * post-hydration effect only (WizardProvider) — never during render. */
+   * post-hydration effect only (WizardProvider) — never during render.
+   * Server and first client render must produce identical trees, so
+   * storage reads may never happen inside the reducer's initializer. */
   | { type: "restore-session"; state: WizardState };
 
 // --- presets ------------------------------------------------------------------
@@ -686,8 +688,14 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
 
     case "set-screen":
       // Forward navigation happens only through parse/run-evaluation success;
-      // set-screen serves back-links (2->1, 3->2) and the lost-state redirect.
-      if (action.screen > state.ui.screen) return state;
+      // set-screen serves back-links (2->1, 3->2), the lost-state redirect,
+      // and re-advancing from Screen 1 to Screen 2 when rows are already loaded (CR-04).
+      if (action.screen > state.ui.screen) {
+        if (state.ui.screen === 1 && action.screen === 2 && state.csv.rowCount > 0) {
+          return { ...state, ui: { ...state.ui, screen: 2 } };
+        }
+        return state;
+      }
       return { ...state, ui: { ...state.ui, screen: action.screen } };
 
     case "set-mapping": {

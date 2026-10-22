@@ -5,8 +5,8 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useReducer,
-  useState,
   type Dispatch,
   type ReactNode,
 } from "react";
@@ -25,9 +25,9 @@ interface WizardContextValue {
 
 const WizardContext = createContext<WizardContextValue | null>(null);
 
-const WIZARD_SESSION_KEY = "flawcheck:wizard-state:v1";
+export const WIZARD_SESSION_KEY = "flawcheck:wizard-state:v1";
 
-function serializeWizardState(state: WizardState): string {
+export function serializeWizardState(state: WizardState): string {
   if (state.source.isDemo) {
     // For demo scenario, save compact descriptor to prevent hitting browser 5MB sessionStorage quota
     return JSON.stringify({
@@ -45,24 +45,36 @@ function serializeWizardState(state: WizardState): string {
 }
 
 /**
- * Read a previously saved wizard session, or null. HYDRATION-SAFE: called
- * only from a post-hydration effect — NEVER during render. The reducer's
- * lazy initializer runs on both the server (Netlify prerender → Screen 1)
- * and the first client render; reading storage there makes the two trees
- * disagree (server Screen 1 vs client Screen 3) and React discards the SSR
- * output with a hydration error. Initial state is always createInitialState()
- * so it byte-matches the server, and restore re-renders afterwards.
+ * HYDRATION-SAFE: called only from a post-hydration effect — NEVER during
+ * render. The reducer's lazy initializer runs on the server (prerender →
+ * createInitialState, Screen 1) and again on the first client render; reading
+ * sessionStorage there makes the two trees disagree when a saved session
+ * exists (server renders Screen 1, client restores Screen 3) and Next discards
+ * the server HTML — the hydration-mismatch crash seen on deployed builds.
+ * Initial state is always createInitialState() so it byte-matches the server.
+ *
+ * Exported pure for the node test-suite (never called during render).
  */
-function readSavedWizardState(): WizardState | null {
+export function readSavedWizardState(): WizardState | null {
   if (typeof sessionStorage === "undefined") return null;
   try {
     const saved = sessionStorage.getItem(WIZARD_SESSION_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed?.__compactDemo) {
-        // Re-hydrate demo scenario cleanly
-        const demoBase = wizardReducer(createInitialState(), { type: "load-demo" });
-        const evaluated = wizardReducer(demoBase, { type: "run-evaluation" });
+        // Re-hydrate demo scenario cleanly. CR-03: the scope stored on the
+        // ui decides subset vs FULL register — always rebuild from the same
+        // scope the user originally loaded (the full-register demo must not
+        // silently collapse to the 420-row subset), and re-run the
+        // evaluation only when the saved session had results.
+        const restoredDemoScope = parsed.ui?.demoScope;
+        const demoBase = wizardReducer(createInitialState(), {
+          type: restoredDemoScope === "full" ? "load-demo-full" : "load-demo",
+        });
+        const hadResults = Boolean(parsed.ui?.evaluatedAt);
+        const evaluated = hadResults
+          ? wizardReducer(demoBase, { type: "run-evaluation" })
+          : demoBase;
         return {
           ...evaluated,
           ui: { ...evaluated.ui, ...(parsed.ui ?? {}) },
@@ -109,23 +121,24 @@ function readSavedWizardState(): WizardState | null {
 }
 
 export function WizardProvider({ children }: { children: ReactNode }) {
-  // Initial state is ALWAYS the fresh Screen-1 state — identical on the
-  // server and the first client render, so hydration succeeds. A saved
-  // session is restored right after mount (below).
+  // Always start from the identical server state (hydration-safe by construction);
+  // any saved session is restored a moment after mount via the effect below.
   const [state, dispatch] = useReducer(wizardReducer, undefined, createInitialState);
-  // Restored flips true after the one-shot restore attempt. The save effect
-  // waits for it: on mount the save would otherwise run first and overwrite
-  // the stored session before the restore pass reads it.
-  const [restored, setRestored] = useState(false);
+  // The FIRST save-effect run corresponds to the pristine mount state — if it
+  // wrote to storage it would clobber the saved session before the restore
+  // dispatch re-renders. Skipping it preserves the session (d2bca54 guarantee).
+  const skipFirstSaveRef = useRef(true);
 
   useEffect(() => {
     const saved = readSavedWizardState();
     if (saved) dispatch({ type: "restore-session", state: saved });
-    setRestored(true);
   }, []);
 
   useEffect(() => {
-    if (!restored) return;
+    if (skipFirstSaveRef.current) {
+      skipFirstSaveRef.current = false;
+      return;
+    }
     if (typeof sessionStorage !== "undefined") {
       try {
         sessionStorage.setItem(WIZARD_SESSION_KEY, serializeWizardState(state));
@@ -133,7 +146,7 @@ export function WizardProvider({ children }: { children: ReactNode }) {
         // Storage full/unavailable: session-only convenience
       }
     }
-  }, [state, restored]);
+  }, [state]);
 
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;
