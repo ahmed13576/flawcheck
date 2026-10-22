@@ -27,7 +27,7 @@ Raw inspection data in → a defensible, code-cited acceptance decision and repo
 - [ ] User can enter PT/MT indication notes and component context
 - [ ] System computes acceptance per applicable code criteria (t-min / remaining-life evaluation, indication assessment) with visible reasoning
 - [ ] System generates a formatted inspection report citing code clauses with clear pass / fail / re-check decisions
-- [ ] Model routing: `nemotron-3-super-120b-a12b` for acceptance reasoning; `Nemotron-3_5-Lightning` for extraction/formatting (corrected by research — Ultra-253B/Nano-Omni removed from Token Factory serverless 2026-08-31)
+- [x] Model routing: `nemotron-3-super-120b-a12b` for BOTH acceptance reasoning and extraction/formatting (2026-10-21 decision: Lightning extraction fails live on master — 'no JSON object found in reply' after retry; Super-120B extraction verified live on fork B — 1,135 tokens / 5.7 s. Commit 96ef082 + c206698 propagated to master 2026-10-21)
 - [ ] Tavily integration for live code-edition / errata / interpretation lookup
 - [ ] Deployed demo reachable via public URL on Nebius infrastructure
 - [ ] 3-minute demo video (with audio) + README highlighting Nebius and NVIDIA model usage
@@ -60,7 +60,7 @@ Raw inspection data in → a defensible, code-cited acceptance decision and repo
 |----------|-----------|---------|
 | Track: Best Apps and Agents | Hardware limits rule out Physical AI; Coding track crowdspace is brutal for a non-SWE builder; domain app maximizes "genuine problem-space understanding" judging points | — Pending |
 | Idea: NDT report copilot (over plant-reliability personal AI, defect photo triage, HVAC checker) | Leverages NDT L2 + ASME edge; lowest AI-slop risk; Nano-heavy usage fits $25 credits; Tavily prize synergy | — Pending |
-| Model routing: Super-120B for acceptance reasoning, Lightning for extraction/formatting | Research correction: Ultra-253B/Nano-Omni removed from Token Factory 2026-08-31; verified live catalog pricing ($0.30/$0.90 vs $0.06/$0.24 per 1M) | — Pending |
+| Model routing: Super-120B for BOTH reasoning and extraction | Superseded 2026-10-21: Lightning extraction failed live (no JSON in reply); Super-120B extraction verified live (1,135 tok / 5.7 s). Cost impact accepted; caching still applies. | Resolved 2026-10-21 |
 | No verbatim ASME text in app or repo | ASME codes are copyrighted; compute from parameters + cite clause numbers instead | — Pending |
 | TypeScript computes every number; LLM only extracts, structures, narrates | LLM arithmetic is where models confidently fail; a wrong digit flips pass→fail on pressure-retaining components (ARCHITECTURE.md invariant, lint-enforced) | — Pending |
 | Stack: Next.js 16 + @react-pdf/renderer on Vercel Hobby; fixed pipeline, no agentic loops | One language/repo, SSE streaming, free tier with verified 300s limit; fixed pipeline protects credits and credibility (STACK.md) | — Pending |
