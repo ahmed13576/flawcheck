@@ -116,3 +116,43 @@ Dataset attribution is unchanged — see `lib/demo/ATTRIBUTION.md`.
 ---
 
 *This report is an engineering aid based on supplied measurements and stated assumptions. Confirm findings, calculations, and disposition through the responsible inspector and applicable procedures.*
+
+---
+
+## System-1 Architecture
+
+FlawCheck uses a dual-renderer analytics layer: one pure geometry engine computes every metric once, and two independent renderers present it — an interactive web SVG layer inside the wizard and a vector PDF layer inside the generated report.
+
+- **`lib/analytics/`** — pure TypeScript geometry engine (no React, no arithmetic outside `lib/calc`): heatmap binning, trend-curve regression, and gauge metrics consumed by both renderers.
+- **`components/analytics/`** — the web SVG renderer (`TrendCurve`, `CmlHeatmap`, `MetricGauge`), shown live in the Screen 3 **VisualInspectionAnalytics** panel after evaluation.
+- **`components/report/pdf-trend-curve.tsx` + `pdf-heatmap.tsx`** — the vector-PDF counterparts (react-pdf) embedded in the report, crisp at any zoom.
+
+Model routing runs through Nebius Token Factory: acceptance narrative and extraction both route to `nvidia/nemotron-3-super-120b-a12b` (see the model table above), with the deterministic pure-TypeScript fallback always available.
+
+## Recent updates
+
+- Extraction now routes to `nemotron-3-super-120b-a12b` (matching reasoning) — verified live against the `/v1/models` catalog, batched `json_object` mode.
+- Typecheck/build unblocked: DemoBanner moved out of `app/page.tsx` into `components/wizard/demo-banner.tsx` (Next 16 route-entry exports), and `scratch/` excluded from `tsconfig.json`.
+- Hydration-safe wizard session restore: saved sessions apply post-hydration via a `restore-session` action, so server and first client render byte-match.
+- PDF page-1 top-10 fixed (CR-01): the top-10 worst-readings block renders correctly on the first page of the report.
+- Past-due next-inspection dates flagged (amber) in the results table and report when the API 570-anchored date precedes today.
+- PT/MT narrative store subscription: `PtmtTriageList` now subscribes to the narrative stream via `useNarrativeStream`.
+- Streaming status precedence fix: the pipeline status bar prioritizes an active stream over fallback-served state (F-04).
+
+## Verification
+
+| Gate | Status |
+|---|---|
+| Unit/integration tests | 648 passed / 5 skipped (hermetic, zero network, key-independent) |
+| `npm run typecheck` | clean (strict TS, exit 0) |
+| `npm run lint` | 0 errors |
+| `npm run build` | green — 10 routes |
+
+## Documentation
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design, data flow, and invariants
+- [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) — environment setup and first evaluation
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — contributing workflow and codebase map
+- [`docs/TESTING.md`](docs/TESTING.md) — test suite layout and gate commands
+- [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) — environment variables and model routing
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution guidelines
