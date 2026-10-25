@@ -55,3 +55,28 @@ scratch/
 /Nebius x NVIDIA Global AI Hackathon_ Build the next frontier of AI on open infrastructure - Devpost.pdf
 /flowstep-gui/
 /graphify-out/
+
+
+# Internal workflow / personal artifacts (public repo keeps only app code)
+/.planning/
+/.agents/
+/.zcode/
+/scratch/
+/graphify-out/
+/flowstep-gui/
+/docs/
+/AGENTS.md
+/AGENTS.nextjs.md
+/agent-handoff.md
+/AGENT_HANDOFF.md
+/handoff.md
+/VIDEO_SCRIPT.md
+/adversarial_review_ui.md
+/adversarial_review_v2.md
+/UNINSTALL.md
+/.zcodeignore
+/PROJECT.md
+/Walkthrough FlawCheck.md
+/implementation_plan_adversarial.md
+/skills-lock.json
+*.bundle
