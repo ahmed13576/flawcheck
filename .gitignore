@@ -82,3 +82,6 @@ scratch/
 
 # Local backup bundles
 *.bundle
+
+# Generated/internal docs removed from the public repo
+/docs/
