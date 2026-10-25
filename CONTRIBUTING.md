@@ -20,7 +20,9 @@ npm run dev
 # → http://localhost:3000
 ```
 
-For a full walkthrough of the environment and your first evaluation, see [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md).
+To try the app without any API key, load the "Explore a sample inspection" demo
+(420 rows) or "Load full register (scale demo)" (4,912 rows) on the landing page —
+the deterministic fallback engine evaluates them fully offline.
 
 ## Contribution workflow
 

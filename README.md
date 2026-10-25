@@ -148,11 +148,6 @@ Model routing runs through Nebius Token Factory: acceptance narrative and extrac
 | `npm run lint` | 0 errors |
 | `npm run build` | green — 10 routes |
 
-## Documentation
+## Contributing
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design, data flow, and invariants
-- [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) — environment setup and first evaluation
-- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — contributing workflow and codebase map
-- [`docs/TESTING.md`](docs/TESTING.md) — test suite layout and gate commands
-- [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) — environment variables and model routing
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution guidelines
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for contribution guidelines, standards invariants, and quality gates.
