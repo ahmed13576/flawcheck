@@ -31,6 +31,7 @@ import { ResultsTable } from "@/components/wizard/results-table";
 import { PtmtTriageList } from "@/components/wizard/ptmt-triage-list";
 import { formatEvaluatedAt } from "@/lib/wizard/format";
 import { Button } from "@/components/ui/button";
+import { PipelineGraph } from "@/components/ui/pipeline-graph";
 import {
   buildReportSnapshot,
   writeReportSnapshot,
@@ -307,7 +308,8 @@ export function ScreenResultsContent({
         />
         <StatusRegion />
         <div key={evaluatedAt ?? "none"} className="flex flex-col gap-6">
-        <SummaryStrip summary={summary} />
+          <PipelineGraph compact />
+          <SummaryStrip summary={summary} />
 
         {/* Hero card — copy strings from Screen 3.png; n is the REAL count. */}
         <section className="flex flex-col gap-2 rounded-xl border border-border bg-card p-8">

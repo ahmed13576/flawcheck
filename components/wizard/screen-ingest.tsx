@@ -16,6 +16,7 @@ import { ChevronRight, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { MAX_FILE_BYTES } from "@/lib/ingest/validate";
 import { useWizard } from "@/components/wizard/wizard-context";
 import { Dropzone } from "@/components/wizard/dropzone";
+import { PipelineGraph } from "@/components/ui/pipeline-graph";
 
 function isCsvFile(file: File): boolean {
   return file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv";
@@ -92,6 +93,59 @@ export function ScreenIngest() {
         Upload a register or explore a guided sample. We’ll keep every step visible and
         explain what needs attention.
       </p>
+
+      {/* Technology & Standards Credibility Tray */}
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Technology and Standards Credentials">
+        <div className="rounded-xl border border-primary/20 bg-card p-3.5 transition-colors hover:border-primary/40">
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Zap className="size-4" aria-hidden="true" />
+            </span>
+            <span className="text-xs font-semibold text-foreground">Nebius Token Factory</span>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Ultra-low latency inference powered by Nebius. High-throughput serverless token generation.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-primary/20 bg-card p-3.5 transition-colors hover:border-primary/40">
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-green-500/10 text-green-400">
+              <Sparkles className="size-4" aria-hidden="true" />
+            </span>
+            <span className="text-xs font-semibold text-foreground">NVIDIA Nemotron-3.5</span>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Domain-specific NDT reasoning engine. Synthesizes degradation and damage morphology.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-primary/20 bg-card p-3.5 transition-colors hover:border-primary/40">
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
+              <ShieldCheck className="size-4" aria-hidden="true" />
+            </span>
+            <span className="text-xs font-semibold text-foreground">ASME & API Seals</span>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            ASME B31.3 (2024 Edition) · API 570 (5th Edition) · API 574 Annex D minimum thickness.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-primary/20 bg-card p-3.5 transition-colors hover:border-primary/40">
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
+              <ShieldCheck className="size-4" aria-hidden="true" />
+            </span>
+            <span className="text-xs font-semibold text-foreground">Zero Data Retention</span>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Client-Side Isolated · In-Memory WASM / WebCrypto Hash Seal.
+          </p>
+        </div>
+      </div>
+
+      <PipelineGraph className="mt-6" />
 
       <div className="mt-6 flex flex-col gap-6">
         {panelError ? (
