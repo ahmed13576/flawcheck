@@ -430,7 +430,7 @@ describe("FS-10 Screen 3 tabs + CML search + legend + sticky summary strip", () 
     const markup = renderToStaticMarkup(
       createElement(SummaryStrip, { summary: FIXTURE_RESULTS.summary }),
     );
-    expect(markup).toContain("1,312 readings · 37 locations");
+    expect(markup).toContain("1,312 readings · 37 components");
     expect(markup).toContain("1,204 ACCEPT");
     expect(markup).toContain("87 RE-CHECK");
     expect(markup).toContain("21 FAIL");

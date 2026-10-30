@@ -1,12 +1,12 @@
 # FlawCheck — NDT Inspection Copilot
 
-Turn raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into code-compliant, clause-cited inspection reports. Powered by NVIDIA Nemotron models on Nebius Token Factory.
+Turn raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into deterministic, clause-referenced NDT examination report packages. NVIDIA Nemotron models on Nebius Token Factory can assist with narrative/extraction when a user supplies a runtime key; TypeScript remains the authority for engineering arithmetic and verdicts.
 
 **Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackathons)** · Track: Best Apps and Agents
 
 ![tests](https://img.shields.io/badge/tests-648%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16-black) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%20on%20Nebius-76b900)
 
-> **The invariant:** TypeScript computes every number — the LLM never touches arithmetic. Every verdict is deterministic, every citation is renderer-locked, every report is audit-stamped.
+> **The invariant:** TypeScript computes every engineering number and verdict — the LLM never touches arithmetic. Every verdict is deterministic, every citation is renderer-locked, and every report is audit-stamped as an engineering aid, not a professional certification or final approval.
 
 ## What it does
 
@@ -14,12 +14,21 @@ Turn raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into code-
 2. **Review** — Confirm column mapping, component metadata, and PT/MT notes
 3. **Evaluate** — A pure TypeScript engine computes t-required, corrosion rates, remaining life, and pass/fail/re-check verdicts against ASME B31.3 / API 570 / API 574 criteria — never the LLM
 4. **Reason** — Nemotron streams a clause-cited acceptance narrative around the precomputed values; every citation resolves through a renderer-locked allowlist
-5. **Report** — Download a PDF with the full audit trail, sign-off block, and disclaimer
+5. **Report** — Download a PDF/CSV package with the audit trail, inspector sign-off block, SHA-256 register seal, and limitations disclaimer
+
+
+## Safety and governance limits
+
+FlawCheck is an NDT examination and reporting aid. It does **not** claim professional engineering certification, guaranteed code compliance, inspector replacement, PDF/UA conformance, API 570 interval approval, Fitness-for-Service approval, or final continued-service authorization. NDT examination, API inspection, and engineering/FFS decisions are kept as distinct responsible roles.
+
+## WBT-S6 deterministic remediation notes
+
+The bundled WBT-S6 fixture is treated as one component/circuit with exactly 420 historical readings and 40 unique CMLs (A1..D10). The deterministic CML summary layer exposes scan count, baseline, previous, latest, historical minimum, required pressure/structural thickness, validated corrosion rates, governing rate, remaining life, flags, disposition, and source traceability. The 19.85 mm required thickness and 19.95 mm inclusive re-check boundary are pinned by tests; top-critical CMLs are unique and sorted by historical minimum, validated governing rate, raw maximum rate, and natural CML ID.
 
 ## Quick start
 
 ```bash
-# Prerequisites: Node.js ≥ 24, a Nebius API key (https://tokenfactory.nebius.com/)
+# Prerequisites: Node.js ≥ 24. A Nebius API key is optional and only required for live Token Factory inference.
 
 git clone https://github.com/ahmed13576/flawcheck.git
 cd flawcheck
@@ -84,7 +93,7 @@ The app is a stock Next.js 16 project (Node-runtime API routes, SSE streaming, r
 
 | Variable | Required | Value |
 |---|---|---|
-| `NEBIUS_API_KEY` | yes | your Token Factory key |
+| `NEBIUS_API_KEY` | no | optional Customer-supplied Token Factory key for live Nemotron inference |
 | `NEBIUS_BASE_URL` | no | defaults to `https://api.tokenfactory.nebius.com/v1/` |
 | `NEBIUS_MODEL_REASONING` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |
 | `NEBIUS_MODEL_EXTRACTION` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |

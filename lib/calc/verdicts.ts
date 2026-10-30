@@ -6,7 +6,7 @@
  *
  * Boundary conventions (locked):
  * - t_actual == t_required            -> re_check (reject is strictly less-than)
- * - t_actual == t_required + unc      -> accept  (accept floor == re_check ceiling)
+ * - t_actual == t_required + unc      -> re_check (inclusive upper guardband)
  *
  * The gauge uncertainty defaults from criteria (ut-criteria.json
  * verdict_bands.default_gauge_uncertainty_mm) — the value never appears as a
@@ -27,6 +27,6 @@ export function verdictBand(
   const tReq = roundTo(tRequiredMm, 6);
   const tAct = roundTo(tActualMm, 6);
   if (tAct < tReq) return "reject"; // FAIL in the UI (rendering concern)
-  if (tAct < roundTo(tReq + unc, 6)) return "re_check";
+  if (tAct <= roundTo(tReq + unc, 6)) return "re_check";
   return "accept";
 }

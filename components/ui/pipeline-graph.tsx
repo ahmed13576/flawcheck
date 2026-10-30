@@ -60,10 +60,10 @@ export const PIPELINE_NODES: PipelineNode[] = [
     id: "nebius",
     step: 3,
     label: "Nebius Token Factory",
-    sublabel: "NVIDIA Nemotron-3.5",
+    sublabel: "NVIDIA Nemotron via Nebius",
     badge: "High-Performance AI",
     badgeColor: "border-primary/30 bg-primary/10 text-primary",
-    standards: "Nebius Inference Platform · Nemotron-3.5",
+    standards: "Nebius Token Factory · NVIDIA Nemotron runtime",
     invariant: "Domain-scoped prompt contracts. Model synthesizes engineering reasoning without touching math.",
     codePath: "lib/reasoning/narrative-context.ts",
     description:
@@ -87,15 +87,15 @@ export const PIPELINE_NODES: PipelineNode[] = [
   {
     id: "report",
     step: 5,
-    label: "Certified Report",
+    label: "NDT Report Package",
     sublabel: "Audit Stamp & PDF",
     badge: "Defensible Output",
     badgeColor: "border-green-500/30 bg-green-500/10 text-green-400",
-    standards: "API 570 Certified Record & SHA-256 Seal",
+    standards: "API 570-referenced review aid & SHA-256 seal",
     invariant: "Full dataset bound under cryptographic SHA-256 seal with 4-field inspector sign-off.",
     codePath: "components/report/pdf-document.tsx",
     description:
-      "Generates auditable PDF certificate rendering top critical CMLs and complete metadata under a tamper-evident WebCrypto data fingerprint.",
+      "Generates an auditable PDF/CSV report package rendering top critical CMLs and metadata under a deterministic SHA-256 data fingerprint.",
     icon: FileCheck2,
   },
 ];
@@ -138,7 +138,7 @@ export function PipelineGraph({
       </div>
 
       <p className="mt-2 text-xs text-muted-foreground">
-        FlawCheck decouples math from reasoning: deterministic calculations strictly govern engineering limits, while NVIDIA Nemotron-3.5 on Nebius Token Factory explains damage morphology under strict AST linter guardrails.
+        FlawCheck decouples math from reasoning: deterministic calculations strictly govern engineering limits, while NVIDIA Nemotron via Nebius on Nebius Token Factory explains damage morphology under strict AST linter guardrails.
       </p>
 
       {expanded && (

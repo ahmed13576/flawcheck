@@ -2,7 +2,7 @@
 
 ## Welcome
 
-FlawCheck is an NDT Inspection Copilot: it turns raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into code-compliant, clause-cited inspection reports, powered by NVIDIA Nemotron models on the Nebius Token Factory. The project is open source under the MIT License, and every contribution matters — whether it is a new ingestion path, a calculation edge case, a report rendering fix, or better documentation. The most useful contributions are those that keep reports deterministic, reproducible, and audit-stamped: **TypeScript computes every number — the LLM never touches arithmetic.**
+FlawCheck is an NDT Inspection Copilot: it turns raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into deterministic, clause-referenced NDT examination report packages, powered by NVIDIA Nemotron models on the Nebius Token Factory. The project is open source under the MIT License, and every contribution matters — whether it is a new ingestion path, a calculation edge case, a report rendering fix, or better documentation. The most useful contributions are those that keep reports deterministic, reproducible, and audit-stamped: **TypeScript computes every number — the LLM never touches arithmetic.**
 
 ## Development setup
 

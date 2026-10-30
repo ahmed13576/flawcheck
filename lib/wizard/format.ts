@@ -91,6 +91,9 @@ export function formatFlagLabel(flag: string): string {
   if (flag === "immediate_inspection") return "IMMEDIATE INSPECTION REQUIRED";
   if (flag === "measurement_inconsistency") return "MEASUREMENT INCONSISTENCY";
   if (flag === "insufficient_history") return "INSUFFICIENT HISTORY";
+  if (flag === "insufficient_interval") return "INSUFFICIENT INTERVAL";
+  if (flag === "gauge_deadband") return "GAUGE DEADBAND";
+  if (flag === "long_term_fallback") return "LONG-TERM FALLBACK";
   if (flag === "outlier") return "OUTLIER";
   return flag.toUpperCase().replace(/_/g, " ");
 }

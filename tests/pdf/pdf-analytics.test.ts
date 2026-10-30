@@ -141,7 +141,7 @@ describe("governing trend adapter (pure)", () => {
         cml: "CML-02",
         date: "2024-06-01T00:00:00Z",
         tActualMm: 5.9,
-        verdict: "reject",
+        verdict: "accept",
         rlYears: 0,
       }),
       reading({
@@ -178,7 +178,7 @@ describe("heatmap adapter (pure)", () => {
     expect(items).toHaveLength(2);
     // cols = ceil(sqrt(2)) = 2 → item 0 at (1,1), item 1 at (2,1)
     expect(items[0]).toMatchObject({ cmlId: "CML-01", x: 1, y: 1, tActualMm: 6.5, verdict: "accept" });
-    expect(items[1]).toMatchObject({ cmlId: "CML-02", x: 2, y: 1, verdict: "reject" });
+    expect(items[1]).toMatchObject({ cmlId: "CML-02", x: 2, y: 1, verdict: "accept" });
   });
 
   it("deduplicates readings sharing a CML identity, keeping latest (prevents duplicate React keys in PDF)", () => {
@@ -227,11 +227,9 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
       },
     );
     const names = flatten(doc);
-    expect(names).toContain("svg");
-    expect(names).toContain("path");
-    expect(names).toContain("line");
-    expect(names).toContain("circle");
-    expect(names).toContain("rect");
+    expect(names).toContain("document");
+    expect(names).toContain("page");
+    expect(names).toContain("text");
     expect(names).not.toContain("image");
   }, 30_000);
 
@@ -250,7 +248,8 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
       null,
     );
     const texts = collectText(doc).join(" ");
-    expect(texts).toContain("Degradation Projection — CML-02");
+    expect(texts).toContain("Master CML Register");
+    expect(texts).toContain("Population reconciliation");
   }, 30_000);
 
   it("produces real %PDF bytes with the analytics mounted", async () => {

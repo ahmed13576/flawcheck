@@ -96,10 +96,10 @@ describe("evaluate — G10 insufficient history (verdict still computes)", () =>
   const results = evaluate([input({ readingId: "G10", tActualMm: 9.2 })], BASE_METADATA, MM_UNITS);
   const reading = results.readings[0];
 
-  it("CR_LT / CR_ST / governing / RL / interval all null with the insufficient-history flag", () => {
+  it("CR_LT / CR_ST null, governing zero, RL/interval null with the insufficient-history flag", () => {
     expect(reading.crLtMmYr).toBeNull();
     expect(reading.crStMmYr).toBeNull();
-    expect(reading.crGoverningMmYr).toBeNull();
+    expect(reading.crGoverningMmYr).toBe(0);
     expect(reading.rlYears).toBeNull();
     expect(reading.nextInspection).toBeNull();
     expect(reading.flags).toContain("insufficient_history");
@@ -159,8 +159,8 @@ describe("evaluate — G14 immediate inspection on negative remaining life (buil
       input({
         readingId: "G14",
         tActualMm: 2.0, // below t_required 2.637536
-        tInitialMm: 2.05,
-        dtLtYears: 10.0, // CR = 0.005 > 0 -> RL = (2.0 - 2.637536)/0.005 < 0
+        tInitialMm: 3.0,
+        dtLtYears: 10.0, // validated CR = 0.1 > 0 -> RL = (2.0 - 2.637536)/0.1 < 0
       }),
     ],
     BASE_METADATA,
@@ -198,9 +198,10 @@ describe("evaluate — outliers per CML population (G11 through the orchestratio
     expect(flagged.outlier).toEqual({ z: -60.705, median: 9.2, mad: 0.01 });
   });
 
-  it("outliers warn, never override the banding", () => {
+  it("outliers are active quality anomalies and force RE-CHECK rather than ACCEPT", () => {
     for (const reading of results.readings) {
-      expect(reading.verdict).toBe("accept");
+      if (reading.flags.includes("outlier")) expect(reading.verdict).toBe("re_check");
+      else expect(reading.verdict).toBe("accept");
     }
   });
 });

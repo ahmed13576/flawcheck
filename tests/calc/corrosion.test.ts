@@ -59,13 +59,18 @@ describe("corrosion — zero rate is insufficient history (B02 tracer case)", ()
 
 describe("corrosion — missing history (G10)", () => {
   it("null t-initial/t-previous or non-positive Δt -> null rates", () => {
-    expect(rateOutcome(null, null, 9.2, null, null)).toEqual({
+    expect(rateOutcome(null, null, 9.2, null, null)).toMatchObject({
       rawLt: null,
       rawSt: null,
       governingRaw: null,
-      governingEffective: null,
+      governingEffective: 0,
       insufficientHistory: true,
       measurementInconsistency: false,
+      insufficientInterval: false,
+      gaugeDeadband: false,
+      usedLongTermFallback: false,
+      validatedLt: null,
+      validatedSt: null,
     });
     // Δt <= 0 can never yield a rate
     const outcome = rateOutcome(10.0, 9.5, 9.2, 0, -1);

@@ -23,7 +23,7 @@ import { parseIsoUtc } from "@/lib/calc/dates";
  * end-to-end session through the unchanged buildCells parse path.
  *
  * Verdict counts are the OBSERVED execution-time values (Phase 2 precedent):
- * 22 accept / 53 re-check / 345 fail under t_required 19.85 ± 0.1 — every
+ * 4 accept / 71 re-check / 345 fail under t_required 19.85 ± 0.1 — every
  * band present.
  */
 const rows = subsetFixture as unknown as Array<Record<string, string>>;
@@ -133,15 +133,15 @@ describe("demo subset end-to-end — groupByCml + evaluate land all three bands"
     expect(results.readings).toHaveLength(420);
   });
 
-  it("all three verdict bands present — observed 22 accept / 53 re-check / 345 fail", () => {
+  it("all three verdict bands present — observed 4 accept / 71 re-check / 345 fail", () => {
     expect(results.summary.accept).toBeGreaterThan(0);
     expect(results.summary.reCheck).toBeGreaterThan(0);
     expect(results.summary.fail).toBeGreaterThan(0);
     expect(results.summary).toEqual({
       total: 420,
       locations: 1, // one mapped tank (WBT-S6)
-      accept: 22,
-      reCheck: 53,
+      accept: 4,
+      reCheck: 71,
       fail: 345,
     });
   });

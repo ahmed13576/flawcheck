@@ -98,10 +98,24 @@ export interface EvaluationResults {
  * immediate-inspection state keeps nextInspection null — the UI renders the
  * immediate-action text from the flag, never a date.
  */
+
+export const ALL_READING_FLAGS = [
+  "outlier",
+  "measurement_inconsistency",
+  "insufficient_history",
+  "insufficient_interval",
+  "gauge_deadband",
+  "long_term_fallback",
+  "immediate_inspection",
+] as const;
+
 export type ReadingFlag =
   | "outlier"
   | "measurement_inconsistency"
   | "insufficient_history"
+  | "insufficient_interval"
+  | "gauge_deadband"
+  | "long_term_fallback"
   | "immediate_inspection";
 
 export interface ReadingResult {

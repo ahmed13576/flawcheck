@@ -37,6 +37,7 @@ import { nextInterval } from "./interval";
 import { evaluateIndication } from "./ptmt";
 import { toMm } from "./units";
 import { verdictBand } from "./verdicts";
+import { activeQualityAnomalyFlags } from "./criteria";
 
 export interface EvaluateOptions {
   /** Structured PT/MT indications to triage alongside the thickness readings. */
@@ -149,17 +150,26 @@ export function evaluate(
       input.dtStYears,
     );
     const rl = remainingLife(input.tActualMm, thickness.tRequiredMm, outcome.governingEffective);
-    const verdict = verdictBand(
-      input.tActualMm,
-      thickness.tRequiredMm,
-      gaugeUncertaintyMm,
-    );
 
     const flags: ReadingFlag[] = [];
     if (outcome.insufficientHistory) flags.push("insufficient_history");
     if (outcome.measurementInconsistency) flags.push("measurement_inconsistency");
+    if (outcome.insufficientInterval) flags.push("insufficient_interval");
+    if (outcome.gaugeDeadband) flags.push("gauge_deadband");
+    if (outcome.usedLongTermFallback) flags.push("long_term_fallback");
     const outlier = outlierByReadingId.get(input.readingId);
     if (outlier) flags.push("outlier");
+
+    let verdict = verdictBand(
+      input.tActualMm,
+      thickness.tRequiredMm,
+      gaugeUncertaintyMm,
+    );
+    // The anomaly flag list lives in ut-criteria.json; reading it here keeps the
+    // declared rule and the engine from drifting apart.
+    const anomalyFlags = activeQualityAnomalyFlags();
+    const activeQualityAnomaly = flags.some((flag) => anomalyFlags.includes(flag));
+    if (verdict === "accept" && activeQualityAnomaly) verdict = "re_check";
 
     // Interval: computed only when RL exists. G14: an RL <= 0 result in the
     // valid-positive-CR context is immediate inspection — never a negative
@@ -196,8 +206,8 @@ export function evaluate(
       tPressureMm: thickness.tPressureMm,
       tStructuralMm: thickness.tStructuralMm,
       tRequiredMm: thickness.tRequiredMm,
-      crLtMmYr: outcome.rawLt,
-      crStMmYr: outcome.rawSt,
+      crLtMmYr: outcome.validatedLt,
+      crStMmYr: outcome.validatedSt,
       rawCrLtMmYr: outcome.rawLt,
       rawCrStMmYr: outcome.rawSt,
       crGoverningMmYr: outcome.governingEffective,

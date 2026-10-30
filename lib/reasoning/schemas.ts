@@ -13,7 +13,7 @@
  * add ExtractionRequestSchema to this file; these exports are final.
  */
 import { z } from "zod";
-import type { ReadingResult, ReadingFlag, Verdict } from "@/lib/ingest/session";
+import { ALL_READING_FLAGS, type ReadingResult, type ReadingFlag, type Verdict } from "@/lib/ingest/session";
 
 /* ------------------------------------------------------------------ */
 /* Reading / indication / metadata mirrors (field-for-field, hand-     */
@@ -22,12 +22,7 @@ import type { ReadingResult, ReadingFlag, Verdict } from "@/lib/ingest/session";
 
 const VerdictSchema = z.enum(["accept", "re_check", "reject"]);
 
-const ReadingFlagSchema = z.enum([
-  "outlier",
-  "measurement_inconsistency",
-  "insufficient_history",
-  "immediate_inspection",
-]);
+const ReadingFlagSchema = z.enum(ALL_READING_FLAGS);
 
 const ReadingResultSchema = z.object({
   readingId: z.string().min(1),
@@ -200,9 +195,15 @@ export interface ExtractionResponse {
  * set OR no API key is configured. Naming per 03-RESEARCH assumption A4
  * (FLAWCHECK_DISABLE_LLM).
  */
+function isPlaceholderEnv(value: string | undefined): boolean {
+  if (!value) return true;
+  const normalized = value.trim().toUpperCase();
+  return normalized === "" || normalized.startsWith("REPLACE_WITH_") || normalized.includes("PLACEHOLDER") || normalized.includes("YOUR-") || normalized.includes("YOUR_");
+}
+
 export function isLlmDisabled(): boolean {
   const kill = process.env.FLAWCHECK_DISABLE_LLM;
-  return kill === "1" || kill === "true" || !process.env.NEBIUS_API_KEY;
+  return kill === "1" || kill === "true" || isPlaceholderEnv(process.env.NEBIUS_API_KEY);
 }
 
 /* ------------------------------------------------------------------ */

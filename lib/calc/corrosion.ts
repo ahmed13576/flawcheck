@@ -1,29 +1,39 @@
 /**
- * Corrosion rates per API 570 para. 7.1.2:
- *   CR_LT = (t_initial - t_actual) / delta_t_years
- *   CR_ST = (t_previous - t_actual) / delta_t_years
- * Governing rate: max(LT, ST) governs remaining life; both surfaced.
+ * Corrosion-rate validation for FlawCheck's deterministic UT engine.
  *
- * negative_cr_policy (ut-criteria.json, verbatim): "If CR_LT or CR_ST computes
- * negative (apparent thickness gain), clamp CR_governing to 0 for the RL
- * calculation and surface a 'measurement inconsistency' warning flag on the
- * affected CML". Implementation reading (open question OQ2 resolution): the
- * flag fires when EITHER raw rate is negative; the RL divisor is
- * max(0, max(LT, ST)) — a positive max() is never discarded; a floored-to-zero
- * governing rate means insufficient corrosion history (RL null, never Infinity).
+ * API 570-style raw rates are still surfaced for audit traceability, but the
+ * governing rate used for remaining life is a validated, quarantined value:
+ * positive growth, insufficient short-term intervals, and gauge-deadband-sized
+ * deltas are excluded before selecting a governing rate. If short-term is
+ * quarantined, the engine falls back to a valid positive long-term rate. If no
+ * positive validated rate exists, the governing rate is exactly 0.000 mm/yr
+ * and remaining life renders as not applicable rather than NaN/Infinity.
  */
 import { roundTo } from "./round";
+import { corrosionGaugeDeadbandMm, minimumShortTermIntervalYears } from "./criteria";
+
+export const MIN_SHORT_TERM_INTERVAL_YEARS = minimumShortTermIntervalYears();
+export const GAUGE_DEADBAND_MM = corrosionGaugeDeadbandMm();
 
 export interface RateOutcome {
   rawLt: number | null;
   rawSt: number | null;
-  /** max(LT, ST) — may be negative; surfaced verbatim per negative_cr_policy. */
+  /** max(raw LT, raw ST), retained for audit/sorting even when quarantined. */
   governingRaw: number | null;
-  /** Floored at 0 — the RL divisor. */
-  governingEffective: number | null;
+  /** Validated RL divisor: positive validated rate or exactly 0. */
+  governingEffective: number;
   insufficientHistory: boolean;
-  /** Either raw rate negative (apparent thickness gain). */
+  /** Apparent positive thickness growth in either raw rate. */
   measurementInconsistency: boolean;
+  /** A rate exists but is excluded because the scan interval is too short. */
+  insufficientInterval: boolean;
+  /** A rate exists but is excluded because the loss is inside gauge deadband. */
+  gaugeDeadband: boolean;
+  /** True when the short-term rate was excluded and LT fallback was considered. */
+  usedLongTermFallback: boolean;
+  /** Validated display/audit rates after quarantine. */
+  validatedLt: number | null;
+  validatedSt: number | null;
 }
 
 /** CR_LT = (t_initial - t_actual) / delta_t_years, 6 dp canonical. */
@@ -42,6 +52,28 @@ export function crShortTerm(
   dtYears: number,
 ): number {
   return roundTo((tPreviousMm - tActualMm) / dtYears, 6);
+}
+
+function validateRate(args: {
+  rate: number | null;
+  dtYears: number | null;
+  lossMm: number | null;
+  requireMinInterval: boolean;
+}): { validated: number | null; inconsistency: boolean; insufficientInterval: boolean; deadband: boolean } {
+  const { rate, dtYears, lossMm, requireMinInterval } = args;
+  if (rate === null || lossMm === null || dtYears === null || dtYears <= 0) {
+    return { validated: null, inconsistency: false, insufficientInterval: false, deadband: false };
+  }
+  if (lossMm < 0 || rate < 0) {
+    return { validated: null, inconsistency: true, insufficientInterval: false, deadband: false };
+  }
+  if (lossMm <= GAUGE_DEADBAND_MM) {
+    return { validated: null, inconsistency: false, insufficientInterval: false, deadband: true };
+  }
+  if (requireMinInterval && dtYears < MIN_SHORT_TERM_INTERVAL_YEARS) {
+    return { validated: null, inconsistency: false, insufficientInterval: true, deadband: false };
+  }
+  return { validated: rate > 0 ? rate : null, inconsistency: false, insufficientInterval: false, deadband: false };
 }
 
 export function rateOutcome(
@@ -63,15 +95,26 @@ export function rateOutcome(
     rawLt === null && rawSt === null
       ? null
       : Math.max(rawLt ?? -Infinity, rawSt ?? -Infinity);
-  const governingEffective =
-    governingRaw === null ? null : Math.max(0, governingRaw);
+
+  const ltLoss = tInitialMm === null ? null : tInitialMm - tActualMm;
+  const stLoss = tPreviousMm === null ? null : tPreviousMm - tActualMm;
+  const lt = validateRate({ rate: rawLt, dtYears: dtLtYears, lossMm: ltLoss, requireMinInterval: false });
+  const st = validateRate({ rate: rawSt, dtYears: dtStYears, lossMm: stLoss, requireMinInterval: true });
+
+  const usedLongTermFallback = st.validated === null && lt.validated !== null;
+  const governingEffective = Math.max(st.validated ?? 0, lt.validated ?? 0);
+
   return {
     rawLt,
     rawSt,
     governingRaw,
-    governingEffective,
-    insufficientHistory: governingEffective === null || governingEffective === 0,
-    measurementInconsistency:
-      (rawLt !== null && rawLt < 0) || (rawSt !== null && rawSt < 0),
+    governingEffective: roundTo(governingEffective, 6),
+    insufficientHistory: governingEffective === 0,
+    measurementInconsistency: lt.inconsistency || st.inconsistency,
+    insufficientInterval: lt.insufficientInterval || st.insufficientInterval,
+    gaugeDeadband: lt.deadband || st.deadband,
+    usedLongTermFallback,
+    validatedLt: lt.validated,
+    validatedSt: st.validated,
   };
 }

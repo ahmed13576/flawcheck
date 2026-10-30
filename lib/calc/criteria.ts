@@ -39,3 +39,16 @@ export function maxIntervalByClass(pipeClass: 1 | 2 | 3): number | null {
   const raw = table[`Class ${pipeClass}`];
   return typeof raw === "number" ? raw : null;
 }
+
+/** Corrosion-rate validation thresholds from ut-criteria.json. */
+export function minimumShortTermIntervalYears(): number {
+  return criteria.ut.corrosion_rate_validation.minimum_short_term_interval_years;
+}
+
+export function corrosionGaugeDeadbandMm(): number {
+  return criteria.ut.corrosion_rate_validation.gauge_deadband_mm;
+}
+
+export function activeQualityAnomalyFlags(): readonly string[] {
+  return criteria.ut.verdict_bands.active_quality_anomaly_flags;
+}

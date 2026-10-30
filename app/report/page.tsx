@@ -10,7 +10,7 @@
  * post-acceptance Tavily code-edition lookup (GET /api/tavily) — degrade-to-
  * hidden: absent key, timeout, or failure renders no block, never an error.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   readReportSnapshot,
@@ -23,6 +23,17 @@ import type { ReportAudit } from "@/lib/report/audit";
 import { ReportDocument } from "@/components/report/report-document";
 
 const SIGN_OFF_KEY = "flawcheck:report-signoff:v1";
+
+/** No external subscription: hydration itself is the only transition we need. */
+function subscribeNoop(): () => void {
+  return () => {};
+}
+function hydratedSnapshot(): boolean {
+  return true;
+}
+function serverSnapshot(): boolean {
+  return false;
+}
 
 function readSignOff(): ReportSignOff | null {
   try {
@@ -53,13 +64,29 @@ function writeSignOff(signOff: ReportSignOff): void {
 
 export default function ReportPage() {
   const router = useRouter();
-  const snapshot = readReportSnapshot();
-  const audit: ReportAudit | null = readReportAudit();
+
+  // HYDRATION-SAFE: sessionStorage does not exist on the server, so reading it
+  // during render makes the server tree (no snapshot -> null) disagree with the
+  // first client render (snapshot present -> <main>). `useSyncExternalStore`
+  // gives the server and the first client render the same `false`, then reports
+  // `true` once hydrated, so sessionStorage is only read after hydration.
+  const hydrated = useSyncExternalStore(subscribeNoop, hydratedSnapshot, serverSnapshot);
+  const snapshot = hydrated ? readReportSnapshot() : null;
+  const audit = hydrated ? readReportAudit() : null;
   const hasSnapshot = snapshot !== null;
 
-  const [signOff, setSignOff] = useState<ReportSignOff | null>(() => readSignOff());
+  // Sign-off is editable, so it needs state; seed it once after hydration.
+  const [signOff, setSignOff] = useState<ReportSignOff | null>(null);
+  const [signOffSeeded, setSignOffSeeded] = useState(false);
+  if (hydrated && !signOffSeeded) {
+    setSignOffSeeded(true);
+    setSignOff(readSignOff());
+  }
+
   const [pdfPending, setPdfPending] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [csvPending, setCsvPending] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
   const [codeEditionSources, setCodeEditionSources] = useState<
     Array<{ title: string; url: string }> | null
   >(null);
@@ -90,10 +117,10 @@ export default function ReportPage() {
   }, [designCode, evaluatedAt]);
 
   useEffect(() => {
-    if (!hasSnapshot) {
+    if (hydrated && !hasSnapshot) {
       router.replace("/");
     }
-  }, [hasSnapshot, router]);
+  }, [hydrated, hasSnapshot, router]);
 
   const changeSignOff = (next: ReportSignOff) => {
     setSignOff(next);
@@ -134,6 +161,40 @@ export default function ReportPage() {
     }
   };
 
+  // Canonical CSV: the route returns the exact bytes whose SHA-256 the PDF
+  // prints as the register seal, so the downloaded file and the seal agree.
+  const downloadCsv = async () => {
+    if (!snapshot || !signOff) return;
+    setCsvPending(true);
+    setCsvError(null);
+    try {
+      const signed = withSignOff(snapshot, signOff);
+      const res = await fetch("/api/report/csv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ snapshot: signed, audit }),
+      });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        setCsvError(json.error ?? `CSV generation failed (${res.status}).`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `flawcheck-register-${snapshot.evaluatedAt.slice(0, 10)}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setCsvError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCsvPending(false);
+    }
+  };
+
   const printReport = () => {
     // re-write the snapshot WITH the sign-off so window.print()'s document is
     // the signed version (the print CSS hides chrome; the browser supplies the
@@ -142,6 +203,7 @@ export default function ReportPage() {
     window.print();
   };
 
+  if (!hydrated) return null; // first client render must byte-match the server HTML
   if (!snapshot) return null; // absent snapshot → redirecting home
 
   return (
@@ -153,9 +215,12 @@ export default function ReportPage() {
         audit={audit}
         codeEditionSources={codeEditionSources}
         onDownloadPdf={downloadPdf}
+        onDownloadCsv={downloadCsv}
         onPrint={printReport}
         pdfPending={pdfPending}
         pdfError={pdfError}
+        csvPending={csvPending}
+        csvError={csvError}
         variant="preview"
         onBack={() => router.push("/")}
       />
