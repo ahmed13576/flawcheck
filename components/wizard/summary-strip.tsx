@@ -14,7 +14,10 @@ export function SummaryStrip({ summary }: { summary: EvaluationResults["summary"
     <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4 text-sm shadow-sm">
       <div className="flex flex-wrap items-center gap-4">
         <span className="font-mono tabular-nums whitespace-nowrap">
-          {summary.total.toLocaleString("en-US")} readings · {summary.locations} locations
+          {summary.total.toLocaleString("en-US")} readings ·{" "}
+          {summary.locations === 1
+            ? "1 component"
+            : `${summary.locations} components`}
         </span>
         <span className="hidden h-4 w-px bg-border sm:block" aria-hidden="true" />
         <span className="whitespace-nowrap text-xs font-semibold text-green-400">

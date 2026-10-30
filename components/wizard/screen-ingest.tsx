@@ -113,7 +113,7 @@ export function ScreenIngest() {
             <span className="flex size-7 items-center justify-center rounded-lg bg-green-500/10 text-green-400">
               <Sparkles className="size-4" aria-hidden="true" />
             </span>
-            <span className="text-xs font-semibold text-foreground">NVIDIA Nemotron-3.5</span>
+            <span className="text-xs font-semibold text-foreground">NVIDIA Nemotron via Nebius</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
             Domain-specific NDT reasoning engine. Synthesizes degradation and damage morphology.
@@ -125,7 +125,7 @@ export function ScreenIngest() {
             <span className="flex size-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
               <ShieldCheck className="size-4" aria-hidden="true" />
             </span>
-            <span className="text-xs font-semibold text-foreground">ASME & API Seals</span>
+            <span className="text-xs font-semibold text-foreground">ASME/API References</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
             ASME B31.3 (2024 Edition) · API 570 (5th Edition) · API 574 Annex D minimum thickness.
@@ -137,10 +137,10 @@ export function ScreenIngest() {
             <span className="flex size-7 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
               <ShieldCheck className="size-4" aria-hidden="true" />
             </span>
-            <span className="text-xs font-semibold text-foreground">Zero Data Retention</span>
+            <span className="text-xs font-semibold text-foreground">Local CSV Evaluation</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            Client-Side Isolated · In-Memory WASM / WebCrypto Hash Seal.
+            CSV parsing/evaluation run locally in the browser; optional live AI sends reviewed metadata/notes only when configured. WebCrypto SHA-256 seal.
           </p>
         </div>
       </div>

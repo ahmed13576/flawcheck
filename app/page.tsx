@@ -85,7 +85,7 @@ function WizardRoot() {
             Nebius Token Factory
           </span>
           <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-            NVIDIA Nemotron-3.5
+            NVIDIA Nemotron via Nebius
           </span>
           <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
             ASME B31.3 · API 570
