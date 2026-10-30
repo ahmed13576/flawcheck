@@ -176,7 +176,10 @@ export function buildPdfDocument(snapshot: ReportSnapshot, audit: ReportAudit | 
         )
       : null;
 
-  const widths = [6, 4, 6, 6, 6, 11, 10, 10, 6, 7, 7, 15, 6];
+  // Widths sum to 100%. RL needs 11%: at 7% both "N/A — No Measurable Loss" and
+  // "0.0 — Immediate action" wrapped mid-word ("Immediate ac-tion"), which is the
+  // same split-token class the technical audit condemned.
+  const widths = [6, 4, 6, 6, 6, 9, 9, 9, 6, 7, 11, 15, 6];
   const masterHeader = ["CML", "n", "Base", "Prev", "Latest", "Hist min", "P/S/G req", "ST/LT", "Gov", "Raw max", "RL", "Flags", "Disp"];
 
   const footer = (
@@ -291,7 +294,9 @@ export function buildPdfDocument(snapshot: ReportSnapshot, audit: ReportAudit | 
         {heatmapItems.length > 0 && (
           <View style={{ marginTop: 4 }}>
             <Text style={styles.section}>Spatial severity heatmap</Text>
-            <PdfHeatmap cmls={heatmapItems} width={330} height={74} />
+            {/* Width sized to the 10x4 grid so the SVG has no dead space:
+                cellSize = min(width/10, height/4), so 210x84 gives 21pt cells. */}
+            <PdfHeatmap cmls={heatmapItems} width={210} height={84} />
             <Text style={styles.monoSmall}>
               One cell per CML, coloured by historical-minimum disposition. Vector art, no rasterization.
             </Text>
