@@ -187,17 +187,19 @@ describe("remaining life — never Infinity", () => {
 });
 
 describe("verdicts — locked boundary order (G8 / ut-criteria boundary_convention)", () => {
-  it("t_actual == t_required is re_check, 4.99 is reject, tReq + 0.1 by arithmetic is accept", () => {
+  it("t_actual == t_required is re_check, 4.99 is reject, tReq + 0.1 by arithmetic is re_check", () => {
     expect(verdictBand(5.0, 5.0, 0.1)).toBe("re_check");
     expect(verdictBand(4.99, 5.0, 0.1)).toBe("reject");
     const tReq = 5.0;
     const unc = 0.1;
-    expect(verdictBand(tReq + unc, tReq, unc)).toBe("accept");
+    expect(verdictBand(tReq + unc, tReq, unc)).toBe("re_check");
+    expect(verdictBand(tReq + unc + 0.001, tReq, unc)).toBe("accept");
   });
   it("defaults gauge uncertainty from criteria (0.1 never a literal in verdicts.ts)", () => {
     expect(criteria.ut.verdict_bands.default_gauge_uncertainty_mm).toBe(0.1);
     expect(verdictBand(5.0, 5.0)).toBe("re_check");
-    expect(verdictBand(5.0 + criteria.ut.verdict_bands.default_gauge_uncertainty_mm, 5.0)).toBe("accept");
+    expect(verdictBand(5.0 + criteria.ut.verdict_bands.default_gauge_uncertainty_mm, 5.0)).toBe("re_check");
+    expect(verdictBand(5.101, 5.0)).toBe("accept");
   });
   it("tracer bands: 9.2 / 2.637536 / 2.0 against t_required 2.637536", () => {
     expect(verdictBand(9.2, 2.637536)).toBe("accept");

@@ -8,6 +8,7 @@
  * field-for-field. Pure boundary module: imports nothing from components/.
  */
 import { z } from "zod";
+import { ALL_READING_FLAGS } from "@/lib/ingest/session";
 
 const finite = z.number().refine((n) => Number.isFinite(n), "must be finite");
 
@@ -48,12 +49,7 @@ export const ReportMetadataSchema = z
   })
   .strict();
 
-const ReadingFlagSchema = z.enum([
-  "outlier",
-  "measurement_inconsistency",
-  "insufficient_history",
-  "immediate_inspection",
-]);
+export const ReadingFlagSchema = z.enum(ALL_READING_FLAGS);
 
 const VerdictSchema = z.enum(["accept", "re_check", "reject"]);
 

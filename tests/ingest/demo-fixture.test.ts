@@ -123,12 +123,12 @@ describe("demo smoke — evaluate over the real fixture lands all three verdict 
     expect(results.summary.reCheck).toBeGreaterThan(0);
     expect(results.summary.fail).toBeGreaterThan(0);
     // Observed at acquisition time against t_required 19.85 ± 0.1:
-    // 301 accept / 538 re_check / 4,073 fail.
+    // 27 accept / 812 re_check / 4,073 fail.
     expect(results.summary).toEqual({
       total: 4912,
       locations: 12,
-      accept: 301,
-      reCheck: 538,
+      accept: 27,
+      reCheck: 812,
       fail: 4073,
     });
   });

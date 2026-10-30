@@ -9,6 +9,7 @@
  */
 import type { TrendPoint, CmlHeatmapItem } from "@/lib/analytics/geometry";
 import type { ReadingResult, Verdict } from "@/lib/ingest/session";
+import { buildCmlSummaries } from "@/lib/calc/cml-summary";
 
 /** Severity order for picking the trend's governing CML: reject > re-check > accept. */
 export function severityRank(verdict: Verdict): number {
@@ -77,23 +78,22 @@ export function buildGoverningTrendPoints(
  * assigns row-major grid coordinates — the heatmap's precomputed input.
  */
 export function buildLatestPerCml(readings: ReadingResult[]): CmlHeatmapItem[] {
-  const latest = new Map<string, ReadingResult>();
-  for (const r of readings) {
-    const id = cmlIdentity(r);
-    const current = latest.get(id);
-    if (!current || r.date > current.date) latest.set(id, r);
-  }
-  const latestList = [...latest.values()].sort((a, b) =>
-    cmlIdentity(a).localeCompare(cmlIdentity(b)),
-  );
-  const cols = Math.max(1, Math.ceil(Math.sqrt(latestList.length)));
-  return latestList.map((r, i) => ({
-    cmlId: cmlIdentity(r),
-    x: (i % cols) + 1,
-    y: Math.floor(i / cols) + 1,
-    tActualMm: r.tActualMm,
-    tRequiredMm: r.tRequiredMm,
-    verdict: r.verdict,
-    crMmYr: r.crGoverningMmYr,
-  }));
+  const rows = buildCmlSummaries(readings);
+  // Preserve the WBT-S6 A-D by 1-10 orientation where present; fall back to
+  // row-major order for other IDs. Historical minimum governs disposition.
+  return rows.map((row, i) => {
+    const tail = row.cmlId.split("/").pop()?.trim() ?? row.cmlId;
+    const match = /^([A-D])(\d{1,2})$/.exec(tail);
+    const x = match ? Number(match[2]) : (i % 10) + 1;
+    const y = match ? "ABCD".indexOf(match[1]) + 1 : Math.floor(i / 10) + 1;
+    return {
+      cmlId: row.cmlId,
+      x,
+      y,
+      tActualMm: row.historicalMinimumMm,
+      tRequiredMm: row.tRequiredMm,
+      verdict: row.disposition,
+      crMmYr: row.governingRateMmYr,
+    };
+  });
 }

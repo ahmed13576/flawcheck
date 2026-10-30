@@ -322,7 +322,7 @@ function collectText(node: unknown, out: string[]): void {
 function pageTexts(docElement: unknown): string[] {
   const children = (docElement as { props?: { children?: unknown } }).props?.children;
   const pages = Array.isArray(children) ? children : [children];
-  expect(pages).toHaveLength(2); // two <Page> elements (UI-6.13)
+  expect(pages).toHaveLength(3); // three <Page> elements: triage, register, trend/audit/sign-off
   return pages.map((page) => {
     const out: string[] = [];
     collectText((page as { props?: { children?: unknown } }).props?.children, out);
@@ -330,7 +330,7 @@ function pageTexts(docElement: unknown): string[] {
   });
 }
 
-describe("06-01 two-<Page> PDF document — dashboard page 1, register page 2 (UI-6.13/UI-6.14)", () => {
+describe("3-page PDF document — triage page 1, register page 2, trend/audit/sign-off page 3", () => {
   it("renders through renderToBuffer as real %PDF bytes > 1024 (route render path intact)", async () => {
     const { snapshot, audit } = body();
     const buf = await renderToBuffer(
@@ -344,51 +344,22 @@ describe("06-01 two-<Page> PDF document — dashboard page 1, register page 2 (U
     expect(asBuffer.length).toBeGreaterThan(1024);
   }, 30_000);
 
-  it("page 1 carries the locked dashboard sequence in order; the register starts on page 2", () => {
+  it("page 1 carries the exception-first dashboard and the Master Register starts on page 2", () => {
     const { snapshot, audit } = body();
-    const [page1, page2] = pageTexts(buildPdfDocument(
-        snapshot as unknown as ReportSnapshot,
-        audit as unknown as Parameters<typeof buildPdfDocument>[1],
-      ));
-
-    const banner = buildDispositionBannerSentence(snapshot.summary);
-    const nextLine = buildWhatToDoNextLine(snapshot.summary);
-    const csvLine = buildCsvPointerLine(snapshot.readings.length);
-
-    // Locked page-1 order: banner → summary card → code-breakdown → top-10
-    // headers → what-to-do-next → CSV pointer → glossary footer.
-    const tokens = [
-      banner,
-      "EXECUTIVE EVALUATION SUMMARY",
-      "vs pressure design (B31.3)",
-      "vs structural minimum (API 574)",
-      "CML / Location",
-      "t-actual (mm)",
-      "t-required (mm)",
-      "RL (yr)",
-      "Verdict",
-      nextLine,
-      csvLine,
-      "Verdict glossary",
-      "Wall thickness meets the code minimum at this location.",
-      "API 574 §10.5.1.4",
-    ];
-    let prev = -1;
-    for (const token of tokens) {
-      const idx = page1.indexOf(token, prev + 1);
-      expect(idx, `token order: ${token}`).toBeGreaterThan(prev);
-      prev = idx;
-    }
-
-    // Page 1 contains ONLY the dashboard — the register labels are absent.
-    expect(page1).not.toContain("Component context");
-    expect(page1).not.toContain("CML measurements");
-
-    // Page 2 carries the unchanged detail content.
-    expect(page2).toContain("Component context");
-    expect(page2).toContain("CML measurements");
+    const doc = buildPdfDocument(
+      snapshot as unknown as Parameters<typeof buildPdfDocument>[0],
+      audit as unknown as Parameters<typeof buildPdfDocument>[1],
+    );
+    const texts = pageTexts(doc);
+    const page1 = String(texts[0]);
+    const page2 = String(texts[1]);
+    expect(page1).toContain("Population reconciliation");
+    expect(page1).toContain("Priority 1 deterministic surface indication");
+    expect(page1).toContain("Top 10 unique CMLs");
+    expect(page1).not.toContain("Clause-cited conclusions");
+    expect(page2).toContain("Master CML Register");
+    expect(page2).toContain("exactly one row per WBT-S6 CML");
   });
-
   it("the page-number footer render node exists on BOTH pages", () => {
     const { snapshot, audit } = body();
     const doc = buildPdfDocument(
@@ -415,10 +386,11 @@ describe("06-01 two-<Page> PDF document — dashboard page 1, register page 2 (U
     }
   });
 
-  it("import-graph pin: the PDF renderer imports VERDICT_GLOSSARY from the content seam (T-06-01-03)", () => {
+  it("import-graph pin: the PDF renderer imports deterministic report content helpers", () => {
     const src = readFileSync(join(process.cwd(), "components/report/pdf-document.tsx"), "utf8");
-    expect(src).toContain("VERDICT_GLOSSARY");
+    expect(src).toContain("buildCodeBreakdown");
     expect(src).toContain('from "@/lib/report/content"');
+    expect(src).toContain("buildCmlSummaries");
   });
 });
 
@@ -447,34 +419,66 @@ describe("CR-02 / CR-05 / WR-01 / WR-08 regression tests", () => {
         audit as unknown as Parameters<typeof buildPdfDocument>[1],
       ),
     );
-    expect(page1).toContain("ACTION REQUIRED — DEFECTS DETECTED");
-    expect(page1).not.toContain("ACCEPTABLE FOR CONTINUED SERVICE");
-    expect(page1).toContain("PT/MT surface examination revealed rejected weld indications");
+    expect(page1).toContain("Priority 1 deterministic surface indication");
+    expect(page1).toContain("Priority 1");
+    expect(page1).toContain("FAIL");
+    expect(page1).toContain("NDT examination, API inspection, and engineering/FFS decisions remain separate responsible roles");
   });
 
-  it("CR-05 / WR-01: Page 1 Verdict Glossary renders verdict token labels", () => {
+  it("CR-05 / WR-01: Page 1 renders explicit inclusive verdict boundary labels", () => {
+    // Bands are derived from the evaluation's own metadata, so this fixture
+    // (tStructural 6.35, gauge 0.10) must print its own numbers - a hardcoded
+    // WBT-S6 literal here would print wrong thresholds for any other component.
     const { snapshot, audit } = body();
     const [page1] = pageTexts(buildPdfDocument(
       snapshot as unknown as ReportSnapshot,
       audit as unknown as Parameters<typeof buildPdfDocument>[1],
     ));
-    expect(page1).toContain("ACCEPT — Wall thickness meets the code minimum at this location.");
-    expect(page1).toContain("RE-CHECK — Thickness is close to the limit — re-measure to confirm before deciding.");
-    expect(page1).toContain("FAIL — Wall is thinner than the code allows at this location. Action required.");
+    expect(page1).toContain("FAIL below 6.35 mm");
+    expect(page1).toContain("RE-CHECK 6.35 through 6.45 mm inclusive");
+    expect(page1).toContain("ACCEPT only above 6.45 mm with no active anomaly");
   });
 
-  it("CR-05: Page 2 table header carries fixed attribute for repeating on multi-page reports", () => {
+  it("CR-05: the WBT-S6 demo prints its own 19.85/19.95 inclusive boundary", async () => {
+    const { createDemoSession } = await import("@/lib/demo/demo-scenario");
+    const { groupByCml } = await import("@/lib/ingest/group");
+    const { evaluate } = await import("@/lib/calc/evaluate");
+    const { buildReportSnapshot, withSignOff } = await import("@/lib/report/session-snapshot");
+    const session = createDemoSession("subset");
+    const inputs = groupByCml(session.rows, session.mapping, {
+      csvThicknessUnit: session.units.csvThickness,
+    });
+    const results = evaluate(inputs, session.metadata, session.units, {
+      ptmtIndications: session.ptmt.indications,
+    });
+    const snap = buildReportSnapshot({ ...session, results }, "2026-10-25T00:00:00.000Z")!;
+    const signed = withSignOff(snap, {
+      name: "QA",
+      certification: "ASNT NDT Level II",
+      date: "2026-10-25",
+      signature: "QA",
+    });
+    const [page1] = pageTexts(buildPdfDocument(signed, null));
+    expect(page1).toContain("FAIL below 19.85 mm");
+    expect(page1).toContain("RE-CHECK 19.85 through 19.95 mm inclusive");
+    expect(page1).toContain("ACCEPT only above 19.95 mm with no active anomaly");
+  }, 60_000);
+
+  it("CR-05: Page 2 table header is non-wrapping for the one-row-per-CML register", () => {
     const src = readFileSync(join(process.cwd(), "components/report/pdf-document.tsx"), "utf8");
-    expect(src).toContain("<View fixed wrap={false} style={[styles.tableRow, styles.tableHeader]}>");
+    expect(src).toContain("wrap={false}");
+    expect(src).toContain("Master CML Register");
   });
 
-  it("WR-08: reinspection callout cites API 570 §6.3.3", () => {
+  it("WR-08: report limits avoid final engineering approval claims", () => {
     const { snapshot, audit } = body();
-    const [, page2] = pageTexts(buildPdfDocument(
+    const [page1] = pageTexts(buildPdfDocument(
       snapshot as unknown as ReportSnapshot,
       audit as unknown as Parameters<typeof buildPdfDocument>[1],
     ));
-    expect(page2).toMatch(/Rule applied:\s*API 570 §6\.3\.3/);
+    expect(page1).toContain("not professional engineering certification");
+    expect(page1).toContain("not");
+    expect(page1).toContain("final continued-service authorization");
   });
 });
 

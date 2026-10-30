@@ -24,7 +24,16 @@ export interface AuditStep {
   latencyMs: number | null;
 }
 
-/** The audit record: exactly two steps — extraction first, narrative second. */
+/**
+ * The audit record: exactly two steps — extraction first, narrative second.
+ *
+ * Naming compatibility note: `inputHash` is the legacy field name consumed by
+ * existing snapshot storage. In the PDF/CSV HTTP routes this value is always
+ * overwritten with the server-computed SHA-256 of the exact canonical CSV
+ * bytes before rendering, so every displayed report/CSV seal is the canonical
+ * downloadable CSV seal. The client-side computeInputHash helper below is only
+ * an evaluation-context fingerprint and must not be described as the CSV seal.
+ */
 export interface ReportAudit {
   evaluatedAt: string;
   inputHash: string;
@@ -64,14 +73,12 @@ export function buildAuditSteps(
 }
 
 /**
- * Fingerprints everything the deterministic evaluation consumed: the parsed
- * CSV rows, the field mapping, and the declared units — serialized as
- * JSON.stringify of an object holding rows, mapping, and units in that key
- * order (insertion-order stable for the same parse path). Returns the SHA-256
- * hex digest (lowercase, 64 chars) via globalThis.crypto.subtle — Node 24 and
- * browsers both provide crypto.subtle.
+ * Fingerprints the deterministic evaluation context (parsed rows, mapping and
+ * declared units). This is NOT the report/CSV seal. The report/CSV seal is
+ * recomputed on the server from canonical downloadable CSV bytes in
+ * app/api/report/pdf and app/api/report/csv.
  */
-export async function computeInputHash(
+export async function computeEvaluationContextHash(
   rows: ParsedRow[],
   mapping: Record<TargetField, string | null>,
   units: { csvThickness: Unit; metadata: Unit },
@@ -137,3 +144,6 @@ export function readReportAudit(): ReportAudit | null {
     return null; // corrupt payload or storage error → appendix renders null-audit rows
   }
 }
+
+/** Backwards-compatible alias for stored client audit code; not the CSV seal. */
+export const computeInputHash = computeEvaluationContextHash;

@@ -86,8 +86,8 @@ describe("demo end-to-end — load -> validate -> group -> evaluate (zero networ
     expect(results.summary).toEqual({
       total: 4912,
       locations: 12,
-      accept: 301,
-      reCheck: 538,
+      accept: 27,
+      reCheck: 812,
       fail: 4073,
     });
   });
@@ -121,11 +121,11 @@ describe("first-campaign honest handling (OQ3) on real data", () => {
     expect(insufficient.length).toBeGreaterThanOrEqual(480);
   });
 
-  it("each first-campaign reading has null CR/RL/interval yet a computed verdict", () => {
+  it("each first-campaign reading has null display CR, governing zero, null RL/interval, and a computed verdict", () => {
     for (const reading of noHistory) {
       expect(reading.crLtMmYr).toBeNull();
       expect(reading.crStMmYr).toBeNull();
-      expect(reading.crGoverningMmYr).toBeNull();
+      expect(reading.crGoverningMmYr).toBe(0);
       expect(reading.rlYears).toBeNull();
       expect(reading.nextInspection).toBeNull();
       expect(["accept", "re_check", "reject"]).toContain(reading.verdict);
@@ -216,7 +216,7 @@ describe("CR-degradation contract (UI-SPEC policy)", () => {
     for (const reading of degradedResults.readings) {
       expect(reading.crLtMmYr).toBeNull();
       expect(reading.crStMmYr).toBeNull();
-      expect(reading.crGoverningMmYr).toBeNull();
+      expect(reading.crGoverningMmYr).toBe(0);
       expect(reading.flags).toContain("insufficient_history");
       // verdicts still compute — they need only t-actual + metadata
       expect(["accept", "re_check", "reject"]).toContain(reading.verdict);
@@ -275,8 +275,8 @@ describe("subset demo end-to-end — load-demo -> evaluate (primary demo scope)"
     expect(subsetResults.summary).toEqual({
       total: 420,
       locations: 1,
-      accept: 22,
-      reCheck: 53,
+      accept: 4,
+      reCheck: 71,
       fail: 345,
     });
   });

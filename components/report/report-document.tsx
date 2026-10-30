@@ -93,9 +93,12 @@ export function ReportDocument({
   audit = null,
   codeEditionSources = null,
   onDownloadPdf,
+  onDownloadCsv,
   onPrint,
   pdfPending = false,
   pdfError = null,
+  csvPending = false,
+  csvError = null,
   variant = "preview",
 }: {
   snapshot: ReportSnapshot;
@@ -109,9 +112,12 @@ export function ReportDocument({
   /** PLAT-03: Tavily post-acceptance code-edition sources (null → no block). */
   codeEditionSources?: Array<{ title: string; url: string }> | null;
   onDownloadPdf?: () => void;
+  onDownloadCsv?: () => void;
   onPrint?: () => void;
   pdfPending?: boolean;
   pdfError?: string | null;
+  csvPending?: boolean;
+  csvError?: string | null;
   /** "print" omits the preview banner + action footer (browser supplies chrome). */
   variant?: "preview" | "print";
 }) {
@@ -333,7 +339,7 @@ export function ReportDocument({
                       {reading.rlYears === null
                         ? "—"
                         : reading.rlYears <= 0
-                          ? "0.0 yr (RETIRED)"
+                          ? "0.0 yr — immediate action"
                           : `${formatFixed(reading.rlYears, 1)} yr`}
                     </td>
                     <td className={PAPER_TD}>
@@ -554,6 +560,11 @@ export function ReportDocument({
               {pdfError}
             </p>
           ) : null}
+          {csvError ? (
+            <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {csvError}
+            </p>
+          ) : null}
           <button
             type="button"
             disabled={!gateOpen || pdfPending}
@@ -562,6 +573,15 @@ export function ReportDocument({
             className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             Download PDF
+          </button>
+          <button
+            type="button"
+            disabled={!gateOpen || csvPending}
+            aria-busy={csvPending || undefined}
+            onClick={onDownloadCsv}
+            className="h-10 rounded-lg border border-border bg-secondary px-4 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Download CSV
           </button>
           <button
             type="button"

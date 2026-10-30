@@ -10,6 +10,8 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { buildPdfDocument } from "@/components/report/pdf-document";
 import { ReportPdfRequestSchema } from "@/lib/report/snapshot-schema";
+import { buildCmlSummaries } from "@/lib/calc/cml-summary";
+import { cmlSummariesToCanonicalCsv, sha256HexFromCanonicalCsv } from "@/lib/report/canonical-csv";
 
 import { checkRateLimit, clientIp, rateLimitedResponse } from "@/lib/api/rate-limit";
 
@@ -60,7 +62,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const buffer = await renderToBuffer(buildPdfDocument(snapshot, audit ?? null));
+    const canonicalCsv = cmlSummariesToCanonicalCsv(buildCmlSummaries(snapshot.readings, snapshot.metadata.gaugeUncertainty));
+    const serverSeal = sha256HexFromCanonicalCsv(canonicalCsv);
+    const sealedAudit = { ...(audit ?? { evaluatedAt: snapshot.evaluatedAt, steps: [
+      { step: "extraction" as const, model: null, promptTokens: null, completionTokens: null, latencyMs: null },
+      { step: "narrative" as const, model: null, promptTokens: null, completionTokens: null, latencyMs: null },
+    ] as const }), inputHash: serverSeal };
+    const buffer = await renderToBuffer(buildPdfDocument(snapshot, sealedAudit));
     const sourceSafe = snapshot.sourceName.replace(/[^a-zA-Z0-9._-]/g, "_");
     return new Response(new Uint8Array(buffer), {
       status: 200,

@@ -7,11 +7,11 @@
   },
   "unit_system": {
     "canonical": "mm (millimeters) for all thickness quantities; years for all time quantities",
-    "pressure": "MPa or psi — must be consistent with S (allowable stress) units; record the chosen system in the evaluation",
+    "pressure": "MPa or psi \u2014 must be consistent with S (allowable stress) units; record the chosen system in the evaluation",
     "note": "User inputs in any unit (mm/in/mils) are converted to canonical before calc entry; the unit assumption is surfaced on the report"
   },
   "scope_exclusions": {
-    "ut_weld_volumetric_asme_b31_3_344_6_2": "Out of scope for FlawCheck v1 — this file covers UT WALL-THINNING thickness evaluation only, not UT examination of weld discontinuities",
+    "ut_weld_volumetric_asme_b31_3_344_6_2": "Out of scope for FlawCheck v1 \u2014 this file covers UT WALL-THINNING thickness evaluation only, not UT examination of weld discontinuities",
     "note": "File evaluates thickness measurements (t-min, corrosion rate, remaining life, intervals); surface flaw acceptance lives in ptmt-criteria.json"
   },
   "governing_t_required": {
@@ -21,7 +21,7 @@
       "t_pressure": "From asme_b31_3_straight_pipe or barlow_in_service (per component context), before FCA addition per API 570 7.2 note",
       "t_structural": "From API 574 Annex D Tables D.2a-D.2d (carbon steel minimum structural thickness at temperature) or owner-operator table"
     },
-    "note": "A Phase 2 implementation MUST apply this max() — computing only the pressure formula silently overstates remaining life"
+    "note": "A Phase 2 implementation MUST apply this max() \u2014 computing only the pressure formula silently overstates remaining life"
   },
   "t_min_formulas": {
     "asme_b31_3_straight_pipe": {
@@ -33,7 +33,7 @@
         "S": "Allowable stress from ASME B31.3 Table A-1 (psi or MPa)",
         "E": "Longitudinal quality factor from Table A-1A / A-1B (1.0 for seamless)",
         "W": "Weld joint strength reduction factor (1.0 default for normal temperatures)",
-        "Y": "Material coefficient from Table 304.1.1-1 (0.4 for ferritic steels <= 900°F / 482°C)",
+        "Y": "Material coefficient from Table 304.1.1-1 (0.4 for ferritic steels <= 900\u00b0F / 482\u00b0C)",
         "FCA": "Future corrosion allowance (c) specified for component"
       }
     },
@@ -83,14 +83,25 @@
   "verdict_bands": {
     "default_gauge_uncertainty_mm": 0.1,
     "criteria": {
-      "accept": "t_actual >= (t_required + gauge_uncertainty)",
-      "re_check": "t_required <= t_actual < (t_required + gauge_uncertainty)",
+      "accept": "t_actual > (t_required + gauge_uncertainty) and no active_quality_anomaly",
+      "re_check": "t_required <= t_actual <= (t_required + gauge_uncertainty), inclusive, or any active_quality_anomaly",
       "reject": "t_actual < t_required"
     },
     "boundary_convention": {
-      "at_t_actual_equals_t_required": "re_check (exact equality falls in re_check, NOT reject — reject is strictly less-than)",
-      "at_t_actual_equals_t_required_plus_uncertainty": "accept (the accept floor equals the re_check ceiling; no gap, no overlap)",
-      "implementation_note": "Implement as: if (t_actual < t_required) reject; else if (t_actual < t_required + gauge_uncertainty) re_check; else accept — evaluated in exactly this order"
-    }
+      "at_t_actual_equals_t_required": "re_check (exact equality falls in re_check, NOT reject \u2014 reject is strictly less-than)",
+      "at_t_actual_equals_t_required_plus_uncertainty": "re_check (inclusive upper guardband per approved corrective scope)",
+      "implementation_note": "Implement as: if (t_actual < t_required) reject; else if (t_actual <= t_required + gauge_uncertainty) re_check; else accept; then promote otherwise-accept readings to re_check when an active quality anomaly is present."
+    },
+    "active_quality_anomaly_flags": [
+      "measurement_inconsistency",
+      "insufficient_interval",
+      "gauge_deadband",
+      "outlier"
+    ]
+  },
+  "corrosion_rate_validation": {
+    "minimum_short_term_interval_years": 0.25,
+    "gauge_deadband_mm": 0.1,
+    "policy": "Quarantine positive growth, insufficient short-term intervals, and losses at or below gauge deadband before selecting a governing rate. If short-term is quarantined, fall back to a valid positive long-term rate."
   }
 }
