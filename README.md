@@ -62,8 +62,6 @@ Parse → Calculate → Narrate → Render
 
 ### Dependency graph
 
-Measured from this repository by AST extraction (**1,206 nodes · 3,063 edges · 69 communities**, built at commit `e74ad06`). Tests are omitted and only edges with 15 or more cross-module references are shown, so the shape stays readable; each arrow carries the reference count the extractor found. Nothing here is hand-drawn.
-
 ```mermaid
 graph LR
   G0["app"]
@@ -95,8 +93,6 @@ graph LR
   G7 -->|16| G6
   G3 -->|15| G4
 ```
-
-The diagram is a summary. The full 1,206-node render is at [`public/graphify-graph.png`](public/graphify-graph.png), and the graph report is regenerated locally by `python graphify-out/make-readme-graph.py` (Graphify output, not committed).
 
 ## NVIDIA Nemotron models on Nebius Token Factory
 
