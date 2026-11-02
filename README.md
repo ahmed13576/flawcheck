@@ -60,6 +60,44 @@ Parse → Calculate → Narrate → Render
 
 **Key invariant:** TypeScript computes every number; the LLM only extracts, structures, and narrates around precomputed results. Enforced by forbidden-import lints and a criteria-sovereignty test.
 
+### Dependency graph
+
+Measured from this repository by AST extraction (**1,206 nodes · 3,063 edges · 69 communities**, built at commit `e74ad06`). Tests are omitted and only edges with 15 or more cross-module references are shown, so the shape stays readable; each arrow carries the reference count the extractor found. Nothing here is hand-drawn.
+
+```mermaid
+graph LR
+  G0["app"]
+  G1["app/api"]
+  G2["components/report"]
+  G3["components/wizard"]
+  G4["hooks"]
+  G5["lib/api"]
+  G6["lib/calc"]
+  G7["lib/ingest"]
+  G8["lib/llm"]
+  G9["lib/reasoning"]
+  G10["lib/report"]
+  G11["lib/wizard"]
+  G3 -->|75| G7
+  G11 -->|43| G7
+  G3 -->|36| G11
+  G1 -->|35| G5
+  G1 -->|34| G9
+  G2 -->|31| G10
+  G0 -->|29| G3
+  G1 -->|25| G8
+  G3 -->|25| G10
+  G6 -->|23| G7
+  G9 -->|22| G7
+  G10 -->|21| G7
+  G0 -->|17| G10
+  G9 -->|17| G6
+  G7 -->|16| G6
+  G3 -->|15| G4
+```
+
+The diagram is a summary. The full 1,206-node render is at [`public/graphify-graph.png`](public/graphify-graph.png), and the graph report is regenerated locally by `python graphify-out/make-readme-graph.py` (Graphify output, not committed).
+
 ## NVIDIA Nemotron models on Nebius Token Factory
 
 | Role | Model | Usage |
