@@ -10,13 +10,13 @@ Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackatho
 
 ## What it does
 
-| Step | What happens |
-|---|---|
-| 1 Ingest | Upload an ultrasonic thickness CSV, or load the bundled Zenodo sample |
-| 2 Review | Confirm column mapping, component metadata and PT/MT notes |
-| 3 Evaluate | Pure TypeScript computes t-required, corrosion rates, remaining life and FAIL / RE-CHECK / ACCEPT against ASME B31.3, API 570 and API 574 |
-| 4 Reason | Nemotron streams a clause-cited narrative around the precomputed values; every citation resolves through a renderer-locked allowlist |
-| 5 Report | Download a PDF and a canonical CSV, with the audit trail, inspector sign-off, SHA-256 register seal and limitations notice |
+| # | Stage | What happens |
+|---|---|---|
+| 1 | Ingest | Upload an ultrasonic thickness CSV, or load the bundled Zenodo sample |
+| 2 | Review | Confirm column mapping, component metadata and PT/MT notes |
+| 3 | Evaluate | Pure TypeScript computes t-required, corrosion rates, remaining life and FAIL / RE-CHECK / ACCEPT against ASME B31.3, API 570 and API 574 |
+| 4 | Reason | Nemotron streams a clause-cited narrative around the precomputed values; every citation resolves through a renderer-locked allowlist |
+| 5 | Report | Download a PDF and a canonical CSV, with the audit trail, inspector sign-off, SHA-256 register seal and limitations notice |
 
 ## Run it locally
 
@@ -91,7 +91,7 @@ graph LR
 
 Model IDs come from the environment and are validated at startup against the live `/v1/models` catalog.
 
-## Code-edition lookup
+## Tavily code-edition lookup
 
 After an evaluation, the report screen asks Tavily once for code-edition and errata sources relevant to the design code. Results are cached per evaluation and time out after three seconds. A missing key, a timeout or a failed request returns no links, and the report still renders.
 
