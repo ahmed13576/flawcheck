@@ -20,12 +20,13 @@ Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackatho
 
 ## Run it locally
 
+You need Node.js 24 or newer. A Nebius key is optional; without one the app runs in deterministic fallback.
+
 ```bash
-# Node.js 24 or newer. A Nebius key is optional; without one the app runs in deterministic fallback.
 git clone https://github.com/ahmed13576/flawcheck.git
 cd flawcheck
 npm install
-cp .env.example .env.local   # then set NEBIUS_API_KEY if you want live inference
+cp .env.example .env.local   # set NEBIUS_API_KEY for live inference
 npm run dev                  # http://localhost:3000
 ```
 
