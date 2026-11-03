@@ -28,9 +28,9 @@
 
 **Screen:** Screen 3 (Results) — summary strip, pipeline status bar, results table.
 
-> "4,912 readings evaluated — 301 accepted, 538 need re-checking, 4,073 failed. Every verdict shows its reasoning chain: the measured inputs, the governing clause, the limit, and the verdict. The narrative is streamed by Nemotron Super 120B — notice it never computes a number; TypeScript already did. The citations resolve through a locked allowlist — a fabricated clause ID renders blank with an audit stamp."
+> "4,912 readings evaluated — 301 accepted, 538 need re-checking, 4,073 failed. Every verdict shows its reasoning chain: the measured inputs, the governing clause, the limit, and the verdict. The narrative is streamed by Nemotron 3.5 Super VL — notice it never computes a number; TypeScript already did. The citations resolve through a locked allowlist — a fabricated clause ID renders blank with an audit stamp."
 
-**Action:** Scroll to a RE-CHECK row → click "View reasoning" → the reasoning pane opens showing the chain + streaming narrative + model badge (`nvidia/nemotron-3-super-120b-a12b · tokens … · … s · —`).
+**Action:** Scroll to a RE-CHECK row → click "View reasoning" → the reasoning pane opens showing the chain + streaming narrative + model badge (`nvidia/Nemotron-3.5-Super-VL · tokens … · … s · —`).
 
 **Show:** The pipeline status bar with the extraction badge (`Nemotron-3_5-Lightning · tokens 3,857 · 13.9 s · —`).
 
@@ -52,9 +52,9 @@
 
 **Screen:** Back to the landing page or a static architecture slide.
 
-> "FlawCheck runs on Nebius Token Factory — Nemotron Super 120B for acceptance reasoning, Lightning for extraction, with a deterministic TypeScript fallback that works even when the LLM is offline. Every calculation is in pure TypeScript; the AI never does arithmetic. The result is a report an inspector can defend. Thank you."
+> "FlawCheck runs on Nebius Token Factory — Nemotron 3.5 Super VL for acceptance reasoning, Lightning for extraction, with a deterministic TypeScript fallback that works even when the LLM is offline. Every calculation is in pure TypeScript; the AI never does arithmetic. The result is a report an inspector can defend. Thank you."
 
-**End frame:** GitHub repo URL + "Built with Nebius Token Factory + NVIDIA Nemotron"
+**End frame:** GitHub repo URL + "Built with Nebius Token Factory + NVIDIA Nemotron 3.5 Super VL"
 
 ---
 
@@ -65,5 +65,5 @@
 - [ ] Show the pipeline status bar model badges clearly (zoom if needed)
 - [ ] Click "View reasoning" and wait for the stream to finish before narrating
 - [ ] Download the PDF and open it — show the clause citations
-- [ ] Mention "Nebius Token Factory" and "NVIDIA Nemotron" by name
+- [ ] Mention "Nebius Token Factory" and "NVIDIA Nemotron 3.5 Super VL" by name
 - [ ] Total: ≤ 3 minutes; the working solution is visible for ≥ 1 minute

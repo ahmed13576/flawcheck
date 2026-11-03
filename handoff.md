@@ -31,7 +31,7 @@ Every incoming agent **MUST strictly honor these rules without deviation**:
 2. **LLM Never Computes Arithmetic**:
    * All formulas ($t_{\min}$, corrosion rates $CR_{LT}$ / $CR_{ST}$, remaining life $RL$, next inspection date) are computed in pure TypeScript under `lib/calc/`.
    * Enforced via a forbidden-import boundary: `lib/calc/` may NEVER import from `lib/llm/`.
-   * The LLMs (`nemotron-3-super-120b-a12b` and `Nemotron-3_5-Lightning`) only extract structured entities, format data, and generate natural-language rationale narratives.
+   * The LLMs (`nvidia/Nemotron-3.5-Super-VL` and `Nemotron-3_5-Lightning`) only extract structured entities, format data, and generate natural-language rationale narratives.
 3. **Citation Allowlist Enforcement at Renderer**:
    * LLMs cannot invent clause citations or output unvetted references. The PDF/HTML report generator rejects any citation ID not present in `citations.json`.
 4. **Cite-Don't-Quote Legal Posture**:
@@ -40,7 +40,7 @@ Every incoming agent **MUST strictly honor these rules without deviation**:
    * Architecture is a deterministic 4-step pipeline: `Parse -> Calculate -> Narrate -> Render`.
    * Eliminates infinite loops, API token drain, and latency unpredictability.
 6. **Model Routing on Nebius Token Factory**:
-   * `nemotron-3-super-120b-a12b`: Deep acceptance reasoning narrative (SSE streamed).
+   * `nvidia/Nemotron-3.5-Super-VL`: Deep acceptance reasoning narrative (SSE streamed).
    * `Nemotron-3_5-Lightning`: Fast structured extraction of inspection metadata and PT/MT notes.
    * *Note: Ultra-253B and Nano-Omni were retired from Nebius serverless in Aug 2026.*
 
@@ -105,7 +105,7 @@ The web application flow is explicitly specified across 4 linear screens:
    * Metadata input form: Outer Diameter ($OD$), Nominal Thickness ($t_{\text{nom}}$), Future Corrosion Allowance ($FCA$), Design Code, Piping Class (Class 1–3), Gauge Uncertainty ($\pm 0.1\text{ mm}$ default), and optional PT/MT notes.
 3. **Screen 3 — Evaluation Results & Streaming Reasoning**:
    * CML grid with colored verdict chips (Green = Accept, Amber = Re-check, Red = Fail).
-   * Expandable **Reasoning Pane** per CML displaying streaming `nemotron-3-super-120b-a12b` narrative with token and latency badges.
+   * Expandable **Reasoning Pane** per CML displaying streaming `nvidia/Nemotron-3.5-Super-VL` narrative with token and latency badges.
    * Separate PT/MT defect triage panel.
 4. **Screen 4 — Code-Compliant Inspection Report**:
    * Formatted report layout: Header, Component Context, CML Measurement Table, Formula Substitutions ("Show Your Work"), Clause-Cited Conclusions, Re-Inspection Date, Inspector Sign-off field, and Legal Disclaimer footer.

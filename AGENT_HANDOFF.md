@@ -12,8 +12,8 @@
 This handoff documents the critical engineering challenges, root causes, bug fixes, UI/UX redesigns, and workflow adaptations executed across the FlawCheck NDT Inspection Copilot.
 
 The project satisfies the hackathon requirement of **prominently featuring NVIDIA Nemotron open-source models** on **Nebius Token Factory** across two distinct pipeline steps:
-1. **Structured JSON Extraction**: `nvidia/nemotron-3-super-120b-a12b`
-2. **Deterministic Engineering Narrative & Reasoning**: `nvidia/nemotron-3-super-120b-a12b`
+1. **Structured JSON Extraction**: `nvidia/Nemotron-3.5-Super-VL`
+2. **Deterministic Engineering Narrative & Reasoning**: `nvidia/Nemotron-3.5-Super-VL`
 
 ---
 
@@ -30,8 +30,8 @@ The project satisfies the hackathon requirement of **prominently featuring NVIDI
   2. With `maxCompletionTokens: 3000`, the model hit `finish_reason: "length"` during reasoning, returning `content: null`.
   3. When token caps were increased to 6000, under arbitrary `json_object` mode (without strict JSON schema enforcement), the model corrupted the first key into `{". ": "Pipe..."}` instead of `{"componentContext": ...}`, failing Zod schema parsing.
 - **Resolution (Commit `96ef082`):**
-  - Switched `NEBIUS_MODEL_EXTRACTION` in `.env.local` and `.env.example` to `nvidia/nemotron-3-super-120b-a12b`.
-  - Super-120B runs concise reasoning (~197 reasoning tokens + 108 output tokens = ~305 tokens total) at `reasoning_effort: "low"`.
+  - Switched `NEBIUS_MODEL_EXTRACTION` in `.env.local` and `.env.example` to `nvidia/Nemotron-3.5-Super-VL`.
+  - Nemotron 3.5 Super VL runs concise reasoning (~197 reasoning tokens + 108 output tokens = ~305 tokens total) at `reasoning_effort: "low"`.
   - Latency reduced from 15–20s timeout to ~2.5s.
   - Passes `ExtractionResultSchema` on first attempt with 100% reliability.
   - Updated docstrings in `app/api/reasoning/extract/route.ts`, `lib/reasoning/prompts.ts`, and `lib/reasoning/narrative-context.ts`.
@@ -57,12 +57,12 @@ The project satisfies the hackathon requirement of **prominently featuring NVIDI
   `POST /api/reasoning/narrative` returned HTTP 200, but Screen 3 rendered:
   `DETERMINISTIC FALLBACK · — · — · —` instead of the streaming LLM narrative.
 - **Root Cause:**  
-  FlawCheck applies a 4-lint security and hallucination guard (`numeric_lint`, `verdict_lint`, `citation_lint`, `verbatim_lint`). Probing live Super-120B inference uncovered 6 specific failure triggers:
-  1. **Unicode Narrow No-Break Space (`\u202F`)**: Super-120B emitted `API 574` with `\u202F`, escaping the ASCII `DESIGNATORS` regex and causing `574` to be rejected as an unauthorized number.
+  FlawCheck applies a 4-lint security and hallucination guard (`numeric_lint`, `verdict_lint`, `citation_lint`, `verbatim_lint`). Probing live Nemotron 3.5 Super VL inference uncovered 6 specific failure triggers:
+  1. **Unicode Narrow No-Break Space (`\u202F`)**: Nemotron 3.5 Super VL emitted `API 574` with `\u202F`, escaping the ASCII `DESIGNATORS` regex and causing `574` to be rejected as an unauthorized number.
   2. **Transcribed Clause Identifiers**: The model transcribed clause numbers from citation titles (e.g., `§10.5.1.4`, `§344.3.2`) into prose, triggering `numeric_lint` rejections on numbers `10.5`, `1`, `4`, `344.3`, and `2`.
   3. **Derived Arithmetic in Prose**: The model attempted to compute remaining margins in prose (`19.88 mm - 19.85 mm = 0.03 mm`), emitting numbers absent from `PRECOMPUTED VALUES`.
-  4. **Unicode En-Dash in Negative Numbers**: Super-120B used Unicode en-dashes (`–`, `\u2013`) for negative corrosion rates (`–0.244`), causing regex splits to look up positive `0.244`.
-  5. **Reasoning Token Exhaustion**: `openStream` had `max_completion_tokens: 1200`. Super-120B consumed 500–1000 tokens in CoT, hitting the limit and returning an empty text body, immediately failing `verdict_lint`.
+  4. **Unicode En-Dash in Negative Numbers**: Nemotron 3.5 Super VL used Unicode en-dashes (`–`, `\u2013`) for negative corrosion rates (`–0.244`), causing regex splits to look up positive `0.244`.
+  5. **Reasoning Token Exhaustion**: `openStream` had `max_completion_tokens: 1200`. Nemotron 3.5 Super VL consumed 500–1000 tokens in CoT, hitting the limit and returning an empty text body, immediately failing `verdict_lint`.
   6. **Trailing Newline Regex Boundary**: Trailing newlines after `Verdict: FAIL.` caused regex `$` multiline boundary mismatches.
 - **Resolution (Commit `c206698`):**
   - **`lib/reasoning/prompts.ts`**:
@@ -126,7 +126,7 @@ All 4 wizard screens and core UI components were redesigned with an **Industrial
 
 Branch: `redesign/web-interface`  
 Head commits:
-- `c206698` — `fix(narrative): strengthen prompt to pass verdict+numeric lints for Super-120B`
+- `c206698` — `fix(narrative): strengthen prompt to pass verdict+numeric lints for Nemotron 3.5 Super VL`
 - `b5b0be2` — `feat(ux): add horizontal scroll discoverability to results table`
 - `9df0ced` — `feat(ui): add loading spinner and pulse animations to pipeline status bar`
 - `44e1903` — `fix(ui): flag past-due next inspection dates from historical demo data`
@@ -144,7 +144,7 @@ Head commits:
 ## 5. Next Steps for Succeeding Agents
 
 1. **Phase 12: Hackathon Documentation & README (`.planning/ROADMAP.md`)**:
-   - Update `README.md` to highlight NVIDIA Nemotron-3-Super-120B architecture, token economics on Nebius, and the two-tier extraction + narrative pipeline.
+   - Update `README.md` to highlight NVIDIA Nemotron-3-Nemotron 3.5 Super VL architecture, token economics on Nebius, and the two-tier extraction + narrative pipeline.
    - Include API setup instructions and model routing documentation for judges.
 2. **Phase 13: Branch Merge & Final End-to-End Verification**:
    - Merge `redesign/web-interface` into `main` (or parent fork branch).

@@ -4,15 +4,15 @@ Turn raw non-destructive testing (NDT) inspection data — ultrasonic thickness 
 
 **Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackathons)** · Track: Best Apps and Agents
 
-![tests](https://img.shields.io/badge/tests-692%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16%20Turbopack-black) ![nvidia](https://img.shields.io/badge/NVIDIA-Nemotron--3--Super--120B-76b900) ![nebius](https://img.shields.io/badge/Nebius-Token%20Factory-00d2ff)
+![tests](https://img.shields.io/badge/tests-692%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16%20Turbopack-black) ![nvidia](https://img.shields.io/badge/NVIDIA-Nemotron%203.5%20Super%20VL-76b900) ![nebius](https://img.shields.io/badge/Nebius-Token%20Factory-00d2ff)
 
 > **The Engineering Invariant:** Pure TypeScript computes every number, formula, and limit — the LLM never touches arithmetic. Every verdict is mathematically deterministic, every standard citation is renderer-locked, and every report is audit-stamped.
 
 ---
 
-## NVIDIA Nemotron on Nebius Token Factory
+## NVIDIA Nemotron 3.5 Super VL on Nebius Token Factory
 
-FlawCheck prominently utilizes **`nvidia/nemotron-3-super-120b-a12b`** (120B MoE, 12B active parameters, FP4 quantization) hosted on **Nebius Token Factory** across two distinct, complementary stages of the pipeline:
+FlawCheck prominently utilizes **`nvidia/Nemotron-3.5-Super-VL`** hosted on **Nebius Token Factory** across two distinct, complementary stages of the pipeline:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -41,7 +41,7 @@ FlawCheck prominently utilizes **`nvidia/nemotron-3-super-120b-a12b`** (120B MoE
                                 ▼                     ▼
 ┌─────────────────────────────────────────┐  ┌─────────────────────────────────────────┐
 │ 3. Qualitative Extraction & Synthesis   │  │ 4. Engineering Acceptance Narration     │
-│    Model: nvidia/nemotron-3-super-120b  │  │    Model: nvidia/nemotron-3-super-120b  │
+│    Model: nvidia/Nemotron-3.5-Super-VL  │  │    Model: nvidia/Nemotron-3.5-Super-VL  │
 │    • Service context & operating facts  │  │    • Real-time SSE streaming narrative  │
 │    • Prompt-injection security boundary │  │    • Explains governing code limits     │
 │    • Strict Zod Schema validation       │  │    • Multi-lint hallucination guards    │
@@ -62,13 +62,13 @@ FlawCheck prominently utilizes **`nvidia/nemotron-3-super-120b-a12b`** (120B MoE
 
 | Stage | Model ID | Provider & Config | Role & Architecture |
 |---|---|---|---|
-| **1. Structured Context Extraction** | `nvidia/nemotron-3-super-120b-a12b` | Nebius Token Factory (`reasoning_effort: "low"`, `max_completion_tokens: 3000`) | Distills unstructured field notes into structured JSON context (`componentContext`, `notableFacts`, `ptmtNotesSummary`, `cautions`). Enforces prompt-injection delimiters and qualitative bans. |
-| **2. Engineering Acceptance Narration** | `nvidia/nemotron-3-super-120b-a12b` | Nebius Token Factory (SSE stream, `reasoning_effort: "low"`, `max_completion_tokens: 4000`) | Generates real-time, professional engineering narratives explaining *why* a location passed, failed, or requires re-check under API 570 / ASME B31.3. Cites governing clauses strictly via allowlist tokens (`[[cite:<id>]]`). |
+| **1. Structured Context Extraction** | `nvidia/Nemotron-3.5-Super-VL` | Nebius Token Factory (`reasoning_effort: "low"`, `max_completion_tokens: 8000`) | Distills unstructured field notes into structured JSON context (`componentContext`, `notableFacts`, `ptmtNotesSummary`, `cautions`). Enforces prompt-injection delimiters and qualitative bans. |
+| **2. Engineering Acceptance Narration** | `nvidia/Nemotron-3.5-Super-VL` | Nebius Token Factory (SSE stream, `reasoning_effort: "low"`, `max_completion_tokens: 12000`) | Generates real-time, professional engineering narratives explaining *why* a location passed, failed, or requires re-check under API 570 / ASME B31.3. Cites governing clauses strictly via allowlist tokens (`[[cite:<id>]]`). |
 | **Deterministic Fallback** | *Pure TypeScript Engine* | Local (zero network, zero API cost) | Built-in fallback templates guarantee full app functionality even if network or API keys are unavailable. |
 
 ### Token Economics & Budget Efficiency ($25 Hackathon Credit)
 
-Running `nvidia/nemotron-3-super-120b-a12b` on Nebius Token Factory delivers exceptional performance and cost efficiency:
+Running `nvidia/Nemotron-3.5-Super-VL` on Nebius Token Factory delivers exceptional performance and cost efficiency:
 - **Input Pricing:** $0.30 per 1M tokens ($0.0003 / 1k)
 - **Output Pricing:** $0.90 per 1M tokens ($0.0009 / 1k)
 - **Measured Cost Per Evaluation Call:** ~850 prompt tokens + ~305 completion tokens ≈ **$0.00053 USD** (approx. 1/20th of a cent)
@@ -131,9 +131,9 @@ Edit `.env.local` with your credentials:
 # Required for live Nemotron LLM extraction and narrative
 NEBIUS_API_KEY=your_nebius_api_key_here
 
-# Configured Models (NVIDIA Nemotron-3-Super-120B)
-NEBIUS_MODEL_EXTRACTION=nvidia/nemotron-3-super-120b-a12b
-NEBIUS_MODEL_REASONING=nvidia/nemotron-3-super-120b-a12b
+# Configured Models (NVIDIA Nemotron-3-Nemotron 3.5 Super VL)
+NEBIUS_MODEL_EXTRACTION=nvidia/Nemotron-3.5-Super-VL
+NEBIUS_MODEL_REASONING=nvidia/Nemotron-3.5-Super-VL
 NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1/
 
 # Optional: Code Edition / Errata Search

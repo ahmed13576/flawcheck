@@ -17,7 +17,7 @@
   - **Fork A** — `../flawcheck-nvidia-system1` (`feat/nvidia-system1`): Nemotron-3.5-Lightning at temperature 0 with strict JSON schema as the System-1 tier. Hackathon-compliant path.
   - **Fork B (this worktree)** — `../flawcheck-subq-snap` (`feat/subq-snap`): SubQ.ai Snap Decision API (`subq-snap-preview`) as the System-1 tier **plus a comparative benchmark harness vs Nemotron-Lightning**. This is the research/portfolio piece ("System-1 vs System-2 in Industrial NDT AI") — its code does **not** ship in the Devpost submission.
 
-**Dual-System framing**: System 0 (pure TS `lib/calc/`) computes every number; System 1 (this fork: fast typed micro-decisions) routes/classifies/gates; System 2 (Nemotron Super-120B) narrates. System-1 stage candidates from ideation: column reconciliation, PT/MT indication morphology triage, API 570 fluid-class routing, outlier/negative-CR root cause, adversarial prompt-injection firewall pre-System-2, fleet-scale tiering (Tier 1 auto-pass / Tier 2 borderline / Tier 3 full System-2), and semantic narrative verification replacing regex lints.
+**Dual-System framing**: System 0 (pure TS `lib/calc/`) computes every number; System 1 (this fork: fast typed micro-decisions) routes/classifies/gates; System 2 (Nemotron Nemotron 3.5 Super VL) narrates. System-1 stage candidates from ideation: column reconciliation, PT/MT indication morphology triage, API 570 fluid-class routing, outlier/negative-CR root cause, adversarial prompt-injection firewall pre-System-2, fleet-scale tiering (Tier 1 auto-pass / Tier 2 borderline / Tier 3 full System-2), and semantic narrative verification replacing regex lints.
 
 ## 2. Immutable Architectural Invariants (violating any = broken product)
 
@@ -80,7 +80,7 @@ Requirements locked: **SUBQ-01..04, BENCH-01..04** (8 must-haves in `08-SPEC.md`
 - **Commit after every task; never leave work uncommitted across a spawn boundary.** Git checkpoints are the crash recovery.
 - `git branch --show-current` before EVERY commit — an external force switched branches mid-run once (recovered via reflog forensics). Worktrees make the risk surface larger, not smaller.
 - **Lightning wraps JSON in prose** despite `response_format: json_object` → `parseJsonLoose` extracts balanced `{…}` blocks, tried LAST-first. Relevant if Fork A's adapter is ported in for the baseline.
-- **Lightning's visible chain-of-thought counts inside max_completion_tokens** — extraction needs 3000 (800 truncated mid-thought). Super-120B narrative fits in 1200 at `reasoning_effort: "low"`.
+- **Lightning's visible chain-of-thought counts inside max_completion_tokens** — extraction needs 3000 (800 truncated mid-thought). Nemotron 3.5 Super VL narrative fits in 1200 at `reasoning_effort: "low"`.
 - `reasoning_effort` enum is `low|medium|high` ONLY (wider values 422).
 - **"ASME B31.3" contains digits (31.3, 3)** — the numeric-consistency lint strips code designators before digit scanning, or every narrative fails. If Spike D's semantic guard replaces lints, keep this quirk in the benchmark scenarios.
 - Live costs (master-era): extraction ~$0.0002/eval; narrative ~$0.0009/pane. Benchmark cost metrics must use measured usage, not hardcoded prices (grep gate scans for hardcoded `nvidia/` model IDs — never hardcode them in source/tests).
