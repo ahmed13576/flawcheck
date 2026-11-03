@@ -36,6 +36,18 @@ const styles = StyleSheet.create({
   legendText: { fontSize: 6.5, fontFamily: "Courier", color: "#333333" },
 });
 
+/**
+ * Legend label for a CML identity: the trimmed last path segment —
+ * "WBT-S6 / D8" renders as "D8" (the same tail derivation
+ * buildLatestPerCml uses for the heatmap grid). Keeps the report's ID-count
+ * budget intact: the register and Top-10 table already name every CML in
+ * full, so the legend prints only the distinguishing short form.
+ */
+function legendLabel(cmlId: string): string {
+  const tail = cmlId.split("/").pop()?.trim();
+  return tail && tail.length > 0 ? tail : cmlId;
+}
+
 export interface PdfFanPlotProps {
   geometry: FanPlotGeometry;
   title?: string;
@@ -195,13 +207,14 @@ export function PdfFanPlot({
           </SvgText>
         ))}
       </Svg>
-      {/* Legend — one swatch per series, rendered OUTSIDE the Svg so each
-          CML id prints once (the register already names every CML). */}
+      {/* Legend — one swatch per series, rendered OUTSIDE the Svg with the
+          SHORT id form (the register and Top-10 already name every CML in
+          full). */}
       <View style={styles.legend}>
         {geometry.series.map((s) => (
           <View key={`legend-${s.cmlId}`} style={styles.legendItem}>
             <View style={[styles.swatch, { backgroundColor: s.color }]} />
-            <Text style={styles.legendText}>{s.cmlId}</Text>
+            <Text style={styles.legendText}>{legendLabel(s.cmlId)}</Text>
           </View>
         ))}
       </View>

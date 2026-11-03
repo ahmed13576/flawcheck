@@ -1,19 +1,19 @@
 /**
- * Phase 09 PDF-01/PDF-02 — vector analytics in the certified report.
+ * Phase 09 PDF-01/PDF-02/PDF-03 — vector analytics in the certified report.
  *
- * Pins the vector element hierarchy of the PDF document tree: the trend
- * curve renders <Svg> with <Path>/<Line>/<Circle> primitives and the
- * severity matrix renders its <Rect> grid — zero raster images anywhere.
- * Also pins the pure adapter seam (buildGoverningTrendPoints /
- * toHeatmapItems): geometry inputs are precomputed engine values passed
- * through verbatim, with severity/identity selection only.
+ * Pins the vector element hierarchy of the PDF document tree: the fan plot
+ * renders <Svg> with <Path>/<Line>/<Circle> primitives and the severity
+ * matrix renders its <Rect> grid — zero raster images anywhere. The fan
+ * mounts through the shared limiting-series adapter (buildLimitingSeries —
+ * pinned in tests/analytics/fan-series.test.ts), and page 3 falls back to the
+ * no-positive-rate message when no limiting CML has a validated positive
+ * governing rate. The pure heatmap seam (toHeatmapItems) stays pinned here.
  */
 import { describe, it, expect } from "vitest";
-import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import {
+  buildClauseReferenceLines,
   buildPdfDocument,
-  buildGoverningTrendPoints,
   toHeatmapItems,
   getTop10Worst,
 } from "@/components/report/pdf-document";
@@ -94,6 +94,13 @@ function typeName(type: unknown): string | null {
 
 /** Walks the element tree, invoking function components so they render. */
 function walkElement(node: unknown, visit: (type: string) => void): void {
+  // Adjacent JSX .map() expressions produce NESTED children arrays
+  // ([[rect, rect], [g, g]]) — descend them, or the whole Svg subtree
+  // (and any multi-expression block) is silently dropped.
+  if (Array.isArray(node)) {
+    for (const c of node) walkElement(c, visit);
+    return;
+  }
   if (typeof node !== "object" || node === null) return;
   const el = node as { type?: unknown; props?: { children?: unknown } };
   if (el.type === undefined) return;
@@ -118,6 +125,10 @@ function flatten(node: unknown, acc: string[] = []): string[] {
 
 /** Collects text instances from the document tree. */
 function collectText(node: unknown, acc: string[] = []): string[] {
+  if (Array.isArray(node)) {
+    for (const c of node) collectText(c, acc);
+    return acc;
+  }
   if (typeof node === "string") acc.push(node);
   if (typeof node !== "object" || node === null) return acc;
   const el = node as { type?: unknown; props?: { children?: unknown } };
@@ -132,41 +143,33 @@ function collectText(node: unknown, acc: string[] = []): string[] {
   return acc;
 }
 
-describe("governing trend adapter (pure)", () => {
-  it("selects the reject reading's CML history in date order", () => {
-    const readings = [
-      reading({ readingId: "r-a", cml: "CML-01", date: "2025-01-15T00:00:00Z", verdict: "accept" }),
-      reading({
-        readingId: "r-b",
-        cml: "CML-02",
-        date: "2024-06-01T00:00:00Z",
-        tActualMm: 5.9,
-        verdict: "accept",
-        rlYears: 0,
-      }),
-      reading({
-        readingId: "r-c",
-        cml: "CML-02",
-        date: "2025-06-01T00:00:00Z",
-        tActualMm: 5.7,
-        verdict: "reject",
-        rlYears: 0,
-      }),
-    ];
-    const { points, cmlId, crGoverningMmYr } = buildGoverningTrendPoints(readings);
-    expect(cmlId).toBe("CML-02");
-    expect(points.map((p) => p.date.slice(0, 10))).toEqual(["2024-06-01", "2025-06-01"]);
-    expect(points.map((p) => p.thicknessMm)).toEqual([5.9, 5.7]);
-    expect(crGoverningMmYr).toBe(0.3);
-  });
-
-  it("degrades to empty for zero readings", () => {
-    const { points, cmlId, crGoverningMmYr } = buildGoverningTrendPoints([]);
-    expect(points).toEqual([]);
-    expect(cmlId).toBe("");
-    expect(crGoverningMmYr).toBeNull();
-  });
-});
+/**
+ * Two readings per CML so at least one limiting series carries a positive
+ * validated governing rate and a 2-point history — the fan-mount guard's
+ * minimum fixture (the single-reading fixtures below exercise the fallback).
+ */
+function multiPointReadings(): ReadingResult[] {
+  return [
+    reading({ readingId: "r-a1", cml: "CML-01", date: "2024-06-01T00:00:00Z", tActualMm: 6.8 }),
+    reading({ readingId: "r-a2", cml: "CML-01", date: "2025-06-01T00:00:00Z", tActualMm: 6.5 }),
+    reading({
+      readingId: "r-b1",
+      cml: "CML-02",
+      date: "2024-06-01T00:00:00Z",
+      tActualMm: 5.9,
+      verdict: "reject",
+      rlYears: 0,
+    }),
+    reading({
+      readingId: "r-b2",
+      cml: "CML-02",
+      date: "2025-06-01T00:00:00Z",
+      tActualMm: 5.7,
+      verdict: "reject",
+      rlYears: 0,
+    }),
+  ];
+}
 
 describe("heatmap adapter (pure)", () => {
   it("lays readings on a dense row-major grid with verbatim values", () => {
@@ -192,19 +195,10 @@ describe("heatmap adapter (pure)", () => {
   });
 });
 
-describe("PDF vector tree (PDF-01/PDF-02)", () => {
+describe("PDF vector tree (PDF-01/PDF-02/PDF-03)", () => {
   it("renders Svg/Path/Line/Circle/Rect vector primitives with zero Image nodes", () => {
     const doc = buildPdfDocument(
-      snapshot([
-        reading({ readingId: "r-a", cml: "CML-01" }),
-        reading({
-          readingId: "r-b",
-          cml: "CML-02",
-          tActualMm: 5.9,
-          verdict: "reject",
-          rlYears: 0,
-        }),
-      ]),
+      snapshot(multiPointReadings()),
       {
         evaluatedAt: "2026-10-05T00:00:00Z",
         inputHash: "a".repeat(64),
@@ -230,10 +224,34 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
     expect(names).toContain("document");
     expect(names).toContain("page");
     expect(names).toContain("text");
+    // The fan plot actually MOUNTS on this fixture (CML-02 has a positive
+    // validated governing rate and a 2-point history), so the vector
+    // primitives are really present — not just absent-Image.
+    expect(names).toContain("PdfFanPlot");
+    expect(names).toContain("svg");
+    expect(names).toContain("path");
+    expect(names).toContain("line");
+    expect(names).toContain("circle");
+    expect(names).toContain("rect");
     expect(names).not.toContain("image");
   }, 30_000);
 
-  it("labels the trend curve with the governing CML identity", () => {
+  it("labels the fan plot with the limiting CML identities and its caption", () => {
+    const doc = buildPdfDocument(snapshot(multiPointReadings()), null);
+    const texts = collectText(doc).join(" ");
+    expect(texts).toContain("Degradation fan — limiting CMLs on one scale");
+    expect(texts).toContain("Limiting CML degradation fan");
+    // Legend identities — both limiting CMLs, worst (CML-02) included.
+    expect(texts).toContain("CML-01");
+    expect(texts).toContain("CML-02");
+    expect(texts).toContain("2 limiting CMLs by historical minimum");
+    expect(texts).toContain("Master CML Register");
+    expect(texts).toContain("Population reconciliation");
+  }, 30_000);
+
+  it("falls back to the no-positive-rate message instead of a chart when no limiting CML has a validated rate", () => {
+    // Single reading per CML — no 2-point history, so the fan-mount guard
+    // fails exactly like the old single-series trend guard did.
     const doc = buildPdfDocument(
       snapshot([
         reading({ readingId: "r-a", cml: "CML-01" }),
@@ -248,25 +266,18 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
       null,
     );
     const texts = collectText(doc).join(" ");
-    expect(texts).toContain("Master CML Register");
-    expect(texts).toContain("Population reconciliation");
+    expect(texts).toContain(
+      "No positive validated corrosion rate is available for any limiting CML",
+    );
+    expect(texts).toContain("would imply a guarantee the measurements do not support");
+    // The fan never mounts — the page-1 heatmap's Svg is still present, so
+    // assert on the fan component itself, which appears only when mounted.
+    expect(flatten(doc)).not.toContain("PdfFanPlot");
   }, 30_000);
 
   it("produces real %PDF bytes with the analytics mounted", async () => {
     const buf = await renderToBuffer(
-      buildPdfDocument(
-        snapshot([
-          reading({ readingId: "r-a", cml: "CML-01" }),
-          reading({
-            readingId: "r-b",
-            cml: "CML-02",
-            tActualMm: 5.9,
-            verdict: "reject",
-            rlYears: 0,
-          }),
-        ]),
-        null,
-      ),
+      buildPdfDocument(snapshot(multiPointReadings()), null),
     );
     expect(buf.subarray(0, 4).toString("latin1")).toBe("%PDF");
   }, 60_000);
@@ -279,5 +290,49 @@ describe("PDF vector tree (PDF-01/PDF-02)", () => {
     const top10 = getTop10Worst(readings);
     expect(top10).toHaveLength(2);
     expect(top10[0].readingId).toBe("r-b");
+  });
+});
+
+describe("clause/threshold reference block (Phase 09, pure)", () => {
+  it("states each governing rule ONCE with a citation composed from citations.json", () => {
+    const lines = buildClauseReferenceLines(METADATA);
+    expect(lines.map((l) => l.rule)).toEqual([
+      "Required thickness",
+      "Verdict bands",
+      "Corrosion rate",
+      "Remaining life",
+    ]);
+    // Cite-don't-quote: every citation is composed by citationRef from
+    // citations.json — none is a typed clause string.
+    expect(lines[0]).toMatchObject({
+      text: expect.stringContaining("t_required = max(t_pressure, t_structural)"),
+      citation: "API 574 §10.5.1.4",
+    });
+    expect(lines[1].citation).toBe("API 570 §7.6");
+    expect(lines[2].citation).toBe("API 570 §7.1.2");
+    expect(lines[3].citation).toBe("API 570 §7.2");
+  });
+
+  it("derives verdict-band boundaries from the evaluation's OWN metadata, never a demo literal", () => {
+    // This fixture's tStructural is 6.35 (not the WBT-S6 demo 19.85), so the
+    // block must print 6.35/6.45 — a hardcoded demo literal would be wrong here.
+    const bands = buildClauseReferenceLines(METADATA)[1].text;
+    expect(bands).toContain("FAIL below 6.35 mm");
+    expect(bands).toContain("RE-CHECK 6.35 through 6.45 mm inclusive");
+    expect(bands).toContain("ACCEPT only above 6.45 mm");
+    expect(bands).not.toContain("19.85");
+    expect(bands).not.toContain("19.95");
+  });
+
+  it("carries the criteria thresholds and the remaining-life clamp, not JSX literals", () => {
+    const lines = buildClauseReferenceLines(METADATA);
+    // ut-criteria.json corrosion_rate_validation: minimum_short_term_interval_
+    // years 0.25 and gauge_deadband_mm 0.1 — pinned as literals per the
+    // Phase-8 anti-self-reference rule.
+    expect(lines[2].text).toContain("0.25 yr");
+    expect(lines[2].text).toContain("0.1 mm gauge deadband");
+    expect(lines[3].text).toContain("RL = (t_actual - t_required) / CR_governing");
+    expect(lines[3].text).toContain("clamped to 0.0 yr");
+    expect(lines[3].text).toContain("N/A");
   });
 });
