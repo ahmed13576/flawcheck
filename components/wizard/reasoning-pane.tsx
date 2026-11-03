@@ -29,6 +29,7 @@ import { toMm } from "@/lib/calc/units";
 import { formatFixed } from "@/lib/wizard/format";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { CitationChip, type CitationRecord } from "@/components/wizard/citation-chip";
+import { NarrativeDelayNotice } from "@/components/wizard/narrative-delay-notice";
 import { tokenize } from "@/lib/reasoning/tokenizer";
 import type {
   ComponentMetadata,
@@ -324,9 +325,17 @@ export function ReasoningPane({
     >
       {chain}
 
+      {/* Migration notice — collapsed by default, outside the narrative scroll
+          box so it stays readable while the first token is pending. Constrained
+          to a readable measure: the detail row spans the full wide results
+          table, so an unconstrained bubble would clip off-screen. */}
+      <div className="mt-4 max-w-3xl">
+        <NarrativeDelayNotice />
+      </div>
+
       {/* Narrative region — UI-46: internal scroll so a long rationale never
           pushes the PT/MT list and footnotes below the fold. */}
-      <div className="mt-4 max-h-96 overflow-y-auto" aria-busy={streaming || undefined}>
+      <div className="mt-3 max-h-96 overflow-y-auto" aria-busy={streaming || undefined}>
         {entry.status === "loading" && (
           <p role="status" className="text-sm text-muted-foreground">
             Requesting narrative…

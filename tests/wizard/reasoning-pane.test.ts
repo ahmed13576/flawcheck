@@ -199,6 +199,20 @@ describe("ReasoningPane — narrative states", () => {
   });
 });
 
+describe("ReasoningPane — narrative delay notice", () => {
+  it("renders a collapsed disclosure citing the Nebius endpoint migration", () => {
+    const markup = pane(FALLBACK_ENTRY);
+    expect(markup).toContain("Narrative delay after model migration");
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain("Nebius Token Factory deprecated");
+    expect(markup).toContain("NVIDIA Nemotron 3.5 Super VL");
+    expect(markup).toContain("15–21 seconds");
+    expect(markup).toContain("deterministic fallback is instant");
+    // Env-only routing: never hardcode a provider model ID in source.
+    expect(markup).not.toContain("nvidia/");
+  });
+});
+
 describe("ReasoningPane — citation allowlist enforcement (UI-34/35)", () => {
   it("an unresolvable id renders zero chip glyphs while the audit stamp names it", () => {
     const markup = pane({
