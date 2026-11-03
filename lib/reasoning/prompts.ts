@@ -14,7 +14,7 @@ import type { MetadataSlice } from "@/lib/reasoning/schemas";
 import type { NarrativeContext } from "@/lib/reasoning/narrative-context";
 
 /* ------------------------------------------------------------------ */
-/* Narrative prompts (Super-120B, per opened pane)                     */
+/* Narrative prompts (Nemotron 3.5 Super VL, per opened pane)          */
 /* ------------------------------------------------------------------ */
 
 /**
@@ -62,7 +62,7 @@ OUTPUT CONTRACT: plain prose, 120-180 words. Use ONLY the numbers listed in PREC
 }
 
 /* ------------------------------------------------------------------ */
-/* Extraction prompts (Super-120B, once per evaluation)               */
+/* Extraction prompts (Nemotron 3.5 Super VL, once per evaluation)     */
 /* ------------------------------------------------------------------ */
 
 /** Population digest the CLIENT computes deterministically (R1 request slice). */

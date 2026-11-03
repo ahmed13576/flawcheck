@@ -14,10 +14,10 @@ describe("PipelineGraph — dual-engine interactive process visualization", () =
     expect(markup).toContain("NDT Report Package");
   });
 
-  it("articulates Nebius and NVIDIA Nemotron via Nebius integration", () => {
+  it("articulates Nebius and NVIDIA Nemotron 3.5 Super VL integration", () => {
     const markup = renderToStaticMarkup(createElement(PipelineGraph));
     expect(markup).toContain("Nebius Token Factory");
-    expect(markup).toContain("NVIDIA Nemotron via Nebius");
+    expect(markup).toContain("NVIDIA Nemotron 3.5 Super VL");
   });
 
   it("articulates ASME B31.3, API 570, and API 574 standards", () => {

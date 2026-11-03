@@ -113,10 +113,10 @@ export function ScreenIngest() {
             <span className="flex size-7 items-center justify-center rounded-lg bg-green-500/10 text-green-400">
               <Sparkles className="size-4" aria-hidden="true" />
             </span>
-            <span className="text-xs font-semibold text-foreground">NVIDIA Nemotron via Nebius</span>
+            <span className="text-xs font-semibold text-foreground">NVIDIA Nemotron 3.5 Super VL</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            Domain-specific NDT reasoning engine. Synthesizes degradation and damage morphology.
+            Domain-specific NDT reasoning engine on Nebius Token Factory. Synthesizes degradation and damage morphology.
           </p>
         </div>
 

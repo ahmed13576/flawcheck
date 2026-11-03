@@ -60,14 +60,14 @@ export const PIPELINE_NODES: PipelineNode[] = [
     id: "nebius",
     step: 3,
     label: "Nebius Token Factory",
-    sublabel: "NVIDIA Nemotron via Nebius",
+    sublabel: "NVIDIA Nemotron 3.5 Super VL via Nebius",
     badge: "High-Performance AI",
     badgeColor: "border-primary/30 bg-primary/10 text-primary",
-    standards: "Nebius Token Factory · NVIDIA Nemotron runtime",
+    standards: "Nebius Token Factory · NVIDIA Nemotron 3.5 Super VL",
     invariant: "Domain-scoped prompt contracts. Model synthesizes engineering reasoning without touching math.",
     codePath: "lib/reasoning/narrative-context.ts",
     description:
-      "Leverages ultra-low latency token generation on Nebius Cloud to analyze metallurgical damage mechanisms, corrosion morphology, and inspection history.",
+      "Runs NVIDIA Nemotron 3.5 Super VL on Nebius Token Factory to analyze metallurgical damage mechanisms, corrosion morphology, and inspection history.",
     icon: Zap,
   },
   {
@@ -138,7 +138,7 @@ export function PipelineGraph({
       </div>
 
       <p className="mt-2 text-xs text-muted-foreground">
-        FlawCheck decouples math from reasoning: deterministic calculations strictly govern engineering limits, while NVIDIA Nemotron via Nebius on Nebius Token Factory explains damage morphology under strict AST linter guardrails.
+        FlawCheck decouples math from reasoning: deterministic calculations strictly govern engineering limits, while NVIDIA Nemotron 3.5 Super VL on Nebius Token Factory explains damage morphology under strict AST linter guardrails.
       </p>
 
       {expanded && (

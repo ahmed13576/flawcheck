@@ -1,10 +1,10 @@
 # FlawCheck · NDT Inspection Copilot
 
-FlawCheck turns ultrasonic thickness data and PT/MT notes into a deterministic NDT examination report. TypeScript computes every engineering value and verdict; NVIDIA Nemotron on Nebius Token Factory writes the narrative around those numbers when a runtime key is supplied.
+FlawCheck turns ultrasonic thickness data and PT/MT notes into a deterministic NDT examination report. TypeScript computes every engineering value and verdict; NVIDIA Nemotron 3.5 Super VL on Nebius Token Factory writes the narrative around those numbers when a runtime key is supplied.
 
 Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackathons), Best Apps and Agents track.
 
-![tests](https://img.shields.io/badge/tests-664%20passing-brightgreen?style=flat-square) ![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square) ![next](https://img.shields.io/badge/Next.js-16-black?style=flat-square) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%20on%20Nebius-76b900?style=flat-square)
+![tests](https://img.shields.io/badge/tests-664%20passing-brightgreen?style=flat-square) ![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square) ![next](https://img.shields.io/badge/Next.js-16-black?style=flat-square) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%203.5%20Super%20VL-76b900?style=flat-square)
 
 > **The invariant:** TypeScript computes every engineering number and verdict. The model never touches arithmetic. Each verdict is deterministic, each citation is renderer-locked, and each report is stamped as an engineering aid rather than a certification or a final approval.
 
@@ -15,7 +15,7 @@ Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackatho
 | 1 | Ingest | Upload an ultrasonic thickness CSV, or load the bundled Zenodo sample |
 | 2 | Review | Confirm column mapping, component metadata and PT/MT notes |
 | 3 | Evaluate | Pure TypeScript computes t-required, corrosion rates, remaining life and FAIL / RE-CHECK / ACCEPT against ASME B31.3, API 570 and API 574 |
-| 4 | Reason | Nemotron streams a clause-cited narrative around the precomputed values; every citation resolves through a renderer-locked allowlist |
+| 4 | Reason | Nemotron 3.5 Super VL streams a clause-cited narrative around the precomputed values; every citation resolves through a renderer-locked allowlist |
 | 5 | Report | Download a PDF and a canonical CSV, with the audit trail, inspector sign-off, SHA-256 register seal and limitations notice |
 
 ## Run it locally
@@ -85,8 +85,8 @@ graph LR
 
 | Role | Model | Usage |
 |---|---|---|
-| Acceptance narrative | `nvidia/nemotron-3-super-120b-a12b` | Streaming SSE, `reasoning_effort: low` |
-| Extraction and structuring | `nvidia/nemotron-3-super-120b-a12b` | Batched, `json_object` mode |
+| Acceptance narrative | `nvidia/Nemotron-3.5-Super-VL` | Streaming SSE, `reasoning_effort: low` |
+| Extraction and structuring | `nvidia/Nemotron-3.5-Super-VL` | Batched, `json_object` mode |
 | Deterministic fallback | none, pure TypeScript | Always available, no network, no cost |
 
 Model IDs come from the environment and are validated at startup against the live `/v1/models` catalog.
@@ -122,8 +122,8 @@ The app is a stock Next.js 16 project with Node-runtime API routes, SSE streamin
 |---|---|---|
 | `NEBIUS_API_KEY` | no | your Token Factory key, only for live Nemotron inference |
 | `NEBIUS_BASE_URL` | no | defaults to `https://api.tokenfactory.nebius.com/v1/` |
-| `NEBIUS_MODEL_REASONING` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |
-| `NEBIUS_MODEL_EXTRACTION` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |
+| `NEBIUS_MODEL_REASONING` | no | defaults to `nvidia/Nemotron-3.5-Super-VL` |
+| `NEBIUS_MODEL_EXTRACTION` | no | defaults to `nvidia/Nemotron-3.5-Super-VL` |
 | `TAVILY_API_KEY` | no | enables the code-edition lookup |
 | `FLAWCHECK_DISABLE_LLM` | no | `1` forces deterministic fallback with zero model calls |
 
