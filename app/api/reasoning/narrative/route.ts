@@ -10,7 +10,7 @@
  *   - enabled, cml, no extraction → 422 (Pitfall 5: narration without the
  *                                  structured context pack is the garbage-in
  *                                  failure SC1 forbids)
- *   - enabled                    → Super-120B upstream stream relayed through
+ *   - enabled                    → Nemotron 3.5 Super VL upstream stream relayed through
  *                                  the sentence-level numeric guard; at stream
  *                                  end the four final lints decide between a
  *                                  usage frame and a rejected frame (rejected
@@ -225,7 +225,7 @@ export async function POST(req: Request) {
   });
 }
 
-/** Open the Super-120B upstream stream (A2 timeout + browser disconnect). */
+/** Open the Nemotron 3.5 Super VL upstream stream (A2 timeout + browser disconnect). */
 function openStream(
   request: import("@/lib/reasoning/schemas").NarrativeRequest,
   ctx: ReturnType<typeof buildNarrativeContext>,
@@ -240,10 +240,11 @@ function openStream(
         { role: "user" as const, content: buildNarrativeUserPrompt(ctx, verdictLabel) },
       ],
       stream: true,
-      max_completion_tokens: 1200,
+      // Nemotron 3.5 Super VL counts chain-of-thought inside this budget.
+      max_completion_tokens: 12000,
       reasoning_effort: "low",
       stream_options: { include_usage: true },
     },
-    { signal: AbortSignal.any([signal, AbortSignal.timeout(30_000)]) },
+    { signal: AbortSignal.any([signal, AbortSignal.timeout(60_000)]) },
   );
 }

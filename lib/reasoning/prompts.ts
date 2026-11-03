@@ -14,7 +14,7 @@ import type { MetadataSlice } from "@/lib/reasoning/schemas";
 import type { NarrativeContext } from "@/lib/reasoning/narrative-context";
 
 /* ------------------------------------------------------------------ */
-/* Narrative prompts (Super-120B, per opened pane)                     */
+/* Narrative prompts (Nemotron 3.5 Super VL, per opened pane)                     */
 /* ------------------------------------------------------------------ */
 
 /**

@@ -4,7 +4,7 @@ Turn raw NDT inspection data (ultrasonic thickness CSVs, PT/MT notes) into code-
 
 **Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackathons)** · Track: Best Apps and Agents
 
-![tests](https://img.shields.io/badge/tests-504%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16-black) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%20on%20Nebius-76b900)
+![tests](https://img.shields.io/badge/tests-504%20passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-blue) ![next](https://img.shields.io/badge/Next.js-16-black) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%203.5%20Super%20VL-76b900)
 
 > **The invariant:** TypeScript computes every number — the LLM never touches arithmetic. Every verdict is deterministic, every citation is renderer-locked, every report is audit-stamped.
 
@@ -55,7 +55,7 @@ Parse → Calculate → Narrate → Render
 
 | Role | Model | Usage |
 |---|---|---|
-| Acceptance narrative | `nvidia/nemotron-3-super-120b-a12b` | Streaming SSE, reasoning_effort: low |
+| Acceptance narrative | `nvidia/Nemotron-3.5-Super-VL` | Streaming SSE, reasoning_effort: low |
 | Extraction + structuring | `nvidia/Nemotron-3_5-Lightning` | Batched, json_object mode |
 | Deterministic fallback | — (pure TypeScript) | Always available, zero cost |
 
@@ -86,7 +86,7 @@ The app is a stock Next.js 16 project (Node-runtime API routes, SSE streaming, r
 |---|---|---|
 | `NEBIUS_API_KEY` | yes | your Token Factory key |
 | `NEBIUS_BASE_URL` | no | defaults to `https://api.tokenfactory.nebius.com/v1/` |
-| `NEBIUS_MODEL_REASONING` | no | defaults to `nvidia/nemotron-3-super-120b-a12b` |
+| `NEBIUS_MODEL_REASONING` | no | defaults to `nvidia/Nemotron-3.5-Super-VL` |
 | `NEBIUS_MODEL_EXTRACTION` | no | defaults to `nvidia/Nemotron-3_5-Lightning` |
 | `TAVILY_API_KEY` | no | enables the code-edition source lookup |
 | `FLAWCHECK_DISABLE_LLM` | no | `1` = deterministic fallback mode, zero LLM calls |
