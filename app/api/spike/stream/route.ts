@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         model,
         messages: [{ role: "user", content: prompt }],
         stream: true,
-        max_completion_tokens: 2000,
+        max_completion_tokens: 12000,
         reasoning_effort: "low", // 3-value enum ONLY (verified 2026-09-26)
       },
       // Propagate the client's disconnect upstream: aborts the paid Token

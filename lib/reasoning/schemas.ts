@@ -3,7 +3,7 @@
  * (ASVS V5: unknown/misspelled fields are rejected with 400 before any
  * processing — T-03-02). The SSE frame union (NarrativeFrameSchema) is the
  * FULL typed protocol from day one: meta/delta/usage/rejected/fallback/error
- * — Plan 03-02 inserts the Super-120B upstream stream ahead of the fallback
+ * — Plan 03-02 inserts the Nemotron 3.5 Super VL upstream stream ahead of the fallback
  * branch WITHOUT changing this protocol; this plan emits only fallback frames
  * (no fabricated meta/usage).
  *
