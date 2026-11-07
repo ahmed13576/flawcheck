@@ -270,6 +270,287 @@ export function calcTrendCurveGeometry(
 }
 
 /**
+ * Phase 09 fan-plot input — one limiting CML's full (date, thickness)
+ * history plus its precomputed t_required and governing corrosion rate.
+ * Produced by buildLimitingSeries (lib/analytics/adapters.ts); every value
+ * flows through VERBATIM from lib/calc output.
+ *
+ * (Interfaces placed beside TrendPoint so adapters.ts can import them
+ * without a cycle: geometry.ts imports nothing from the adapters.)
+ */
+export interface FanSeries {
+  cmlId: string;
+  points: TrendPoint[];
+  tRequiredMm: number;
+  /** Governing rate (null/<= 0 → horizontal projection, no intercept). */
+  governingRateMmYr: number | null;
+}
+
+/** One series' projected geometry on the fan plot's SHARED scales. */
+export interface FanPlotSeriesGeometry {
+  cmlId: string;
+  color: string;
+  /** SVG polyline through the series' historical readings. */
+  historyPath: string;
+  /** SVG projected degradation segment ("" when the series has no points). */
+  trajectoryPath: string;
+  /** Circle-marker coordinates for the historical readings. */
+  dataPoints: Array<{ x: number; y: number }>;
+  /** Where this series' projection crosses its own t_required (if ever). */
+  interceptPoint: { x: number; y: number; date: string } | null;
+  tRequiredMm: number;
+  /** Pixel Y of this series' t_required retirement limit. */
+  tRequiredY: number;
+}
+
+/**
+ * The RE-CHECK guardband (t_required .. t_required + gauge uncertainty) for
+ * one DISTINCT t_required value — deduplicated across series.
+ */
+export interface FanPlotBand {
+  tRequiredMm: number;
+  /** Pixel Y of the band's top edge (t_required + gauge = ACCEPT boundary). */
+  yTop: number;
+  /** Pixel Y of the band's bottom edge (t_required = FAIL boundary). */
+  yBottom: number;
+}
+
+export interface FanPlotGeometry {
+  width: number;
+  height: number;
+  padding: Padding;
+  /** Per-series paths/markers, all mapped by the ONE shared scale pair. */
+  series: FanPlotSeriesGeometry[];
+  /** Distinct t_required reference bands (amber guardband + dashed limit). */
+  bands: FanPlotBand[];
+  xTicks: Tick[];
+  yTicks: Tick[];
+}
+
+/**
+ * Fan-plot series palette (plan 09-01): the heatmap's three severity hues for
+ * the 1st/2nd/3rd limiting CML, then two slate neutrals — the report's
+ * existing grey family — for the 4th/5th. Indexed by limiting rank so the
+ * five series stay distinguishable even when every CML shares a disposition.
+ */
+const FAN_SERIES_COLORS: readonly string[] = [
+  "#dc2626",
+  "#d97706",
+  "#16a34a",
+  "#475569",
+  "#94a3b8",
+];
+
+/**
+ * Calculates the multi-CML degradation fan on ONE shared thickness axis and
+ * ONE shared date axis (plan 09-01 Task 2). calcTrendCurveGeometry is wrong
+ * for this: it derives its y-domain from ONE series' own t_required and its
+ * x-domain from ONE series' first date — five calls yield five incompatible
+ * scales. Here the shared y-domain spans every series' thicknesses AND every
+ * series' t_required; the shared x-domain runs from the earliest first survey
+ * to the latest last survey plus the same 10-year projection window the trend
+ * curve uses. Pure and hostile-input safe, mirroring the trend-curve edge
+ * conventions (immediate failure clamps to the last survey; CR <= 0 projects
+ * horizontal with no intercept).
+ */
+export function calcFanPlotGeometry(
+  series: FanSeries[],
+  width = 470,
+  height = 200,
+  gaugeUncertaintyMm = 0.1,
+): FanPlotGeometry {
+  const padding: Padding = { top: 20, right: 30, bottom: 40, left: 50 };
+  const plotWidth = Math.max(10, width - padding.left - padding.right);
+  const plotHeight = Math.max(10, height - padding.top - padding.bottom);
+  const u = finite(gaugeUncertaintyMm, 0);
+
+  const empty: FanPlotGeometry = {
+    width,
+    height,
+    padding,
+    series: [],
+    bands: [],
+    xTicks: [],
+    yTicks: [],
+  };
+  if (series.length === 0) return empty;
+
+  // ---- ONE shared y-domain: every thickness AND every t_required ----
+  let minT = Number.POSITIVE_INFINITY;
+  let maxT = Number.NEGATIVE_INFINITY;
+  for (const s of series) {
+    const tReq = finite(s.tRequiredMm, 0);
+    minT = Math.min(minT, tReq - 0.5);
+    maxT = Math.max(maxT, tReq + 1);
+    for (const p of s.points) {
+      const t = finite(p.thicknessMm, tReq);
+      minT = Math.min(minT, t);
+      maxT = Math.max(maxT, t);
+    }
+  }
+  const tRange = Math.max(0.1, maxT - minT);
+
+  // ---- ONE shared x-domain: earliest first date .. latest last date + 10 yr ----
+  let firstYear = Number.POSITIVE_INFINITY;
+  let lastYear = Number.NEGATIVE_INFINITY;
+  let anyPoints = false;
+  for (const s of series) {
+    if (s.points.length === 0) continue;
+    anyPoints = true;
+    const sorted = [...s.points].sort((a, b) => a.date.localeCompare(b.date));
+    firstYear = Math.min(firstYear, finite(parseFractionalYear(sorted[0].date), 0));
+    lastYear = Math.max(lastYear, finite(parseFractionalYear(sorted[sorted.length - 1].date), 0));
+  }
+  if (!anyPoints) {
+    // No dated history at all: keep the bands (t_required lines still draw)
+    // but no axis ticks — there is no date span to label.
+    const scaleYBands = (t: number) => padding.top + plotHeight - ((t - minT) / tRange) * plotHeight;
+    return {
+      ...empty,
+      bands: distinctBands(series, u, scaleYBands),
+      series: series.map((s, i) => ({
+        cmlId: s.cmlId,
+        color: FAN_SERIES_COLORS[i % FAN_SERIES_COLORS.length],
+        historyPath: "",
+        trajectoryPath: "",
+        dataPoints: [],
+        interceptPoint: null,
+        tRequiredMm: finite(s.tRequiredMm, 0),
+        tRequiredY: scaleYBands(finite(s.tRequiredMm, 0)),
+      })),
+    };
+  }
+  const windowEnd = lastYear + 10;
+  const yearRange = Math.max(1, windowEnd - firstYear);
+
+  const scaleX = (year: number) => padding.left + ((year - firstYear) / yearRange) * plotWidth;
+  const scaleY = (t: number) => padding.top + plotHeight - ((finite(t, minT) - minT) / tRange) * plotHeight;
+
+  // ---- Per-series paths on the shared scales (trend-curve conventions) ----
+  const out: FanPlotSeriesGeometry[] = series.map((s, i) => {
+    const color = FAN_SERIES_COLORS[i % FAN_SERIES_COLORS.length];
+    const tReq = finite(s.tRequiredMm, 0);
+    const tRequiredY = scaleY(tReq);
+    if (s.points.length === 0) {
+      return {
+        cmlId: s.cmlId,
+        color,
+        historyPath: "",
+        trajectoryPath: "",
+        dataPoints: [],
+        interceptPoint: null,
+        tRequiredMm: tReq,
+        tRequiredY,
+      };
+    }
+
+    const sorted = [...s.points].sort((a, b) => a.date.localeCompare(b.date));
+    const last = sorted[sorted.length - 1];
+    const lastYearS = finite(parseFractionalYear(last.date), firstYear);
+    const dataPoints = sorted.map((p) => ({
+      // Module invariant: never emit NaN — an unparseable mid-series date
+      // clamps to the domain start so the marker stays inside the scale.
+      x: round(scaleX(finite(parseFractionalYear(p.date), firstYear)), 2),
+      y: round(scaleY(finite(p.thicknessMm, tReq)), 2),
+    }));
+    const historyPath = dataPoints.reduce(
+      (acc, pt, idx) => (idx === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`),
+      "",
+    );
+
+    // Projection + t_required intercept — identical conventions to
+    // calcTrendCurveGeometry, but against this series' OWN t_required.
+    // A null governing rate (insufficient history) behaves like zero: a
+    // horizontal projection with no intercept.
+    const cr = finite(s.governingRateMmYr ?? 0, 0);
+    let interceptDate: string | null = null;
+    let endYear = windowEnd;
+    if (cr > 0) {
+      const yearsToReq = (last.thicknessMm - tReq) / cr;
+      if (Number.isFinite(yearsToReq)) {
+        if (yearsToReq < 0) {
+          // Already at/below t_required — intercept at the last survey date.
+          interceptDate = last.date;
+          endYear = lastYearS;
+        } else if (yearsToReq <= windowEnd - lastYearS) {
+          const crossYear = lastYearS + yearsToReq;
+          const crossYearInt = Math.floor(crossYear);
+          const crossMonth = Math.min(11, Math.round((crossYear - crossYearInt) * 12));
+          interceptDate = `${crossYearInt}-${String(crossMonth + 1).padStart(2, "0")}`;
+          endYear = crossYear;
+        }
+      }
+    }
+    endYear = Math.max(firstYear, Math.min(windowEnd, endYear));
+    const endX = round(scaleX(endYear), 2);
+    const rawEndThickness = last.thicknessMm - cr * (endYear - lastYearS);
+    const endThickness = Math.max(minT, Math.min(maxT, rawEndThickness));
+    const endY = round(scaleY(endThickness), 2);
+    const lastPoint = dataPoints[dataPoints.length - 1];
+    const trajectoryPath = `M ${lastPoint.x} ${lastPoint.y} L ${endX} ${endY}`;
+
+    return {
+      cmlId: s.cmlId,
+      color,
+      historyPath,
+      trajectoryPath,
+      dataPoints,
+      interceptPoint:
+        interceptDate !== null ? { x: endX, y: round(tRequiredY, 2), date: interceptDate } : null,
+      tRequiredMm: tReq,
+      tRequiredY: round(tRequiredY, 2),
+    };
+  });
+
+  // ---- Ticks: first/middle/last of each SHARED axis ----
+  const midYear = firstYear + (windowEnd - firstYear) * 0.5;
+  const fmtYear = (y: number): string => String(Math.round(y));
+  const xTicks: Tick[] = [
+    { pos: round(scaleX(firstYear), 2), x: round(scaleX(firstYear), 2), y: height - 10, label: fmtYear(firstYear) },
+    { pos: round(scaleX(midYear), 2), x: round(scaleX(midYear), 2), y: height - 10, label: fmtYear(midYear) },
+    { pos: round(scaleX(windowEnd), 2), x: round(scaleX(windowEnd), 2), y: height - 10, label: fmtYear(windowEnd) },
+  ];
+  const midThickness = minT + (maxT - minT) * 0.5;
+  const fmtMm = (t: number): string => `${t.toFixed(1)}mm`;
+  const yTicks: Tick[] = [
+    { pos: round(scaleY(minT), 2), x: padding.left - 6, y: round(scaleY(minT), 2), label: fmtMm(minT) },
+    { pos: round(scaleY(midThickness), 2), x: padding.left - 6, y: round(scaleY(midThickness), 2), label: fmtMm(midThickness) },
+    { pos: round(scaleY(maxT), 2), x: padding.left - 6, y: round(scaleY(maxT), 2), label: fmtMm(maxT) },
+  ];
+
+  return {
+    width,
+    height,
+    padding,
+    series: out,
+    bands: distinctBands(series, u, scaleY),
+    xTicks,
+    yTicks,
+  };
+}
+
+/** Deduplicated t_required guardbands keyed at the lib/calc 6-dp convention. */
+function distinctBands(
+  series: FanSeries[],
+  gaugeUncertaintyMm: number,
+  scaleY: (t: number) => number,
+): FanPlotBand[] {
+  const seen = new Map<string, FanPlotBand>();
+  for (const s of series) {
+    const tReq = finite(s.tRequiredMm, 0);
+    const key = tReq.toFixed(6);
+    if (!seen.has(key)) {
+      seen.set(key, {
+        tRequiredMm: tReq,
+        yTop: round(scaleY(tReq + gaugeUncertaintyMm), 2),
+        yBottom: round(scaleY(tReq), 2),
+      });
+    }
+  }
+  return [...seen.values()];
+}
+
+/**
  * Calculates spatial piping severity heatmap coordinates and color mapping.
  * Colors: accept #16a34a, re_check #d97706, reject #dc2626.
  */

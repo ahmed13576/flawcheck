@@ -5,7 +5,8 @@
  *            Priority-1 surface indications, Top-10 unique CMLs, spatial
  *            severity heatmap, verdict glossary, report limits.
  *   Page 2 — Master CML Register: exactly one row per CML (40 rows), wrap=false.
- *   Page 3 — degradation trend for the governing CML, PT/MT indication triage,
+ *   Page 3 — degradation fan for the limiting CMLs on shared axes (Phase 9),
+ *            clause/threshold reference block, PT/MT indication triage,
  *            audit appendix, and the four-field inspector sign-off.
  *
  * This renderer replaced the 20-page reading-by-reading conclusion dump that the
@@ -20,8 +21,8 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import type { ReportSnapshot, ReportSignOff } from "@/lib/report/session-snapshot";
 import type { ReportAudit } from "@/lib/report/audit";
-import type { ReadingResult } from "@/lib/ingest/session";
-import type { TrendPoint, CmlHeatmapItem } from "@/lib/analytics/geometry";
+import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
+import type { CmlHeatmapItem } from "@/lib/analytics/geometry";
 import {
   buildCodeBreakdown,
   buildCsvPointerLine,
@@ -30,10 +31,12 @@ import {
   VERDICT_GLOSSARY,
   VERDICT_GLOSSARY_ORDER,
 } from "@/lib/report/content";
+import { corrosionGaugeDeadbandMm, minimumShortTermIntervalYears } from "@/lib/calc/criteria";
 import { formatFixed, formatFlagLabel } from "@/lib/wizard/format";
 import { verdictLabel } from "@/components/wizard/verdict-chip";
-import { calcTrendCurveGeometry } from "@/lib/analytics/geometry";
-import { PdfTrendCurve } from "@/components/report/pdf-trend-curve";
+import { calcFanPlotGeometry } from "@/lib/analytics/geometry";
+import { buildLimitingSeries } from "@/lib/analytics/adapters";
+import { PdfFanPlot } from "@/components/report/pdf-fan-plot";
 import { PdfHeatmap } from "@/components/report/pdf-heatmap";
 import { buildCmlSummaries, topCriticalCmls, type CmlSummaryRow } from "@/lib/calc/cml-summary";
 
@@ -136,6 +139,54 @@ function telemetryLine(step: ReportAudit["steps"][number]): string {
   return `${step.step}: ${step.model ?? "—"} · tokens ${tokens} · ${latency}`;
 }
 
+/**
+ * Phase 09 (plan 09-02 Task 2) — the page-3 clause/threshold reference block.
+ * Each governing rule is stated ONCE, with its clause reference composed by
+ * citationRef() from citations.json — cite-don't-quote: no clause strings are
+ * typed here, and every numeric boundary derives from the evaluation's own
+ * metadata (tStructural + gaugeUncertainty — never a demo literal) or from
+ * the criteria accessors (lib/calc/criteria reads ut-criteria.json). Pure
+ * and deterministic: identical metadata yields identical lines. Exported for
+ * the node test-suite, like getTop10Worst/toHeatmapItems.
+ */
+export interface ClauseReferenceLine {
+  /** Short rule label, e.g. "Required thickness". */
+  rule: string;
+  /** The rule statement with its metadata-derived numbers. */
+  text: string;
+  /** Composed by citationRef() — empty string for an unknown id. */
+  citation: string;
+}
+
+export function buildClauseReferenceLines(metadata: ComponentMetadata): ClauseReferenceLine[] {
+  // The same derivation the page-1 boundary line uses: this evaluation's own
+  // governing benchmark and gauge uncertainty.
+  const tReq = metadata.tStructural;
+  const upper = tReq + metadata.gaugeUncertainty;
+  return [
+    {
+      rule: "Required thickness",
+      text: "t_required = max(t_pressure, t_structural) — the greater of the pressure-design thickness and the structural minimum governs.",
+      citation: citationRef("api574_10_5_1_4"),
+    },
+    {
+      rule: "Verdict bands",
+      text: `FAIL below ${tReq.toFixed(2)} mm; RE-CHECK ${tReq.toFixed(2)} through ${upper.toFixed(2)} mm inclusive or any active quality anomaly; ACCEPT only above ${upper.toFixed(2)} mm with no active anomaly.`,
+      citation: citationRef("api570_7_6"),
+    },
+    {
+      rule: "Corrosion rate",
+      text: `The governing rate is the greater of the validated long-term and short-term rates; short-term intervals under ${minimumShortTermIntervalYears()} yr and losses at or below the ${corrosionGaugeDeadbandMm()} mm gauge deadband are quarantined before selection.`,
+      citation: citationRef("api570_7_1_2_governing"),
+    },
+    {
+      rule: "Remaining life",
+      text: "RL = (t_actual - t_required) / CR_governing, clamped to 0.0 yr at or below t_required; a non-positive governing rate reports N/A (no measurable loss).",
+      citation: citationRef("api570_7_2"),
+    },
+  ];
+}
+
 export function buildPdfDocument(snapshot: ReportSnapshot, audit: ReportAudit | null | undefined) {
   const signedOff: ReportSignOff | null = snapshot.signOff ?? null;
   const chipText = signedOff ? `SIGNED OFF — ${signedOff.name}` : "Pending inspector sign-off";
@@ -161,19 +212,15 @@ export function buildPdfDocument(snapshot: ReportSnapshot, audit: ReportAudit | 
     `RE-CHECK ${tReq.toFixed(2)} through ${upper.toFixed(2)} mm inclusive or active anomaly; ` +
     `ACCEPT only above ${upper.toFixed(2)} mm with no active anomaly.`;
 
-  // Analytics: heatmap grid (historical-minimum governed) and the governing CML trend.
+  // Analytics: heatmap grid (historical-minimum governed) and the limiting-CML
+  // fan (Phase 9). Five CMLs share ONE thickness axis and ONE date axis; the
+  // fan mounts only when at least one limiting CML has a positive validated
+  // governing rate — the same guard the single-series trend curve used.
   const heatmapItems = toHeatmapItems(snapshot.readings);
-  const trend = buildGoverningTrendPoints(snapshot.readings);
-  const trendGeometry =
-    trend.points.length >= 2 && trend.crGoverningMmYr !== null && trend.crGoverningMmYr > 0
-      ? calcTrendCurveGeometry(
-          trend.points,
-          trend.tRequiredMm,
-          trend.crGoverningMmYr,
-          snapshot.metadata.gaugeUncertainty,
-          470,
-          165,
-        )
+  const fanSeries = buildLimitingSeries(snapshot.readings, 5);
+  const fanGeometry =
+    fanSeries.some((s) => s.points.length >= 2 && (s.governingRateMmYr ?? 0) > 0)
+      ? calcFanPlotGeometry(fanSeries, 700, 185, snapshot.metadata.gaugeUncertainty)
       : null;
 
   // Widths sum to 100%. RL needs 11%: at 7% both "N/A — No Measurable Loss" and
@@ -360,19 +407,28 @@ export function buildPdfDocument(snapshot: ReportSnapshot, audit: ReportAudit | 
       <Page size="A4" orientation="landscape" style={styles.page}>
         <Text style={styles.title}>Degradation trend, indication triage, audit and sign-off</Text>
 
-        <Text style={styles.section}>
-          {trend.cmlId ? `Degradation projection — ${trend.cmlId}` : "Degradation projection"}
-        </Text>
-        {trendGeometry ? (
-          <PdfTrendCurve
-            geometry={trendGeometry}
-            caption={`Governing CML ${trend.cmlId} · t_required ${n(trend.tRequiredMm)} mm · CR ${n(trend.crGoverningMmYr, 3)} mm/yr`}
+        <Text style={styles.section}>Degradation fan — limiting CMLs on one scale</Text>
+        {fanGeometry ? (
+          <PdfFanPlot
+            geometry={fanGeometry}
+            caption={`${fanSeries.length} limiting CMLs by historical minimum · shared thickness and date axes · amber band = RE-CHECK guard · dark-ringed marker = t_required crossing`}
           />
         ) : (
           <Text style={styles.small}>
-            No positive validated corrosion rate is available for {trend.cmlId || "any CML"}, so no projection is plotted: a zero-rate projection would imply a guarantee the measurements do not support.
+            No positive validated corrosion rate is available for any limiting CML, so no projection is plotted: a zero-rate projection would imply a guarantee the measurements do not support.
           </Text>
         )}
+
+        {/* Clause/threshold reference — each governing rule stated ONCE with
+            its citation composed from citations.json (cite-don't-quote) and
+            its numeric boundaries derived from this evaluation's metadata and
+            the criteria accessors — never demo literals. */}
+        <Text style={styles.section}>Clause and threshold reference</Text>
+        {buildClauseReferenceLines(snapshot.metadata).map((line) => (
+          <Text key={line.rule} style={styles.small}>
+            {`${line.rule}: ${line.text} (${line.citation})`}
+          </Text>
+        ))}
 
         <Text style={styles.section}>PT/MT indication triage</Text>
         {snapshot.indications.length === 0 ? (
@@ -433,27 +489,6 @@ export function buildPdfDocument(snapshot: ReportSnapshot, audit: ReportAudit | 
       </Page>
     </Document>
   );
-}
-
-export function buildGoverningTrendPoints(readings: ReadingResult[]): {
-  points: TrendPoint[];
-  cmlId: string;
-  tRequiredMm: number;
-  crGoverningMmYr: number | null;
-} {
-  const rows = buildCmlSummaries(readings);
-  const worst = topCriticalCmls(rows, 1)[0];
-  if (!worst) return { points: [], cmlId: "", tRequiredMm: 0, crGoverningMmYr: null };
-  const points = readings
-    .filter((r) => (r.cml ?? r.location) === worst.cmlId)
-    .map((r) => ({ date: r.date, thicknessMm: r.tActualMm }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-  return {
-    points,
-    cmlId: worst.cmlId,
-    tRequiredMm: worst.tRequiredMm,
-    crGoverningMmYr: worst.governingRateMmYr,
-  };
 }
 
 export function toHeatmapItems(readings: ReadingResult[]): CmlHeatmapItem[] {

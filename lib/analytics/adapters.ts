@@ -7,9 +7,9 @@
  * by the web analytics host (components/wizard/screen-results.tsx) and the
  * PDF report (components/report/pdf-document.tsx).
  */
-import type { TrendPoint, CmlHeatmapItem } from "@/lib/analytics/geometry";
+import type { TrendPoint, CmlHeatmapItem, FanSeries } from "@/lib/analytics/geometry";
 import type { ReadingResult, Verdict } from "@/lib/ingest/session";
-import { buildCmlSummaries } from "@/lib/calc/cml-summary";
+import { buildCmlSummaries, topCriticalCmls } from "@/lib/calc/cml-summary";
 
 /** Severity order for picking the trend's governing CML: reject > re-check > accept. */
 export function severityRank(verdict: Verdict): number {
@@ -71,6 +71,27 @@ export function buildGoverningTrendPoints(
     crGoverningMmYr: worst.crGoverningMmYr,
     tRequiredMm: worst.tRequiredMm,
   };
+}
+
+/**
+ * Phase 09 fan-plot adapter: the `limit` most limiting CMLs (the existing
+ * topCriticalCmls selection — historical minimum first), each with its FULL
+ * date-ordered (date, thickness) history plus the precomputed t_required and
+ * governing rate from its CmlSummaryRow. Grouping uses the same identity as
+ * everywhere else (r.cml ?? r.location); zero grouping/selection arithmetic
+ * beyond topCriticalCmls itself.
+ */
+export function buildLimitingSeries(readings: ReadingResult[], limit = 5): FanSeries[] {
+  const rows = buildCmlSummaries(readings);
+  return topCriticalCmls(rows, limit).map((row) => ({
+    cmlId: row.cmlId,
+    points: readings
+      .filter((r) => cmlIdentity(r) === row.cmlId)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((r) => ({ date: r.date, thicknessMm: r.tActualMm })),
+    tRequiredMm: row.tRequiredMm,
+    governingRateMmYr: row.governingRateMmYr,
+  }));
 }
 
 /**

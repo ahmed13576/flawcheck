@@ -464,6 +464,49 @@ describe("CR-02 / CR-05 / WR-01 / WR-08 regression tests", () => {
     expect(page1).toContain("ACCEPT only above 19.95 mm with no active anomaly");
   }, 60_000);
 
+  it("Phase 9: page 3 carries the clause reference with metadata-derived numbers, sign-off unchanged", async () => {
+    const { createDemoSession } = await import("@/lib/demo/demo-scenario");
+    const { groupByCml } = await import("@/lib/ingest/group");
+    const { evaluate } = await import("@/lib/calc/evaluate");
+    const { buildReportSnapshot, withSignOff } = await import("@/lib/report/session-snapshot");
+    const session = createDemoSession("subset");
+    const inputs = groupByCml(session.rows, session.mapping, {
+      csvThicknessUnit: session.units.csvThickness,
+    });
+    const results = evaluate(inputs, session.metadata, session.units, {
+      ptmtIndications: session.ptmt.indications,
+    });
+    const snap = buildReportSnapshot({ ...session, results }, "2026-10-25T00:00:00.000Z")!;
+    const signed = withSignOff(snap, {
+      name: "NDT Review",
+      certification: "ASNT NDT Level II (examination only)",
+      date: "2026-10-25",
+      signature: "NDT Review",
+    });
+    const [, , page3] = pageTexts(buildPdfDocument(signed, null));
+    // The fan section header replaces the single-series projection header.
+    expect(page3).toContain("Degradation fan — limiting CMLs on one scale");
+    // The clause/threshold reference block: every rule once, citations
+    // composed from citations.json, numbers derived from THIS metadata.
+    expect(page3).toContain("Clause and threshold reference");
+    expect(page3).toContain("Required thickness: t_required = max(t_pressure, t_structural)");
+    expect(page3).toContain("(API 574 §10.5.1.4)");
+    expect(page3).toContain("FAIL below 19.85 mm");
+    expect(page3).toContain("RE-CHECK 19.85 through 19.95 mm inclusive");
+    expect(page3).toContain("ACCEPT only above 19.95 mm");
+    // Corrosion-rule thresholds read from criteria (0.25 yr / 0.1 mm), and
+    // the remaining-life definition with its clamp.
+    expect(page3).toContain("0.25 yr");
+    expect(page3).toContain("0.1 mm gauge deadband");
+    expect(page3).toContain("RL = (t_actual - t_required) / CR_governing");
+    // The four-field sign-off is untouched and still on page 3.
+    expect(page3).toContain("Inspector sign-off");
+    expect(page3).toContain("Name");
+    expect(page3).toContain("Certification");
+    expect(page3).toContain("NDT Review");
+    expect(page3).toContain("ASNT NDT Level II (examination only)");
+  }, 60_000);
+
   it("CR-05: Page 2 table header is non-wrapping for the one-row-per-CML register", () => {
     const src = readFileSync(join(process.cwd(), "components/report/pdf-document.tsx"), "utf8");
     expect(src).toContain("wrap={false}");
