@@ -114,6 +114,22 @@ export function resultRowKey(readingId: string, index: number): string {
   return `${readingId}-${index}`;
 }
 
+/**
+ * WR-05 recovery path for the UI-31/UI-46 cache contract: a cached
+ * complete / streaming / loading / fallback pane is never refetched, but an
+ * errored narrative — including the pre-extraction "Extraction failed —
+ * narrative generation was skipped" entry — is retried by an explicit re-open
+ * once narration is allowed (extraction complete).
+ */
+export function shouldOpenNarrative(
+  entry: NarrativeEntryState | undefined,
+  allowNarration: boolean,
+): boolean {
+  if (entry === undefined) return true;
+  if (entry.status === "error") return allowNarration;
+  return false;
+}
+
 function FlagChipButton({
   rowKey,
   flag,
@@ -272,12 +288,14 @@ export function ResultsTable({
 
   const toggleReasoning = (rowKey: string, reading: ReadingResult, dataIndex: number) => {
     setReasoningOpen((prev) => ({ ...prev, [rowKey]: !prev[rowKey] }));
-    // Store-backed lazy open (UI-31/UI-44): first open fetches; re-opens hit
-    // the evaluatedAt-keyed cache and issue zero fetches. Metadata/evaluatedAt
-    // absent → entryFor renders the error state (demo path always supplies).
+    // Store-backed lazy open (UI-31/UI-44): first open fetches; successful
+    // re-opens hit the evaluatedAt-keyed cache and issue zero fetches. WR-05:
+    // an errored entry (e.g. a pane opened before extraction finished) is
+    // retried on re-open once narration is allowed — never left as a dead end.
+    // Metadata/evaluatedAt absent → entryFor renders the error state.
     if (metadata === undefined || evaluatedAt === undefined) return;
     const key = narrativeKey(evaluatedAt, "cml", rowKey);
-    if (store.get(key) !== undefined) return;
+    if (!shouldOpenNarrative(store.get(key), allowNarration)) return;
     store.open(
       key,
       narrativeRequestBody(reading, metadata, evaluatedAt, {
