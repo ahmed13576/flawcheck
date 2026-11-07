@@ -115,16 +115,21 @@ export function resultRowKey(readingId: string, index: number): string {
 }
 
 /**
- * WR-05 recovery path for the UI-31/UI-46 cache contract: a cached
- * complete / streaming / loading / fallback pane is never refetched, but an
+ * WR-05/CR-01 toggle decision for the UI-31/UI-46 cache contract.
+ *
+ * Only an OPENING toggle may start work: a first open fetches, a cached
+ * complete / streaming / loading / fallback pane is never refetched, and an
  * errored narrative — including the pre-extraction "Extraction failed —
- * narrative generation was skipped" entry — is retried by an explicit re-open
- * once narration is allowed (extraction complete).
+ * narrative generation was skipped" entry — is retried once narration is
+ * allowed (extraction complete). A CLOSING toggle never fetches: hiding a
+ * pane must not spend provider tokens or send the extraction pack.
  */
-export function shouldOpenNarrative(
+export function shouldFetchNarrativeOnToggle(
+  opening: boolean,
   entry: NarrativeEntryState | undefined,
   allowNarration: boolean,
 ): boolean {
+  if (!opening) return false;
   if (entry === undefined) return true;
   if (entry.status === "error") return allowNarration;
   return false;
@@ -287,15 +292,18 @@ export function ResultsTable({
   const extractionPack = extraction.state === "complete" ? extraction.pack : null;
 
   const toggleReasoning = (rowKey: string, reading: ReadingResult, dataIndex: number) => {
+    const opening = !reasoningOpen[rowKey];
     setReasoningOpen((prev) => ({ ...prev, [rowKey]: !prev[rowKey] }));
     // Store-backed lazy open (UI-31/UI-44): first open fetches; successful
     // re-opens hit the evaluatedAt-keyed cache and issue zero fetches. WR-05:
     // an errored entry (e.g. a pane opened before extraction finished) is
     // retried on re-open once narration is allowed — never left as a dead end.
+    // CR-01: a toggle that CLOSES a row never starts work, so hiding a pane
+    // cannot spend provider tokens or upload the extraction pack.
     // Metadata/evaluatedAt absent → entryFor renders the error state.
     if (metadata === undefined || evaluatedAt === undefined) return;
     const key = narrativeKey(evaluatedAt, "cml", rowKey);
-    if (!shouldOpenNarrative(store.get(key), allowNarration)) return;
+    if (!shouldFetchNarrativeOnToggle(opening, store.get(key), allowNarration)) return;
     store.open(
       key,
       narrativeRequestBody(reading, metadata, evaluatedAt, {

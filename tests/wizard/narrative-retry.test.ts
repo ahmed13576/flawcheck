@@ -5,7 +5,7 @@
  * UI-31/UI-46 cache contract for successful/active panes is unchanged.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { shouldOpenNarrative } from "@/components/wizard/results-table";
+import { shouldFetchNarrativeOnToggle } from "@/components/wizard/results-table";
 import type { NarrativeEntryState } from "@/components/wizard/reasoning-pane";
 import {
   createNarrativeStore,
@@ -108,26 +108,32 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("shouldOpenNarrative — WR-05 recovery path", () => {
+describe("shouldFetchNarrativeOnToggle — WR-05 recovery, CR-01 close safety", () => {
   const entry = (status: NarrativeEntryState["status"], errorReason?: string) =>
     ({ status, text: "", ...(errorReason ? { errorReason } : {}) }) as NarrativeEntryState;
 
-  it("opens when no entry exists", () => {
-    expect(shouldOpenNarrative(undefined, true)).toBe(true);
+  it("fetches on the first open", () => {
+    expect(shouldFetchNarrativeOnToggle(true, undefined, true)).toBe(true);
   });
 
-  it("retries an errored entry once narration is allowed", () => {
-    expect(shouldOpenNarrative(entry("error", "upstream down"), true)).toBe(true);
+  it("retries an errored entry on open once narration is allowed", () => {
+    expect(shouldFetchNarrativeOnToggle(true, entry("error", "upstream down"), true)).toBe(true);
   });
 
   it("keeps the skipped state while extraction is still unavailable", () => {
-    expect(shouldOpenNarrative(entry("error", EXTRACTION_SKIPPED_REASON), false)).toBe(false);
+    expect(shouldFetchNarrativeOnToggle(true, entry("error", EXTRACTION_SKIPPED_REASON), false)).toBe(false);
   });
 
-  it("never refetches cached terminal/active panes (UI-31/UI-46)", () => {
+  it("never refetches cached terminal/active panes on open (UI-31/UI-46)", () => {
     for (const status of ["complete", "streaming", "loading", "fallback"] as const) {
-      expect(shouldOpenNarrative(entry(status), true)).toBe(false);
+      expect(shouldFetchNarrativeOnToggle(true, entry(status), true)).toBe(false);
     }
+  });
+
+  it("CR-01: a closing toggle never fetches — not even for an errored row", () => {
+    expect(shouldFetchNarrativeOnToggle(false, undefined, true)).toBe(false);
+    expect(shouldFetchNarrativeOnToggle(false, entry("error", EXTRACTION_SKIPPED_REASON), true)).toBe(false);
+    expect(shouldFetchNarrativeOnToggle(false, entry("error", "upstream down"), true)).toBe(false);
   });
 });
 
@@ -143,8 +149,8 @@ describe("pre-extraction skip recovers on re-open — WR-05", () => {
     expect(store.get(key)?.errorReason).toBe(EXTRACTION_SKIPPED_REASON);
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
 
-    // Extraction has completed; the same control is used again.
-    expect(shouldOpenNarrative(store.get(key), true)).toBe(true);
+    // Extraction has completed; the same control is used again (opening).
+    expect(shouldFetchNarrativeOnToggle(true, store.get(key), true)).toBe(true);
     store.open(key, payload(), { allowNarration: true });
     await settle();
     expect(store.get(key)?.status).toBe("complete");
@@ -157,7 +163,7 @@ describe("pre-extraction skip recovers on re-open — WR-05", () => {
     store.open(key, payload(), { allowNarration: true });
     await settle();
     expect(store.get(key)?.status).toBe("complete");
-    expect(shouldOpenNarrative(store.get(key), true)).toBe(false);
+    expect(shouldFetchNarrativeOnToggle(true, store.get(key), true)).toBe(false);
     store.open(key, payload(), { allowNarration: true });
     await settle();
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
