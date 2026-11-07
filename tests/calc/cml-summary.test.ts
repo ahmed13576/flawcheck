@@ -43,13 +43,21 @@ describe("WBT-S6 deterministic CML summaries", () => {
     const top = topCriticalCmls(rows, 10);
     expect(top).toHaveLength(10);
     expect(new Set(top.map((r) => r.cmlId)).size).toBe(10);
-    const expected = [...rows].sort((a, b) =>
-      a.historicalMinimumMm - b.historicalMinimumMm ||
-      b.governingRateMmYr - a.governingRateMmYr ||
-      b.rawMaxRateMmYr - a.rawMaxRateMmYr ||
-      a.cmlId.localeCompare(b.cmlId, undefined, { numeric: true }),
-    ).slice(0, 10).map((r) => r.cmlId);
-    expect(top.map((r) => r.cmlId)).toEqual(expected);
+    // Order pinned from the Phase 7 generated PDF — NOT re-derived by sorting.
+    // The old assertion rebuilt the expectation with the implementation's own
+    // comparator, so a wrong sort would still have passed.
+    expect(top.map((r) => r.cmlId)).toEqual([
+      "WBT-S6 / D8",
+      "WBT-S6 / D10",
+      "WBT-S6 / B5",
+      "WBT-S6 / A8",
+      "WBT-S6 / C9",
+      "WBT-S6 / C1",
+      "WBT-S6 / A4",
+      "WBT-S6 / D1",
+      "WBT-S6 / C5",
+      "WBT-S6 / A10",
+    ]);
   });
 
   it("19.85/19.95 mm verdict boundary remains explicit in the data", () => {

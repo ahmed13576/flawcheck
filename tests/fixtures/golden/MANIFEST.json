@@ -1,0 +1,10 @@
+{
+  "source": "hand-derived golden values; each case carries a derivation string reproducible with a calculator. Not generated from the implementation.",
+  "files": {
+    "calc.json": {
+      "sha256": "489e38a907eb45984012bebb6e99f521d62ca500dd34dcfbc1895e41d7609f4b",
+      "cases": 16
+    }
+  },
+  "generated": "2026-11-03"
+}
