@@ -78,7 +78,59 @@ export interface ReasoningContextValue {
   metadataUnit: Unit;
 }
 
-const ReasoningContext = createContext<ReasoningContextValue | null>(null);
+/** Exported as a test seam for the DOM-level provider tests. Production code
+ * always goes through useReasoning(). */
+export const ReasoningContext = createContext<ReasoningContextValue | null>(null);
+
+interface CachedEvaluation {
+  store: NarrativeStore;
+  extraction: ExtractionStatus;
+  /** The in-flight extraction, so a route remount can re-attach instead of
+   * firing a duplicate request. */
+  extractionRun?: Promise<void>;
+}
+
+/**
+ * F-14-03: results → report → Back to results unmounts and remounts this
+ * provider. Without a cache the remount re-ran extraction (duplicate tokens)
+ * and created a new narrative store (every pane lost). One session per
+ * `evaluatedAt`, capped at the two most recent evaluations, survives
+ * client-side route navigation without sessionStorage.
+ */
+const EVALUATION_CACHE_LIMIT = 2;
+const evaluationCache = new Map<string, CachedEvaluation>();
+
+function evaluationSession(evaluatedAt: string): CachedEvaluation {
+  const existing = evaluationCache.get(evaluatedAt);
+  if (existing) return existing;
+  const session: CachedEvaluation = {
+    store: createNarrativeStore(),
+    extraction: { state: "pending" },
+  };
+  evaluationCache.set(evaluatedAt, session);
+  while (evaluationCache.size > EVALUATION_CACHE_LIMIT) {
+    const oldest = evaluationCache.keys().next().value;
+    if (oldest === undefined) break;
+    evaluationCache.delete(oldest);
+  }
+  return session;
+}
+
+/** Replace fields on the cached session. The cache entries are immutable so a
+ * mounted component never observes a value mutated behind React's back. */
+function updateEvaluationSession(
+  evaluatedAt: string,
+  patch: Partial<Pick<CachedEvaluation, "extraction" | "extractionRun">>,
+): void {
+  const existing = evaluationCache.get(evaluatedAt);
+  if (!existing) return;
+  evaluationCache.set(evaluatedAt, { ...existing, ...patch });
+}
+
+/** Test seam: every DOM/provider test starts from an empty cache. */
+export function __resetReasoningEvaluationCache(): void {
+  evaluationCache.clear();
+}
 
 export interface ReasoningProviderProps {
   results: EvaluationResults;
@@ -104,12 +156,25 @@ export function ReasoningProvider({
   mapping,
   children,
 }: ReasoningProviderProps) {
-  // Single-store-per-mount: useState's lazy initializer creates exactly one
-  // store (the previous lazy-ref write-during-render tripped the React lint).
-  const [store] = useState<NarrativeStore>(() => createNarrativeStore());
+  // One store per evaluation, reused across route remounts (F-14-03). The
+  // provider is keyed by evaluatedAt in ScreenResults, so `session` is stable
+  // for this mount and a new evaluation gets a new session.
+  const [session] = useState<CachedEvaluation>(() => evaluationSession(evaluatedAt));
+  const store = session.store;
 
   const firedForRef = useRef<Set<string>>(new Set());
-  const [extraction, setExtraction] = useState<ExtractionStatus>({ state: "pending" });
+  // A fresh evaluation starts in "running" (the effect is about to fire); a
+  // remount reuses the cached terminal or in-flight state unchanged.
+  const shouldStart =
+    evaluatedAt.length > 0 &&
+    (session.extraction.state === "pending" || session.extraction.state === "failed");
+  const [extraction, setExtractionState] = useState<ExtractionStatus>(
+    shouldStart ? { state: "running" } : session.extraction,
+  );
+  const setExtraction = (state: ExtractionStatus) => {
+    updateEvaluationSession(evaluatedAt, { extraction: state });
+    setExtractionState(state);
+  };
 
   // Positionally aligned history seam: re-run groupByCml per evaluatedAt with
   // the SAME rows/mapping/units the reducer used — evaluate() maps inputs to
@@ -142,8 +207,25 @@ export function ReasoningProvider({
   // runExtractionRequest contract and tests/wizard/reasoning-strictmode.test.ts.
   useEffect(() => {
     if (!evaluatedAt || firedForRef.current.has(evaluatedAt)) return;
+    const cached = evaluationCache.get(evaluatedAt) ?? session;
+    // A terminal cached extraction means this evaluation already ran before a
+    // route remount; reuse it rather than spending the tokens twice.
+    if (cached.extraction.state === "complete" || cached.extraction.state === "disabled") {
+      firedForRef.current.add(evaluatedAt);
+      return;
+    }
+    // A request still in flight is re-attached; the original wrapper updates
+    // the cache when it settles.
+    if (cached.extraction.state === "running" && cached.extractionRun) {
+      firedForRef.current.add(evaluatedAt);
+      void cached.extractionRun.then(() => {
+        const latest = evaluationCache.get(evaluatedAt);
+        if (latest) setExtractionState(latest.extraction);
+      });
+      return;
+    }
     firedForRef.current.add(evaluatedAt);
-    setExtraction({ state: "running" });
+    updateEvaluationSession(evaluatedAt, { extraction: { state: "running" } });
     const dates = results.readings.map((r) => r.date).sort();
     const digest = {
       total: results.summary.total,
@@ -154,12 +236,13 @@ export function ReasoningProvider({
       dateRange: dates.length > 0 ? { from: dates[0], to: dates[dates.length - 1] } : null,
       units: { csvThickness: units.csvThickness, metadata: units.metadata },
     };
-    void runExtractionRequest(
+    const run = runExtractionRequest(
       fetch,
       // CR-03: the strict metadata slice now carries the declared unit.
       { metadata: { ...metadata, metadataUnit: units.metadata }, notes, indications, populationDigest: digest },
       setExtraction,
     );
+    updateEvaluationSession(evaluatedAt, { extractionRun: run });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once per evaluatedAt
   }, [evaluatedAt]);
 

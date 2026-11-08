@@ -270,6 +270,10 @@ export function ScreenResultsContent({
     () => new Map(results.readings.map((reading, index) => [reading, index])),
     [results.readings],
   );
+  const register = useMemo(
+    () => ({ readings: results.readings, indexByReading: readingIndex }),
+    [results.readings, readingIndex],
+  );
 
   // Filter changes compose and reset the table's page to 1 — pagination
   // mechanics themselves are untouched (RESULTS_PAGE_SIZE stays 50).
@@ -411,8 +415,7 @@ export function ScreenResultsContent({
         ) : (
           <ResultsTable
             readings={visibleReadings}
-            autoRetryReadings={results.readings}
-            indexByReading={readingIndex}
+            register={register}
             page={page}
             onPageChange={onPageChange}
             metadata={metadata}

@@ -21,8 +21,8 @@ import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { FlagBadge } from "@/components/wizard/flag-badge";
 import { ReasoningPane } from "@/components/wizard/reasoning-pane";
 import { retryBlockedReason, useReasoning } from "@/components/wizard/reasoning-context";
+import { RetryNarrativeButton, retrySkippedEntries } from "@/components/wizard/narrative-retry";
 import {
-  EXTRACTION_SKIPPED_REASON,
   narrativeKey,
   useNarrativeStream,
   type NarrativeStore,
@@ -72,17 +72,17 @@ export function retrySkippedIndicationNarratives(args: {
   evaluatedAt: string;
   allowNarration: boolean;
 }): number {
-  if (!args.allowNarration) return 0;
-  let retried = 0;
-  for (const indication of args.indications) {
-    const key = narrativeKey(args.evaluatedAt, "ptmt", indication.id);
-    const entry = args.store.get(key);
-    if (entry?.status !== "error" || entry.errorReason !== EXTRACTION_SKIPPED_REASON) continue;
-    const payload: NarrativeRequest = { kind: "ptmt", evaluatedAt: args.evaluatedAt, indication };
-    args.store.retry(key, payload);
-    retried++;
-  }
-  return retried;
+  return retrySkippedEntries({
+    store: args.store,
+    items: args.indications,
+    allowNarration: args.allowNarration,
+    keyOf: (indication) => narrativeKey(args.evaluatedAt, "ptmt", indication.id),
+    payloadOf: (indication): NarrativeRequest => ({
+      kind: "ptmt",
+      evaluatedAt: args.evaluatedAt,
+      indication,
+    }),
+  });
 }
 
 export function PtmtTriageList({
@@ -187,19 +187,10 @@ export function PtmtTriageList({
                     />
                   </div>
                   {entry?.status === "error" && key !== null && payload !== null ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={blockedReason ? undefined : () => store.retry(key, payload)}
-                        disabled={Boolean(blockedReason)}
-                        className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Retry narrative
-                      </button>
-                      {blockedReason ? (
-                        <p className="text-xs text-muted-foreground">{blockedReason}</p>
-                      ) : null}
-                    </div>
+                    <RetryNarrativeButton
+                      blockedMessage={blockedReason}
+                      onRetry={() => store.retry(key, payload)}
+                    />
                   ) : null}
                 </>
               ) : null}

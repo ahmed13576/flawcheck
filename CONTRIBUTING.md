@@ -74,7 +74,7 @@ Run all of the following before opening a PR:
 ```bash
 npm run typecheck   # strict TypeScript, exit 0
 npm run lint        # eslint, 0 errors
-npm test            # 648 hermetic tests (zero network, key-independent)
+npm test            # 743 hermetic tests (zero network, key-independent)
 npm run build       # production build
 ```
 

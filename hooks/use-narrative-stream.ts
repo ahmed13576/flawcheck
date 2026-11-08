@@ -17,11 +17,17 @@ import { parseNarrativeFrame, type NarrativeRequest } from "@/lib/reasoning/sche
 
 export type NarrativeKey = string;
 
+/** Why an entry is in the error state. `extraction_not_ready` is the
+ * pre-extraction skip; `upstream` is a real request/stream failure. The code
+ * drives auto-retry and status copy, so it is never inferred from the message. */
+export type NarrativeErrorCode = "extraction_not_ready" | "upstream";
+
 export interface NarrativeEntryState {
   status: "loading" | "streaming" | "complete" | "error" | "fallback";
   text: string;
   model?: string;
   usage?: { promptTokens: number; completionTokens: number; latencyMs: number } | null;
+  errorCode?: NarrativeErrorCode;
   errorReason?: string;
   fallbackText?: string;
 }
@@ -130,7 +136,7 @@ export function createNarrativeStore(): NarrativeStore {
             setEntry(key, { status: "fallback", text: "", fallbackText: fallback });
           },
           onError: (message) => {
-            setEntry(key, { status: "error", text: "", errorReason: message });
+            setEntry(key, { status: "error", text: "", errorCode: "upstream", errorReason: message });
           },
           onDone: () => {
             const cur = entries.get(key);
@@ -145,6 +151,7 @@ export function createNarrativeStore(): NarrativeStore {
           setEntry(key, {
             status: "error",
             text: "",
+            errorCode: "upstream",
             errorReason: e instanceof Error ? e.message : String(e),
           });
         }
@@ -177,7 +184,12 @@ export function createNarrativeStore(): NarrativeStore {
         return; // UI-31 cache: completed/streaming panes never refetch
       }
       if (!opts.allowNarration) {
-        setEntry(key, { status: "error", text: "", errorReason: EXTRACTION_SKIPPED_REASON });
+        setEntry(key, {
+          status: "error",
+          text: "",
+          errorCode: "extraction_not_ready",
+          errorReason: EXTRACTION_SKIPPED_REASON,
+        });
         return;
       }
       setEntry(key, { status: "loading", text: "" });
@@ -185,6 +197,11 @@ export function createNarrativeStore(): NarrativeStore {
     },
 
     retry(key, payload) {
+      // F-14-05: a rapid double-click on Retry can reach here twice before the
+      // re-render removes the button. The first call already owns a request
+      // (or a queued one), so a second must be a no-op, not a duplicate fetch.
+      const cur = entries.get(key);
+      if (cur?.status === "loading" || cur?.status === "streaming") return;
       controllers.get(key)?.abort();
       controllers.delete(key);
       setEntry(key, { status: "loading", text: "" });
@@ -236,7 +253,7 @@ export function createNarrativeStore(): NarrativeStore {
     skippedCount() {
       let n = 0;
       for (const e of entries.values()) {
-        if (e.status === "error" && e.errorReason === EXTRACTION_SKIPPED_REASON) n++;
+        if (e.status === "error" && e.errorCode === "extraction_not_ready") n++;
       }
       return n;
     },

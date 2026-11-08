@@ -31,14 +31,13 @@ import {
 import { VerdictChip, FlagChip } from "@/components/wizard/verdict-chip";
 import { FlagDetailRow } from "@/components/wizard/flag-detail-row";
 import { ReasoningPane, type NarrativeEntryState } from "@/components/wizard/reasoning-pane";
-import { useReasoning } from "@/components/wizard/reasoning-context";
+import { retryBlockedReason, useReasoning } from "@/components/wizard/reasoning-context";
+import { RetryNarrativeButton, retrySkippedEntries } from "@/components/wizard/narrative-retry";
 import {
-  EXTRACTION_SKIPPED_REASON,
   useNarrativeStream,
   narrativeKey,
   type NarrativeStore,
 } from "@/hooks/use-narrative-stream";
-import { retryBlockedReason } from "@/components/wizard/reasoning-context";
 import type { NarrativeRequest, ExtractionResult } from "@/lib/reasoning/schemas";
 import type { NarrativeHistory } from "@/lib/reasoning/narrative-context";
 
@@ -157,23 +156,19 @@ export function retrySkippedNarratives(args: {
   historyFor: (index: number) => NarrativeHistory | null;
   allowNarration: boolean;
 }): number {
-  if (!args.allowNarration) return 0;
-  let retried = 0;
-  args.readings.forEach((reading, index) => {
-    const key = narrativeKey(args.evaluatedAt, "cml", resultRowKey(reading.readingId, index));
-    const entry = args.store.get(key);
-    if (entry?.status !== "error" || entry.errorReason !== EXTRACTION_SKIPPED_REASON) return;
-    args.store.retry(
-      key,
+  return retrySkippedEntries({
+    store: args.store,
+    items: args.readings,
+    allowNarration: args.allowNarration,
+    keyOf: (reading, index) =>
+      narrativeKey(args.evaluatedAt, "cml", resultRowKey(reading.readingId, index)),
+    payloadOf: (reading, index) =>
       narrativeRequestBody(reading, args.metadata, args.evaluatedAt, {
         metadataUnit: args.metadataUnit,
         extraction: args.extractionPack,
         history: args.historyFor(index),
       }),
-    );
-    retried++;
   });
-  return retried;
 }
 
 function FlagChipButton({
@@ -254,18 +249,8 @@ export function ReasoningDetailRow({
               entry={effectiveEntry}
             />
             {effectiveEntry.status === "error" && onRetry ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={retryBlockedMessage ? undefined : onRetry}
-                  disabled={Boolean(retryBlockedMessage)}
-                  className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Retry narrative
-                </button>
-                {retryBlockedMessage ? (
-                  <p className="text-xs text-muted-foreground">{retryBlockedMessage}</p>
-                ) : null}
+              <div className="mt-2">
+                <RetryNarrativeButton blockedMessage={retryBlockedMessage} onRetry={onRetry} />
               </div>
             ) : null}
           </>
@@ -281,23 +266,23 @@ export function ReasoningDetailRow({
 
 export function ResultsTable({
   readings,
-  autoRetryReadings,
-  indexByReading,
+  register,
   page,
   onPageChange,
   metadata,
   evaluatedAt,
   highlightedCmlId = null,
 }: {
+  /** Display rows after filters (the table shows only these). */
   readings: ReadingResult[];
-  /** Display rows after filters (the table shows only these), while the
-   * one-shot auto-retry scans the UNFILTERED register — a row opened before
-   * extraction and then filtered out must still recover. Defaults to `readings`
-   * for callers that pass the full list. */
-  autoRetryReadings?: ReadingResult[];
-  /** Absolute register position per reading object. Filtered rows must keep
-   * the key and history index they had before the filter narrowed the list. */
-  indexByReading?: ReadonlyMap<ReadingResult, number>;
+  /** The unfiltered register plus each row's absolute position. Supplying it
+   * keeps store keys and the history seam stable when a filter narrows
+   * `readings`, and lets auto-retry scan rows that are currently filtered out.
+   * Omitted only by tests that pass the full list as `readings`. */
+  register?: {
+    readings: ReadingResult[];
+    indexByReading: ReadonlyMap<ReadingResult, number>;
+  };
   page: number;
   onPageChange: (page: number) => void;
   /** Session slice for the narrative tracer glue (absent → panes render the
@@ -400,7 +385,7 @@ export function ResultsTable({
   // can never duplicate a request. It scans the unfiltered register so a row
   // hidden at completion still heals. No ref guard is needed, and none can
   // strand a late-arriving row.
-  const retryScan = autoRetryReadings ?? readings;
+  const retryScan = register?.readings ?? readings;
   useEffect(() => {
     if (!allowNarration || metadata === undefined || evaluatedAt === undefined) return;
     retrySkippedNarratives({
@@ -469,7 +454,7 @@ export function ResultsTable({
               // is positionally aligned to it (groupByCml 1:1 with inputs).
               // A filtered list supplies that position through indexByReading;
               // without it the table is assumed to hold the full list.
-              const dataIndex = indexByReading?.get(reading) ?? start - 1 + i;
+              const dataIndex = register?.indexByReading.get(reading) ?? start - 1 + i;
               const rowKey = resultRowKey(reading.readingId, dataIndex);
               // VIS-03: the heatmap's selected CML highlights every matching
               // row (identity `cml ?? location` — same seam as the heatmap).

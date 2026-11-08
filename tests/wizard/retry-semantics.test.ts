@@ -267,8 +267,7 @@ describe("filtered rows keep their absolute key (auto-retry key space)", () => {
     const html = renderToStaticMarkup(
       createElement(ResultsTable, {
         readings: [SECOND],
-        autoRetryReadings: [READING, SECOND],
-        indexByReading: new Map([[SECOND, 1]]),
+        register: { readings: [READING, SECOND], indexByReading: new Map([[SECOND, 1]]) },
         page: 1,
         onPageChange: () => {},
         metadata: METADATA,
@@ -327,5 +326,20 @@ describe("retrySkippedIndicationNarratives — PT/MT recovery (F-03, WR-03)", ()
     store.open(narrativeKey("E1", "ptmt", "ind-1"), ptmtPayload(), { allowNarration: false });
     expect(run(store, false)).toBe(0);
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it("never auto-retries a generic PT/MT upstream error", async () => {
+    const store = createNarrativeStore();
+    const key = narrativeKey("E1", "ptmt", "ind-1");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: "upstream down" }), { status: 502 })),
+    );
+    store.retry(key, ptmtPayload());
+    await settle();
+    expect(store.get(key)?.status).toBe("error");
+    expect(store.get(key)?.errorCode).toBe("upstream");
+    expect(run(store, true)).toBe(0);
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
   });
 });
