@@ -282,6 +282,7 @@ export function ReasoningDetailRow({
 export function ResultsTable({
   readings,
   autoRetryReadings,
+  indexByReading,
   page,
   onPageChange,
   metadata,
@@ -294,6 +295,9 @@ export function ResultsTable({
    * extraction and then filtered out must still recover. Defaults to `readings`
    * for callers that pass the full list. */
   autoRetryReadings?: ReadingResult[];
+  /** Absolute register position per reading object. Filtered rows must keep
+   * the key and history index they had before the filter narrowed the list. */
+  indexByReading?: ReadonlyMap<ReadingResult, number>;
   page: number;
   onPageChange: (page: number) => void;
   /** Session slice for the narrative tracer glue (absent → panes render the
@@ -463,7 +467,9 @@ export function ResultsTable({
               const next = nextInspectionCell(reading);
               // Absolute position in the FULL readings array — the history seam
               // is positionally aligned to it (groupByCml 1:1 with inputs).
-              const dataIndex = start - 1 + i;
+              // A filtered list supplies that position through indexByReading;
+              // without it the table is assumed to hold the full list.
+              const dataIndex = indexByReading?.get(reading) ?? start - 1 + i;
               const rowKey = resultRowKey(reading.readingId, dataIndex);
               // VIS-03: the heatmap's selected CML highlights every matching
               // row (identity `cml ?? location` — same seam as the heatmap).

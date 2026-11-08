@@ -131,8 +131,11 @@ export function PipelineStatusBar({
       const errors = store.errorCount();
       if (errors > 0) {
         // Pre-extraction skips are a healthy waiting state that auto-retries
-        // when extraction finishes; only a real error is "unavailable".
-        if (store.skippedCount() === errors) {
+        // when extraction finishes. Once extraction has settled, a remaining
+        // skip is no longer "waiting" — say unavailable rather than lie.
+        const extractionInFlight =
+          extraction.state === "pending" || extraction.state === "running";
+        if (extractionInFlight && store.skippedCount() === errors) {
           return (
             <>
               <span className={BADGE}>waiting for extraction</span>

@@ -121,6 +121,27 @@ describe("PipelineStatusBar markup", () => {
     expect(html).not.toContain("not requested");
   });
 
+  it("a skip left over after extraction settles is unavailable, never 'waiting'", () => {
+    const store = createNarrativeStore();
+    store.open(
+      narrativeKey("E1", "cml", "r-1"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult },
+      { allowNarration: false },
+    );
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("unavailable");
+    expect(html).not.toContain("waiting for extraction");
+  });
+
   it("a genuine narrative error reports unavailable", async () => {
     const store = createNarrativeStore();
     vi.stubGlobal(

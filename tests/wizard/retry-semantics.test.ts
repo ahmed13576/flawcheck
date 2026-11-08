@@ -8,7 +8,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ReasoningDetailRow, retrySkippedNarratives } from "@/components/wizard/results-table";
+import {
+  ReasoningDetailRow,
+  ResultsTable,
+  retrySkippedNarratives,
+} from "@/components/wizard/results-table";
 import { retryBlockedReason } from "@/components/wizard/reasoning-context";
 import { retrySkippedIndicationNarratives } from "@/components/wizard/ptmt-triage-list";
 import type { NarrativeEntryState } from "@/components/wizard/reasoning-pane";
@@ -65,6 +69,8 @@ const READING = {
   verdict: "accept",
   citations: ["api574_10_5_1_4", "api570_7_2"],
 } as unknown as ReadingResult;
+
+const SECOND = { ...READING, readingId: "r-2" } as ReadingResult;
 
 const PACK: ExtractionResult = {
   componentContext: { serviceDescription: "Cooling water line." },
@@ -224,12 +230,11 @@ describe("retrySkippedNarratives — F-03 automatic recovery", () => {
 
   it("retries every skipped row in one pass and stays idempotent", async () => {
     const store = createNarrativeStore();
-    const second = { ...READING, readingId: "r-2" } as ReadingResult;
-    for (const [index, reading] of [READING, second].entries()) {
+    for (const [index, reading] of [READING, SECOND].entries()) {
       const key = narrativeKey("E1", "cml", `${reading.readingId}-${index}`);
       store.open(key, payload(), { allowNarration: false });
     }
-    const multiArgs = { ...args(store, true), readings: [READING, second] };
+    const multiArgs = { ...args(store, true), readings: [READING, SECOND] };
     expect(retrySkippedNarratives(multiArgs)).toBe(2);
     await settle();
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
@@ -254,6 +259,26 @@ describe("retrySkippedNarratives — F-03 automatic recovery", () => {
     expect(store.get(key)?.errorReason).not.toBe(EXTRACTION_SKIPPED_REASON);
     expect(retrySkippedNarratives(args(store, true))).toBe(0);
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("filtered rows keep their absolute key (auto-retry key space)", () => {
+  it("indexByReading gives a filtered row its register position, not its filtered slot", () => {
+    const html = renderToStaticMarkup(
+      createElement(ResultsTable, {
+        readings: [SECOND],
+        autoRetryReadings: [READING, SECOND],
+        indexByReading: new Map([[SECOND, 1]]),
+        page: 1,
+        onPageChange: () => {},
+        metadata: METADATA,
+        evaluatedAt: "E1",
+      }),
+    );
+    // Without the map this row would key at filtered slot 0 ("r-2-0") and the
+    // full-register retry scan ("r-2-1") could never match it.
+    expect(html).toContain('aria-controls="reasoning-r-2-1"');
+    expect(html).not.toContain('aria-controls="reasoning-r-2-0"');
   });
 });
 

@@ -263,6 +263,13 @@ export function ScreenResultsContent({
     () => filterReadings(results.readings, tab, query),
     [results.readings, tab, query],
   );
+  // Filtering returns the same objects in a subset, so this map recovers each
+  // row's ABSOLUTE register position. Row keys, the narrative store's keys and
+  // the positional history seam must not shift when a filter changes.
+  const readingIndex = useMemo(
+    () => new Map(results.readings.map((reading, index) => [reading, index])),
+    [results.readings],
+  );
 
   // Filter changes compose and reset the table's page to 1 — pagination
   // mechanics themselves are untouched (RESULTS_PAGE_SIZE stays 50).
@@ -405,6 +412,7 @@ export function ScreenResultsContent({
           <ResultsTable
             readings={visibleReadings}
             autoRetryReadings={results.readings}
+            indexByReading={readingIndex}
             page={page}
             onPageChange={onPageChange}
             metadata={metadata}
