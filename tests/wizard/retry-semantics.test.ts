@@ -260,6 +260,26 @@ describe("retrySkippedNarratives — F-03 automatic recovery", () => {
     expect(retrySkippedNarratives(args(store, true))).toBe(0);
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
   });
+
+  it("uses the error code, not the message, to decide retryability", async () => {
+    const store = createNarrativeStore();
+    const key = narrativeKey("E1", "cml", "r-1-0");
+    // A genuine upstream failure whose message happens to equal the skip copy.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: EXTRACTION_SKIPPED_REASON }), { status: 502 }),
+      ),
+    );
+    store.retry(key, payload());
+    await settle();
+    expect(store.get(key)?.status).toBe("error");
+    expect(store.get(key)?.errorCode).toBe("upstream");
+    expect(store.get(key)?.errorReason).toBe(EXTRACTION_SKIPPED_REASON);
+    expect(retrySkippedNarratives(args(store, true))).toBe(0);
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("filtered rows keep their absolute key (auto-retry key space)", () => {

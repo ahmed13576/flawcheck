@@ -302,6 +302,25 @@ describe("CML auto-retry effect (DOM)", () => {
     await flush();
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
     expect(store.get(key)?.status).toBe("complete");
+
+    // Changing the visible filter re-runs the scan over the full register; the
+    // completed entry must still not produce a second request.
+    await act(async () => {
+      root.render(
+        <ReasoningContext.Provider value={contextValue(store, COMPLETE)}>
+          <ResultsTable
+            readings={[READING]}
+            register={register}
+            page={1}
+            onPageChange={() => {}}
+            metadata={METADATA}
+            evaluatedAt="E1"
+          />
+        </ReasoningContext.Provider>,
+      );
+    });
+    await flush();
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
   });
 
   it("does not auto-retry a generic upstream error", async () => {

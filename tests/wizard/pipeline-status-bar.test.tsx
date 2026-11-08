@@ -167,6 +167,78 @@ describe("PipelineStatusBar markup", () => {
     expect(html).not.toContain("waiting for extraction");
   });
 
+  it("F-14-04: complete-only metrics carry no pane chip (regression)", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse([USAGE_FRAME])));
+    store.open(
+      narrativeKey("E1", "cml", "done"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+        typeof store.open
+      >[1],
+      { allowNarration: true },
+    );
+    await settle();
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("tokens 1,842 · 3.2 s · —");
+    expect(html).not.toContain("waiting for extraction");
+    expect(html).not.toContain("pane unavailable");
+  });
+
+  it("F-14-04: two waiting panes are pluralized", () => {
+    const store = createNarrativeStore();
+    for (const id of ["a", "b"]) {
+      store.open(
+        narrativeKey("E1", "cml", id),
+        { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult },
+        { allowNarration: false },
+      );
+    }
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "running" },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("2 panes waiting for extraction");
+  });
+
+  it("F-14-04: completed metrics coexist with an upstream-error chip", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse([USAGE_FRAME])));
+    const body = { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+      typeof store.open
+    >[1];
+    store.open(narrativeKey("E1", "cml", "done"), body, { allowNarration: true });
+    await settle();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: "upstream down" }), { status: 502 })),
+    );
+    store.retry(narrativeKey("E1", "cml", "err"), body);
+    await settle();
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("tokens 1,842 · 3.2 s · —");
+    expect(html).toContain("1 pane unavailable");
+  });
+
   it("F-14-04: completed metrics coexist with an unavailable-pane chip", async () => {
     const store = createNarrativeStore();
     vi.stubGlobal("fetch", vi.fn(async () => sseResponse([USAGE_FRAME])));

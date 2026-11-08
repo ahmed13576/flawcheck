@@ -100,6 +100,27 @@ interface CachedEvaluation {
 const EVALUATION_CACHE_LIMIT = 2;
 const evaluationCache = new Map<string, CachedEvaluation>();
 
+/** Drop the oldest SETTLED evaluation when the cap is exceeded. An in-flight
+ * extraction is never evicted: its completion must still reach the cache, or a
+ * later remount would re-spend the tokens. */
+function trimEvaluationCache(): void {
+  while (evaluationCache.size > EVALUATION_CACHE_LIMIT) {
+    let victim: string | undefined;
+    for (const [key, session] of evaluationCache) {
+      if (
+        session.extraction.state === "complete" ||
+        session.extraction.state === "disabled" ||
+        session.extraction.state === "failed"
+      ) {
+        victim = key;
+        break;
+      }
+    }
+    if (victim === undefined) return; // all remaining evaluations are in flight
+    evaluationCache.delete(victim);
+  }
+}
+
 function evaluationSession(evaluatedAt: string): CachedEvaluation {
   const existing = evaluationCache.get(evaluatedAt);
   if (existing) return existing;
@@ -108,11 +129,7 @@ function evaluationSession(evaluatedAt: string): CachedEvaluation {
     extraction: { state: "pending" },
   };
   evaluationCache.set(evaluatedAt, session);
-  while (evaluationCache.size > EVALUATION_CACHE_LIMIT) {
-    const oldest = evaluationCache.keys().next().value;
-    if (oldest === undefined) break;
-    evaluationCache.delete(oldest);
-  }
+  trimEvaluationCache();
   return session;
 }
 
@@ -163,8 +180,9 @@ export function ReasoningProvider({
   const store = session.store;
 
   const firedForRef = useRef<Set<string>>(new Set());
-  // A fresh evaluation starts in "running" (the effect is about to fire); a
-  // remount reuses the cached terminal or in-flight state unchanged.
+  // A fresh evaluation (or a failed one, retried on remount as the only
+  // recovery path) starts in "running"; a remount reuses the cached terminal or
+  // in-flight state unchanged.
   const shouldStart =
     evaluatedAt.length > 0 &&
     (session.extraction.state === "pending" || session.extraction.state === "failed");
@@ -209,9 +227,13 @@ export function ReasoningProvider({
     if (!evaluatedAt || firedForRef.current.has(evaluatedAt)) return;
     const cached = evaluationCache.get(evaluatedAt) ?? session;
     // A terminal cached extraction means this evaluation already ran before a
-    // route remount; reuse it rather than spending the tokens twice.
+    // route remount; reuse it rather than spending the tokens twice. The state
+    // snapshot at render can still say "running" if the request settled between
+    // commit and this passive effect, so reconcile it explicitly.
     if (cached.extraction.state === "complete" || cached.extraction.state === "disabled") {
       firedForRef.current.add(evaluatedAt);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- external-store reconciliation
+      setExtractionState(cached.extraction);
       return;
     }
     // A request still in flight is re-attached; the original wrapper updates

@@ -4,7 +4,7 @@ FlawCheck turns ultrasonic thickness data and PT/MT notes into a deterministic N
 
 Built for the [Nebius x NVIDIA Global AI Hackathon](https://devpost.com/hackathons), Best Apps and Agents track.
 
-![tests](https://img.shields.io/badge/tests-743%20passing-brightgreen?style=flat-square) ![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square) ![next](https://img.shields.io/badge/Next.js-16-black?style=flat-square) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%203.5%20Super%20VL-76b900?style=flat-square)
+![tests](https://img.shields.io/badge/tests-749%20passing-brightgreen?style=flat-square) ![license](https://img.shields.io/badge/license-MIT-blue?style=flat-square) ![next](https://img.shields.io/badge/Next.js-16-black?style=flat-square) ![stack](https://img.shields.io/badge/NVIDIA-Nemotron%203.5%20Super%20VL-76b900?style=flat-square)
 
 > **The invariant:** TypeScript computes every engineering number and verdict. The model never touches arithmetic. Each verdict is deterministic, each citation is renderer-locked, and each report is stamped as an engineering aid rather than a certification or a final approval.
 
@@ -101,7 +101,7 @@ After an evaluation, the report screen asks Tavily once for code-edition and err
 
 | Gate | Command | Result |
 |---|---|---|
-| Unit and integration | `npm test` | 743 passed, 5 skipped (hermetic, no network, key-independent) |
+| Unit and integration | `npm test` | 749 passed, 5 skipped (hermetic, no network, key-independent) |
 | Strict TypeScript | `npm run typecheck` | clean |
 | Lint | `npm run lint` | 0 errors |
 | Production build | `npm run build` | 11 routes |

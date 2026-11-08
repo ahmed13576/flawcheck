@@ -64,6 +64,7 @@ const PTMT_PAYLOAD = {
 let container: HTMLDivElement;
 let root: Root;
 let captured: ReasoningContextValue | null;
+let active = false;
 
 function Probe() {
   const value = useReasoning();
@@ -94,6 +95,7 @@ async function mount(evaluatedAt: string): Promise<void> {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
+  active = true;
   await act(async () => {
     root.render(tree(evaluatedAt));
   });
@@ -103,6 +105,8 @@ async function mount(evaluatedAt: string): Promise<void> {
 }
 
 async function unmount(): Promise<void> {
+  if (!active) return;
+  active = false;
   await act(async () => {
     root.unmount();
   });
@@ -124,7 +128,8 @@ beforeEach(() => {
   );
 });
 
-afterEach(() => {
+afterEach(async () => {
+  await unmount();
   vi.unstubAllGlobals();
   delete (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT;
 });
@@ -156,6 +161,66 @@ describe("ReasoningProvider evaluation cache (F-14-03)", () => {
     await unmount();
     await mount("E-cache-2");
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+    expect(captured?.extraction.state).toBe("disabled");
+  });
+
+  it("reuses a COMPLETE extraction and its store across a remount", async () => {
+    const response = {
+      extraction: {
+        componentContext: { serviceDescription: "Cooling water line." },
+        notableFacts: [],
+        ptmtNotesSummary: null,
+        cautions: [],
+      },
+      usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: "fixture-model" },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify(response), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+    await mount("E-complete");
+    expect(captured?.extraction.state).toBe("complete");
+    const firstStore = captured!.store;
+    await unmount();
+    await mount("E-complete");
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+    expect(captured?.store).toBe(firstStore);
+    expect(captured?.extraction.state).toBe("complete");
+  });
+
+  it("re-attaches to an in-flight extraction instead of firing a second one", async () => {
+    let resolveResponse: ((response: Response) => void) | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveResponse = resolve;
+          }),
+      ),
+    );
+    await mount("E-inflight");
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+    await unmount();
+    await mount("E-inflight");
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveResponse?.(
+        new Response(JSON.stringify({ disabled: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
     expect(captured?.extraction.state).toBe("disabled");
   });
 });
