@@ -9,6 +9,7 @@
  * region order).
  */
 import { useReasoning, type ExtractionStatus } from "@/components/wizard/reasoning-context";
+import type { NarrativeStore } from "@/hooks/use-narrative-stream";
 import { Loader2 } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
@@ -29,15 +30,19 @@ function metricsText(promptTokens: number, completionTokens: number, latencyMs: 
 
 export function PipelineStatusBar({
   extractionOverride,
+  storeOverride,
 }: {
   /** Test seam: SSR markup tests cannot run effects, so they inject the
    * extraction state directly (the provider path is exercised by the
    * flowstep-restyle screen tests, which render the pending row). */
   extractionOverride?: ExtractionStatus;
+  /** Test seam: a fresh store per case keeps the idle / failed / fallback rows
+   * independent of the module-level fallback store's history. */
+  storeOverride?: NarrativeStore;
 }) {
   const ctx = useReasoning();
   const extraction = extractionOverride ?? ctx.extraction;
-  const store = ctx.store;
+  const store = storeOverride ?? ctx.store;
   useSyncExternalStore(
     (cb) => store.subscribe(cb),
     () => store.version(),
@@ -120,7 +125,18 @@ export function PipelineStatusBar({
     const totals = store.totals();
     const hasAny = totals.promptTokens > 0 || totals.completionTokens > 0 || totals.latencyMs > 0;
     if (!hasAny) {
-      return <span className={`${METRICS} animate-pulse`}>pending</span>;
+      // F-02: "pending" read as a hung request when no narrative had been
+      // requested at all. The idle state is now explicit and static; a row
+      // whose only entries errored says so instead of claiming idleness.
+      if (store.errorCount() > 0) {
+        return (
+          <>
+            <span className={BADGE}>unavailable</span>
+            <span className={METRICS}>— · — · —</span>
+          </>
+        );
+      }
+      return <span className={METRICS}>not requested</span>;
     }
     const model = store.narrativeModel();
     return (

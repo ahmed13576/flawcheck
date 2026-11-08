@@ -63,17 +63,61 @@ afterEach(() => {
 });
 
 describe("PipelineStatusBar markup", () => {
-  it("pending renders the word for both steps — no digits", () => {
-    const store = createNarrativeStore();
+  it("pending extraction + idle narrative: 'pending' then 'not requested' — no digits", () => {
     const html = renderToStaticMarkup(
-      createElement(PipelineStatusBar, { extractionOverride: { state: "pending" } }),
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "pending" },
+        storeOverride: createNarrativeStore(),
+      }),
     );
-    void store;
     expect(html).toContain("pending");
+    // F-02: the narrative row never borrows the extraction row's "pending"
+    // label — an unrequested narrative is explicitly idle.
+    expect(html).toContain("not requested");
     expect(html).toContain("Extraction");
     expect(html).toContain("Narrative");
     const visible = html.replace(/<[^>]*>/g, " ");
     expect(visible).not.toMatch(/\d/); // digits-free VISIBLE text (classes carry digits)
+  });
+
+  it("idle narrative is static, not an animated pseudo-loading row", () => {
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {
+            componentContext: { serviceDescription: "Cooling water line." },
+            notableFacts: [],
+            ptmtNotesSummary: null,
+            cautions: [],
+          },
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: createNarrativeStore(),
+      }),
+    );
+    // The extraction row still shows its metrics; the narrative row is the
+    // idle text with no spinner and no pulse.
+    expect(html).toContain("not requested");
+    expect(html).not.toContain("running…");
+  });
+
+  it("an errored-only narrative reports unavailable, never 'not requested'", () => {
+    const store = createNarrativeStore();
+    store.open(
+      narrativeKey("E1", "cml", "r-1"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult },
+      { allowNarration: false },
+    );
+    expect(store.errorCount()).toBe(1);
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "running" },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("unavailable");
+    expect(html).not.toContain("not requested");
   });
 
   it("complete: badge equals the injected model verbatim; metrics carry the em-dash cost", async () => {
