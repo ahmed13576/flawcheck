@@ -94,15 +94,16 @@ describe("ReasoningPane state markup (03-UI-SPEC pane states)", () => {
     expect(html).toContain("api574_10_5_1_4");
   });
 
-  it("error: exact reason text + 'Retry narrative' affordance styling hook", () => {
+  it("error: exact reason text; the retry control lives in the detail row only", () => {
     const html = markup({
       status: "error",
       text: "",
       errorReason: "Extraction failed — narrative generation was skipped.",
     });
     expect(html).toContain("Extraction failed — narrative generation was skipped.");
-    // the Retry button lives in the surrounding detail row (results-table);
-    // the pane itself renders the failure reason prominently
+    // WR-03: no dead in-pane button — the single control is the gated one in
+    // the surrounding detail row (results-table).
+    expect(html).not.toContain("Retry narrative");
   });
 
   it("fallback: fallback text renders; served text contains the closing sentence", () => {

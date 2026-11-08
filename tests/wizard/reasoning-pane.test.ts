@@ -175,10 +175,12 @@ describe("ReasoningPane — narrative states", () => {
     expect(markup).toContain("animate-pulse");
   });
 
-  it("error state: exact copy + Retry narrative button", () => {
+  it("error state: exact copy, and no second retry control inside the pane", () => {
     const markup = pane({ status: "error", text: "", errorReason: "HTTP 502" });
     expect(markup).toContain("Narrative unavailable: HTTP 502. The computed verdict is unaffected.");
-    expect(markup).toContain("Retry narrative");
+    // WR-03: the retry affordance is owned by the detail row (gated on the
+    // extraction pack), never duplicated here with an undefined handler.
+    expect(markup).not.toContain("Retry narrative");
   });
 
   it("complete state with usage renders tokens/latency and a verbatim model badge; cost is —", () => {
