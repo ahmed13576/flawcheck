@@ -200,10 +200,13 @@ describe("ReasoningPane — narrative states", () => {
     expect(markup).toContain("tokens 1,700 · 1.5 s · —");
   });
 
-  it("narrative region carries the UI-46/47 classes", () => {
+  it("narrative region carries the UI-46/47 classes and a readable measure", () => {
     const markup = pane(FALLBACK_ENTRY);
     expect(markup).toContain("max-h-96 overflow-y-auto");
     expect(markup).toContain("whitespace-pre-wrap break-words");
+    // The detail row spans the wide 11-column table; without a cap the prose
+    // wraps at the table width and runs off-screen.
+    expect(markup).toContain("max-w-3xl rounded-lg border");
   });
 });
 

@@ -320,7 +320,7 @@ export function ReasoningPane({
 
   return (
     <div
-      className="rounded-lg border border-border bg-card p-4"
+      className="max-w-3xl rounded-lg border border-border bg-card p-4"
       aria-label={`Reasoning for ${subjectId}`}
     >
       {chain}
