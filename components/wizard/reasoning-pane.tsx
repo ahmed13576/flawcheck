@@ -308,7 +308,7 @@ export function ReasoningPane({
   const narrativeText = entry.status === "fallback" ? (entry.fallbackText ?? "") : entry.text;
   const unresolved = unresolvedCitationIds(narrativeText);
   // Store reasons are complete sentences; the copy below adds its own period.
-  const errorReasonText = (entry.errorReason ?? "request failed").replace(/\.$/, "");
+  const errorReasonText = (entry.errorReason ?? "request failed").replace(/(?:\.|…)+$/, "");
 
   // Client-side notification hook (the stamp rendering above is synchronous
   // and SSR-safe); reported ids mirror the rendered stamps exactly.

@@ -50,6 +50,25 @@ export type ExtractionStatus =
   | { state: "failed"; message: string }
   | { state: "disabled" };
 
+/**
+ * WR-02: why a retry cannot act yet, or null when it is allowed. Lives beside
+ * the extraction state it reads so both narrative surfaces (CML detail rows
+ * and PT/MT cards) share one gate. A retry sent while extraction is pending,
+ * running or failed carries `extraction: null` and the route answers 422.
+ */
+export function retryBlockedReason(extraction: ExtractionStatus): string | null {
+  switch (extraction.state) {
+    case "complete":
+    case "disabled":
+      return null;
+    case "pending":
+    case "running":
+      return "Retry becomes available when extraction finishes.";
+    case "failed":
+      return "Retry is unavailable because extraction failed.";
+  }
+}
+
 export interface ReasoningContextValue {
   store: NarrativeStore;
   extraction: ExtractionStatus;

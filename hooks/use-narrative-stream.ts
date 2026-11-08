@@ -48,8 +48,10 @@ export interface NarrativeStore {
   narrativeModel(): string | null;
   /** Panes currently in loading/streaming state (status-bar running… row). */
   streamingCount(): number;
-  /** Panes currently in the error state (status-bar failed row, F-02). */
+  /** Panes currently in the error state (status-bar row, F-02). */
   errorCount(): number;
+  /** Error panes whose only problem is the pre-extraction skip. */
+  skippedCount(): number;
   fallbackServed(): boolean;
   unresolvedCitations(): string[];
 }
@@ -227,6 +229,14 @@ export function createNarrativeStore(): NarrativeStore {
       let n = 0;
       for (const e of entries.values()) {
         if (e.status === "error") n++;
+      }
+      return n;
+    },
+
+    skippedCount() {
+      let n = 0;
+      for (const e of entries.values()) {
+        if (e.status === "error" && e.errorReason === EXTRACTION_SKIPPED_REASON) n++;
       }
       return n;
     },

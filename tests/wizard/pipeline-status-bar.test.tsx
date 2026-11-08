@@ -102,7 +102,7 @@ describe("PipelineStatusBar markup", () => {
     expect(html).not.toContain("running…");
   });
 
-  it("an errored-only narrative reports unavailable, never 'not requested'", () => {
+  it("a pre-extraction skip reports waiting for extraction, never 'not requested'", () => {
     const store = createNarrativeStore();
     store.open(
       narrativeKey("E1", "cml", "r-1"),
@@ -110,6 +110,32 @@ describe("PipelineStatusBar markup", () => {
       { allowNarration: false },
     );
     expect(store.errorCount()).toBe(1);
+    expect(store.skippedCount()).toBe(1);
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "running" },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("waiting for extraction");
+    expect(html).not.toContain("not requested");
+  });
+
+  it("a genuine narrative error reports unavailable", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: "upstream down" }), { status: 502 })),
+    );
+    store.retry(
+      narrativeKey("E1", "cml", "r-1"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+        typeof store.retry
+      >[1],
+    );
+    await settle();
+    expect(store.errorCount()).toBe(1);
+    expect(store.skippedCount()).toBe(0);
     const html = renderToStaticMarkup(
       createElement(PipelineStatusBar, {
         extractionOverride: { state: "running" },
@@ -117,7 +143,7 @@ describe("PipelineStatusBar markup", () => {
       }),
     );
     expect(html).toContain("unavailable");
-    expect(html).not.toContain("not requested");
+    expect(html).not.toContain("waiting for extraction");
   });
 
   it("complete: badge equals the injected model verbatim; metrics carry the em-dash cost", async () => {

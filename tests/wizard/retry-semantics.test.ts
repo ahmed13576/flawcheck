@@ -8,13 +8,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import {
-  ReasoningDetailRow,
-  retryBlockedReason,
-  retrySkippedNarratives,
-} from "@/components/wizard/results-table";
+import { ReasoningDetailRow, retrySkippedNarratives } from "@/components/wizard/results-table";
+import { retryBlockedReason } from "@/components/wizard/reasoning-context";
+import { retrySkippedIndicationNarratives } from "@/components/wizard/ptmt-triage-list";
 import type { NarrativeEntryState } from "@/components/wizard/reasoning-pane";
-import type { ComponentMetadata, ReadingResult, Unit } from "@/lib/ingest/session";
+import type {
+  ComponentMetadata,
+  PtmIndicationResult,
+  ReadingResult,
+  Unit,
+} from "@/lib/ingest/session";
 import type { ExtractionResult, NarrativeRequest } from "@/lib/reasoning/schemas";
 import {
   createNarrativeStore,
@@ -162,7 +165,7 @@ describe("ReasoningDetailRow — exactly one retry control (WR-03)", () => {
         metadata: METADATA,
         entry: ERROR_ENTRY,
         onRetry: () => {},
-        retryBlockedReason: retryBlockedReasonValue,
+        retryBlockedMessage: retryBlockedReasonValue,
       }),
     );
   }
@@ -219,6 +222,22 @@ describe("retrySkippedNarratives — F-03 automatic recovery", () => {
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
   });
 
+  it("retries every skipped row in one pass and stays idempotent", async () => {
+    const store = createNarrativeStore();
+    const second = { ...READING, readingId: "r-2" } as ReadingResult;
+    for (const [index, reading] of [READING, second].entries()) {
+      const key = narrativeKey("E1", "cml", `${reading.readingId}-${index}`);
+      store.open(key, payload(), { allowNarration: false });
+    }
+    const multiArgs = { ...args(store, true), readings: [READING, second] };
+    expect(retrySkippedNarratives(multiArgs)).toBe(2);
+    await settle();
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+    expect(retrySkippedNarratives(multiArgs)).toBe(0);
+    await settle();
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+  });
+
   it("never auto-retries a generic upstream error — only pre-extraction skips", async () => {
     const store = createNarrativeStore();
     const key = narrativeKey("E1", "cml", "r-1-0");
@@ -235,5 +254,53 @@ describe("retrySkippedNarratives — F-03 automatic recovery", () => {
     expect(store.get(key)?.errorReason).not.toBe(EXTRACTION_SKIPPED_REASON);
     expect(retrySkippedNarratives(args(store, true))).toBe(0);
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("retrySkippedIndicationNarratives — PT/MT recovery (F-03, WR-03)", () => {
+  const INDICATION = {
+    id: "ind-1",
+    method: "MT",
+    morphology: "linear",
+    lengthMm: 4.2,
+    widthMm: 0.8,
+    count: 1,
+    edgeSeparationMm: null,
+    crackSuspect: false,
+    description: "Linear indication",
+    verdict: "reject",
+    detail: "Escalate.",
+    citationId: "asme_b31_3_344_3_2",
+  } as unknown as PtmIndicationResult;
+
+  const ptmtPayload = (): NarrativeRequest =>
+    ({ kind: "ptmt", evaluatedAt: "E1", indication: INDICATION }) as NarrativeRequest;
+
+  const run = (store: ReturnType<typeof createNarrativeStore>, allowNarration: boolean) =>
+    retrySkippedIndicationNarratives({
+      store,
+      indications: [INDICATION],
+      evaluatedAt: "E1",
+      allowNarration,
+    });
+
+  it("retries a skipped PT/MT card once and stays idempotent", async () => {
+    const store = createNarrativeStore();
+    const key = narrativeKey("E1", "ptmt", "ind-1");
+    store.open(key, ptmtPayload(), { allowNarration: false });
+    expect(store.get(key)?.errorReason).toBe(EXTRACTION_SKIPPED_REASON);
+
+    expect(run(store, true)).toBe(1);
+    await settle();
+    expect(store.get(key)?.status).toBe("complete");
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+    expect(run(store, true)).toBe(0);
+  });
+
+  it("does nothing while narration is not allowed", () => {
+    const store = createNarrativeStore();
+    store.open(narrativeKey("E1", "ptmt", "ind-1"), ptmtPayload(), { allowNarration: false });
+    expect(run(store, false)).toBe(0);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 });

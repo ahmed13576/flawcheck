@@ -404,6 +404,7 @@ export function ScreenResultsContent({
         ) : (
           <ResultsTable
             readings={visibleReadings}
+            autoRetryReadings={results.readings}
             page={page}
             onPageChange={onPageChange}
             metadata={metadata}

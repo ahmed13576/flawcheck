@@ -128,7 +128,18 @@ export function PipelineStatusBar({
       // F-02: "pending" read as a hung request when no narrative had been
       // requested at all. The idle state is now explicit and static; a row
       // whose only entries errored says so instead of claiming idleness.
-      if (store.errorCount() > 0) {
+      const errors = store.errorCount();
+      if (errors > 0) {
+        // Pre-extraction skips are a healthy waiting state that auto-retries
+        // when extraction finishes; only a real error is "unavailable".
+        if (store.skippedCount() === errors) {
+          return (
+            <>
+              <span className={BADGE}>waiting for extraction</span>
+              <span className={METRICS}>— · — · —</span>
+            </>
+          );
+        }
         return (
           <>
             <span className={BADGE}>unavailable</span>

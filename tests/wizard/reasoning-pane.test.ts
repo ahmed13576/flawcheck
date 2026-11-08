@@ -183,6 +183,12 @@ describe("ReasoningPane — narrative states", () => {
     expect(markup).not.toContain("Retry narrative");
   });
 
+  it("a reason ending in an ellipsis never produces a doubled terminator", () => {
+    const markup = pane({ status: "error", text: "", errorReason: "Upstream timeout…" });
+    expect(markup).toContain("Narrative unavailable: Upstream timeout. The computed verdict is unaffected.");
+    expect(markup).not.toContain("timeout….");
+  });
+
   it("complete state with usage renders tokens/latency and a verbatim model badge; cost is —", () => {
     const markup = pane({
       status: "complete",

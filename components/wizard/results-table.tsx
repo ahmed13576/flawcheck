@@ -38,7 +38,7 @@ import {
   narrativeKey,
   type NarrativeStore,
 } from "@/hooks/use-narrative-stream";
-import type { ExtractionStatus } from "@/components/wizard/reasoning-context";
+import { retryBlockedReason } from "@/components/wizard/reasoning-context";
 import type { NarrativeRequest, ExtractionResult } from "@/lib/reasoning/schemas";
 import type { NarrativeHistory } from "@/lib/reasoning/narrative-context";
 
@@ -122,9 +122,9 @@ export function resultRowKey(readingId: string, index: number): string {
  *
  * Only an OPENING toggle may start work: a first open fetches, a cached
  * complete / streaming / loading / fallback pane is never refetched, and an
- * errored narrative — including the pre-extraction "Extraction failed —
- * narrative generation was skipped" entry — is retried once narration is
- * allowed (extraction complete). A CLOSING toggle never fetches: hiding a
+ * errored narrative — including the pre-extraction "Extraction has not
+ * completed — narrative generation was skipped" entry — is retried once
+ * narration is allowed (extraction complete). A CLOSING toggle never fetches: hiding a
  * pane must not spend provider tokens or send the extraction pack.
  */
 export function shouldFetchNarrativeOnToggle(
@@ -136,26 +136,6 @@ export function shouldFetchNarrativeOnToggle(
   if (entry === undefined) return true;
   if (entry.status === "error") return allowNarration;
   return false;
-}
-
-/**
- * WR-02: why the one retry control cannot act yet, or null when a retry is
- * allowed. Every retry is gated on extraction availability — a request sent
- * while extraction is pending, running or failed carries `extraction: null`
- * and the route answers 422, replacing the friendly skipped message with a
- * technical error.
- */
-export function retryBlockedReason(extraction: ExtractionStatus): string | null {
-  switch (extraction.state) {
-    case "complete":
-    case "disabled":
-      return null;
-    case "pending":
-    case "running":
-      return "Retry becomes available when extraction finishes.";
-    case "failed":
-      return "Retry is unavailable because extraction failed.";
-  }
 }
 
 /**
@@ -242,7 +222,7 @@ export function ReasoningDetailRow({
   metadataUnit,
   entry,
   onRetry,
-  retryBlockedReason,
+  retryBlockedMessage,
 }: {
   rowKey: string;
   reading: ReadingResult;
@@ -254,7 +234,7 @@ export function ReasoningDetailRow({
   onRetry?: () => void;
   /** Set while extraction is not available: the button renders disabled and
    * this sentence explains why no request was sent. */
-  retryBlockedReason?: string | null;
+  retryBlockedMessage?: string | null;
 }) {
   const effectiveEntry: NarrativeEntryState =
     entry ?? {
@@ -277,14 +257,14 @@ export function ReasoningDetailRow({
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={retryBlockedReason ? undefined : onRetry}
-                  disabled={Boolean(retryBlockedReason)}
+                  onClick={retryBlockedMessage ? undefined : onRetry}
+                  disabled={Boolean(retryBlockedMessage)}
                   className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Retry narrative
                 </button>
-                {retryBlockedReason ? (
-                  <p className="text-xs text-muted-foreground">{retryBlockedReason}</p>
+                {retryBlockedMessage ? (
+                  <p className="text-xs text-muted-foreground">{retryBlockedMessage}</p>
                 ) : null}
               </div>
             ) : null}
@@ -301,6 +281,7 @@ export function ReasoningDetailRow({
 
 export function ResultsTable({
   readings,
+  autoRetryReadings,
   page,
   onPageChange,
   metadata,
@@ -308,6 +289,11 @@ export function ResultsTable({
   highlightedCmlId = null,
 }: {
   readings: ReadingResult[];
+  /** Display rows after filters (the table shows only these), while the
+   * one-shot auto-retry scans the UNFILTERED register — a row opened before
+   * extraction and then filtered out must still recover. Defaults to `readings`
+   * for callers that pass the full list. */
+  autoRetryReadings?: ReadingResult[];
   page: number;
   onPageChange: (page: number) => void;
   /** Session slice for the narrative tracer glue (absent → panes render the
@@ -404,18 +390,18 @@ export function ResultsTable({
 
   const blockedReason = retryBlockedReason(extraction);
 
-  // F-03: one automatic pass per evaluation. Rows the user explicitly opened
-  // before extraction finished were stored as skipped; they now heal without
-  // another click. The ref keeps the pass single; the store's FIFO queue and
-  // the immediate `loading` transition prevent duplicate requests.
-  const autoRetriedFor = useRef<string | null>(null);
+  // F-03: automatic recovery for rows the user opened before extraction
+  // finished. The pass is idempotent: retry() moves an entry to `loading`
+  // immediately, so re-running it (StrictMode, a filter change, a page change)
+  // can never duplicate a request. It scans the unfiltered register so a row
+  // hidden at completion still heals. No ref guard is needed, and none can
+  // strand a late-arriving row.
+  const retryScan = autoRetryReadings ?? readings;
   useEffect(() => {
     if (!allowNarration || metadata === undefined || evaluatedAt === undefined) return;
-    if (autoRetriedFor.current === evaluatedAt) return;
-    autoRetriedFor.current = evaluatedAt;
     retrySkippedNarratives({
       store,
-      readings,
+      readings: retryScan,
       metadata,
       evaluatedAt,
       metadataUnit,
@@ -423,8 +409,16 @@ export function ResultsTable({
       historyFor,
       allowNarration,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one pass per evaluatedAt
-  }, [allowNarration, evaluatedAt]);
+  }, [
+    allowNarration,
+    evaluatedAt,
+    metadata,
+    retryScan,
+    store,
+    metadataUnit,
+    extractionPack,
+    historyFor,
+  ]);
 
   const entryFor = (rowKey: string): NarrativeEntryState =>
     (evaluatedAt !== undefined ? getEntry(narrativeKey(evaluatedAt, "cml", rowKey)) : undefined) ?? {
@@ -606,7 +600,7 @@ export function ResultsTable({
                               ? () => retryNarrative(rowKey, reading, dataIndex)
                               : undefined
                           }
-                          retryBlockedReason={blockedReason}
+                          retryBlockedMessage={blockedReason}
                         />,
                       ]
                     : []),
