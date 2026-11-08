@@ -145,7 +145,6 @@ export function ReasoningPane({
   metadataUnit = "mm",
   indication,
   entry,
-  onRetry,
   onUnresolvedCitation,
 }: {
   /** CML variant: the full ReadingResult chain (mutually exclusive with indication). */
@@ -156,7 +155,6 @@ export function ReasoningPane({
   /** PT/MT variant (03-04 Task 2): engine-emitted indication chain. */
   indication?: PtmIndicationResult;
   entry: NarrativeEntryState;
-  onRetry?: () => void;
   onUnresolvedCitation?: (id: string) => void;
 }) {
   if (!reading && !indication) {
@@ -309,6 +307,8 @@ export function ReasoningPane({
   const streaming = entry.status === "streaming";
   const narrativeText = entry.status === "fallback" ? (entry.fallbackText ?? "") : entry.text;
   const unresolved = unresolvedCitationIds(narrativeText);
+  // Store reasons are complete sentences; the copy below adds its own period.
+  const errorReasonText = (entry.errorReason ?? "request failed").replace(/(?:\.|…)+$/, "");
 
   // Client-side notification hook (the stamp rendering above is synchronous
   // and SSR-safe); reported ids mirror the rendered stamps exactly.
@@ -374,18 +374,13 @@ export function ReasoningPane({
           </p>
         )}
         {entry.status === "error" && (
-          <>
-            <p role="alert" className="text-sm text-fail">
-              {`Narrative unavailable: ${entry.errorReason ?? "request failed"}. The computed verdict is unaffected.`}
-            </p>
-            <button
-              type="button"
-              onClick={onRetry}
-              className="mt-2 rounded border border-border px-3 py-1.5 text-sm font-semibold hover:border-muted-foreground"
-            >
-              Retry narrative
-            </button>
-          </>
+          // WR-03: the pane itself never renders a retry control — it has no
+          // access to the extraction-pack gate. The one retry affordance lives
+          // in the surrounding detail row / triage card, where it can be
+          // disabled and explained.
+          <p role="alert" className="text-sm text-fail">
+            {`Narrative unavailable: ${errorReasonText}. The computed verdict is unaffected.`}
+          </p>
         )}
         {entry.status === "fallback" && (
           <>

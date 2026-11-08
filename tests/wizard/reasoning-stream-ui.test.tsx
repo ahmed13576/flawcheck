@@ -13,6 +13,7 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ReasoningPane } from "@/components/wizard/reasoning-pane";
+import { EXTRACTION_SKIPPED_REASON } from "@/hooks/use-narrative-stream";
 import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
 import type { NarrativeEntryState } from "@/components/wizard/reasoning-pane";
 
@@ -94,15 +95,17 @@ describe("ReasoningPane state markup (03-UI-SPEC pane states)", () => {
     expect(html).toContain("api574_10_5_1_4");
   });
 
-  it("error: exact reason text + 'Retry narrative' affordance styling hook", () => {
+  it("error: exact reason text; the retry control lives in the detail row only", () => {
     const html = markup({
       status: "error",
       text: "",
-      errorReason: "Extraction failed — narrative generation was skipped.",
+      errorReason: EXTRACTION_SKIPPED_REASON,
     });
-    expect(html).toContain("Extraction failed — narrative generation was skipped.");
-    // the Retry button lives in the surrounding detail row (results-table);
-    // the pane itself renders the failure reason prominently
+    expect(html).toContain("Extraction has not completed — narrative generation was skipped.");
+    expect(html).not.toContain("skipped..");
+    // WR-03: no dead in-pane button — the single control is the gated one in
+    // the surrounding detail row (results-table).
+    expect(html).not.toContain("Retry narrative");
   });
 
   it("fallback: fallback text renders; served text contains the closing sentence", () => {

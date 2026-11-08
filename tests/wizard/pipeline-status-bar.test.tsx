@@ -63,17 +63,226 @@ afterEach(() => {
 });
 
 describe("PipelineStatusBar markup", () => {
-  it("pending renders the word for both steps — no digits", () => {
-    const store = createNarrativeStore();
+  it("pending extraction + idle narrative: 'pending' then 'not requested' — no digits", () => {
     const html = renderToStaticMarkup(
-      createElement(PipelineStatusBar, { extractionOverride: { state: "pending" } }),
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "pending" },
+        storeOverride: createNarrativeStore(),
+      }),
     );
-    void store;
     expect(html).toContain("pending");
+    // F-02: the narrative row never borrows the extraction row's "pending"
+    // label — an unrequested narrative is explicitly idle.
+    expect(html).toContain("not requested");
     expect(html).toContain("Extraction");
     expect(html).toContain("Narrative");
     const visible = html.replace(/<[^>]*>/g, " ");
     expect(visible).not.toMatch(/\d/); // digits-free VISIBLE text (classes carry digits)
+  });
+
+  it("idle narrative is static, not an animated pseudo-loading row", () => {
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {
+            componentContext: { serviceDescription: "Cooling water line." },
+            notableFacts: [],
+            ptmtNotesSummary: null,
+            cautions: [],
+          },
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: createNarrativeStore(),
+      }),
+    );
+    // The extraction row still shows its metrics; the narrative row is the
+    // idle text with no spinner and no pulse.
+    expect(html).toContain("not requested");
+    expect(html).not.toContain("running…");
+  });
+
+  it("a pre-extraction skip reports waiting for extraction, never 'not requested'", () => {
+    const store = createNarrativeStore();
+    store.open(
+      narrativeKey("E1", "cml", "r-1"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult },
+      { allowNarration: false },
+    );
+    expect(store.errorCount()).toBe(1);
+    expect(store.skippedCount()).toBe(1);
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "running" },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("1 pane waiting for extraction");
+    expect(html).not.toContain("not requested");
+  });
+
+  it("a skip left over after extraction settles is unavailable, never 'waiting'", () => {
+    const store = createNarrativeStore();
+    store.open(
+      narrativeKey("E1", "cml", "r-1"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult },
+      { allowNarration: false },
+    );
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("unavailable");
+    expect(html).not.toContain("waiting for extraction");
+  });
+
+  it("a genuine narrative error reports unavailable", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: "upstream down" }), { status: 502 })),
+    );
+    store.retry(
+      narrativeKey("E1", "cml", "r-1"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+        typeof store.retry
+      >[1],
+    );
+    await settle();
+    expect(store.errorCount()).toBe(1);
+    expect(store.skippedCount()).toBe(0);
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "running" },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("unavailable");
+    expect(html).not.toContain("waiting for extraction");
+  });
+
+  it("F-14-04: complete-only metrics carry no pane chip (regression)", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse([USAGE_FRAME])));
+    store.open(
+      narrativeKey("E1", "cml", "done"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+        typeof store.open
+      >[1],
+      { allowNarration: true },
+    );
+    await settle();
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("tokens 1,842 · 3.2 s · —");
+    expect(html).not.toContain("waiting for extraction");
+    expect(html).not.toContain("pane unavailable");
+  });
+
+  it("F-14-04: two waiting panes are pluralized", () => {
+    const store = createNarrativeStore();
+    for (const id of ["a", "b"]) {
+      store.open(
+        narrativeKey("E1", "cml", id),
+        { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult },
+        { allowNarration: false },
+      );
+    }
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "running" },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("2 panes waiting for extraction");
+  });
+
+  it("F-14-04: completed metrics coexist with an upstream-error chip", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse([USAGE_FRAME])));
+    const body = { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+      typeof store.open
+    >[1];
+    store.open(narrativeKey("E1", "cml", "done"), body, { allowNarration: true });
+    await settle();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: "upstream down" }), { status: 502 })),
+    );
+    store.retry(narrativeKey("E1", "cml", "err"), body);
+    await settle();
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("tokens 1,842 · 3.2 s · —");
+    expect(html).toContain("1 pane unavailable");
+  });
+
+  it("F-14-04: completed metrics coexist with an unavailable-pane chip", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse([USAGE_FRAME])));
+    const body = { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+      typeof store.open
+    >[1];
+    store.open(narrativeKey("E1", "cml", "done"), body, { allowNarration: true });
+    await settle();
+    store.open(narrativeKey("E1", "cml", "skipped"), body, { allowNarration: false });
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: {
+          state: "complete",
+          pack: {} as ExtractionResult,
+          usage: { promptTokens: 10, completionTokens: 5, latencyMs: 100, model: MODEL },
+        },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("tokens 1,842 · 3.2 s · —");
+    expect(html).toContain("1 pane unavailable");
+  });
+
+  it("F-14-04: a served fallback does not mask a genuine narrative error", async () => {
+    const store = createNarrativeStore();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ error: "upstream down" }), { status: 502 })),
+    );
+    store.retry(
+      narrativeKey("E1", "cml", "r-err"),
+      { kind: "ptmt", evaluatedAt: "E1", indication: {} as PtmIndicationResult } as Parameters<
+        typeof store.retry
+      >[1],
+    );
+    await settle();
+    const html = renderToStaticMarkup(
+      createElement(PipelineStatusBar, {
+        extractionOverride: { state: "disabled" },
+        storeOverride: store,
+      }),
+    );
+    expect(html).toContain("deterministic fallback");
+    expect(html).toContain("1 pane unavailable");
   });
 
   it("complete: badge equals the injected model verbatim; metrics carry the em-dash cost", async () => {

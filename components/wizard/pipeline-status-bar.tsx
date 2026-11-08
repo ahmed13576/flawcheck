@@ -9,6 +9,7 @@
  * region order).
  */
 import { useReasoning, type ExtractionStatus } from "@/components/wizard/reasoning-context";
+import type { NarrativeStore } from "@/hooks/use-narrative-stream";
 import { Loader2 } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
@@ -29,15 +30,19 @@ function metricsText(promptTokens: number, completionTokens: number, latencyMs: 
 
 export function PipelineStatusBar({
   extractionOverride,
+  storeOverride,
 }: {
   /** Test seam: SSR markup tests cannot run effects, so they inject the
    * extraction state directly (the provider path is exercised by the
    * flowstep-restyle screen tests, which render the pending row). */
   extractionOverride?: ExtractionStatus;
+  /** Test seam: a fresh store per case keeps the idle / failed / fallback rows
+   * independent of the module-level fallback store's history. */
+  storeOverride?: NarrativeStore;
 }) {
   const ctx = useReasoning();
   const extraction = extractionOverride ?? ctx.extraction;
-  const store = ctx.store;
+  const store = storeOverride ?? ctx.store;
   useSyncExternalStore(
     (cb) => store.subscribe(cb),
     () => store.version(),
@@ -87,32 +92,63 @@ export function PipelineStatusBar({
     }
   })();
 
+  // F-02/F-14-04: a pane that is waiting or errored must stay visible in every
+  // aggregate state — beside completed metrics, beside a served fallback, and
+  // beside a running pane. The counts are additive; they never replace the
+  // real usage figures.
+  const extractionInFlight =
+    extraction.state === "pending" || extraction.state === "running";
+  const errors = store.errorCount();
+  const skipped = store.skippedCount();
+  const waitingPanes = extractionInFlight ? skipped : 0;
+  const unavailablePanes = extractionInFlight ? errors - skipped : errors;
+  const paneChips = (
+    <>
+      {waitingPanes > 0 ? (
+        <span className={BADGE}>
+          {`${waitingPanes} ${waitingPanes === 1 ? "pane" : "panes"} waiting for extraction`}
+        </span>
+      ) : null}
+      {unavailablePanes > 0 ? (
+        <span className={FAILED_BADGE}>
+          {`${unavailablePanes} ${unavailablePanes === 1 ? "pane" : "panes"} unavailable`}
+        </span>
+      ) : null}
+    </>
+  );
+
   const narrativeRow = (() => {
     if (extraction.state === "failed") {
       return (
         <>
           <span className={FAILED_BADGE}>skipped</span>
           <span className={METRICS}>— · — · —</span>
+          {paneChips}
         </>
       );
     }
     const streaming = store.streamingCount();
     if (streaming > 0) {
       return (
-        <span className={`${METRICS} inline-flex items-center gap-1.5`} role="status">
-          <Loader2 className="h-3 w-3 animate-spin text-orange-400" aria-hidden="true" />
-          <span>running…</span>
-        </span>
+        <>
+          <span className={`${METRICS} inline-flex items-center gap-1.5`} role="status">
+            <Loader2 className="h-3 w-3 animate-spin text-orange-400" aria-hidden="true" />
+            <span>running…</span>
+          </span>
+          {paneChips}
+        </>
       );
     }
     if (extraction.state === "disabled" || store.fallbackServed()) {
       // A served fallback means at least one pane shows the deterministic
       // narrative — the chip replaces the badge and metrics stay dashes
-      // (rejected narratives' metrics are never fabricated).
+      // (rejected narratives' metrics are never fabricated). Errors are still
+      // surfaced beside it rather than being masked by the fallback.
       return (
         <>
           <span className={FALLBACK_CHIP}>deterministic fallback</span>
           <span className={METRICS}>— · — · —</span>
+          {paneChips}
         </>
       );
     }
@@ -120,13 +156,24 @@ export function PipelineStatusBar({
     const totals = store.totals();
     const hasAny = totals.promptTokens > 0 || totals.completionTokens > 0 || totals.latencyMs > 0;
     if (!hasAny) {
-      return <span className={`${METRICS} animate-pulse`}>pending</span>;
+      // F-02: "pending" read as a hung request when no narrative had been
+      // requested at all. The idle state is now explicit and static.
+      if (errors > 0) {
+        return (
+          <>
+            {paneChips}
+            <span className={METRICS}>— · — · —</span>
+          </>
+        );
+      }
+      return <span className={METRICS}>not requested</span>;
     }
     const model = store.narrativeModel();
     return (
       <>
         {model ? <span className={BADGE}>{model}</span> : null}
         <span className={METRICS}>{metricsText(totals.promptTokens, totals.completionTokens, totals.latencyMs)}</span>
+        {paneChips}
       </>
     );
   })();

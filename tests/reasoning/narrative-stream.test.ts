@@ -223,8 +223,20 @@ describe("createNarrativeStore", () => {
     await settle();
     const entry = store.get(narrativeKey("E1", "cml", "r-1"));
     expect(entry?.status).toBe("error");
+    expect(entry?.errorCode).toBe("extraction_not_ready");
     expect(entry?.errorReason).toBe(EXTRACTION_SKIPPED_REASON);
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it("F-14-05: a rapid double retry on a skipped entry issues exactly one fetch", async () => {
+    const store = createNarrativeStore();
+    const key = narrativeKey("E1", "cml", "r-1");
+    store.open(key, payload(), { allowNarration: false });
+    store.retry(key, payload());
+    store.retry(key, payload());
+    await settle();
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+    expect(store.get(key)?.status).toBe("complete");
   });
 
   it("WR-04: EOF without a terminal frame marks the entry errored — never a truncated complete", async () => {

@@ -14,14 +14,20 @@
  * a ReasoningPane instance fed by the shared provider store — kind "ptmt"
  * payloads, identical five states, fallback from fallbackNarrativeForIndication.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import type { EvaluationResults, PtmIndicationResult } from "@/lib/ingest/session";
 import { VerdictChip } from "@/components/wizard/verdict-chip";
 import { FlagBadge } from "@/components/wizard/flag-badge";
 import { ReasoningPane } from "@/components/wizard/reasoning-pane";
-import { useReasoning } from "@/components/wizard/reasoning-context";
-import { narrativeKey, useNarrativeStream } from "@/hooks/use-narrative-stream";
+import { retryBlockedReason, useReasoning } from "@/components/wizard/reasoning-context";
+import { RetryNarrativeButton, retrySkippedEntries } from "@/components/wizard/narrative-retry";
+import {
+  narrativeKey,
+  useNarrativeStream,
+  type NarrativeStore,
+} from "@/hooks/use-narrative-stream";
+import type { NarrativeRequest } from "@/lib/reasoning/schemas";
 import { criteria } from "@/lib/calc/criteria";
 
 function clauseRefForMethod(method: "PT" | "MT"): string {
@@ -55,6 +61,30 @@ const TOGGLE =
 const CHEVRON =
   "transition-transform motion-reduce:transition-none";
 
+/**
+ * F-03 for PT/MT cards: retry every pre-extraction skipped indication once
+ * through the shared FIFO queue. Idempotent like the CML scan — retry() moves
+ * the entry to `loading` immediately, so a second pass cannot duplicate it.
+ */
+export function retrySkippedIndicationNarratives(args: {
+  store: NarrativeStore;
+  indications: EvaluationResults["indications"];
+  evaluatedAt: string;
+  allowNarration: boolean;
+}): number {
+  return retrySkippedEntries({
+    store: args.store,
+    items: args.indications,
+    allowNarration: args.allowNarration,
+    keyOf: (indication) => narrativeKey(args.evaluatedAt, "ptmt", indication.id),
+    payloadOf: (indication): NarrativeRequest => ({
+      kind: "ptmt",
+      evaluatedAt: args.evaluatedAt,
+      indication,
+    }),
+  });
+}
+
 export function PtmtTriageList({
   indications,
   evaluatedAt,
@@ -64,10 +94,18 @@ export function PtmtTriageList({
   evaluatedAt: string | null;
   onUnresolvedCitation?: (id: string) => void;
 }) {
-  const { store, allowNarration } = useReasoning();
+  const { store, extraction, allowNarration } = useReasoning();
   const { getEntry } = useNarrativeStream(store);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const toggle = (id: string) => setOpen((prev) => ({ ...prev, [id]: !prev[id] }));
+  const blockedReason = retryBlockedReason(extraction);
+
+  // F-03: heal cards the user opened before extraction finished. The scan is
+  // idempotent, so filter or StrictMode re-runs cannot duplicate a request.
+  useEffect(() => {
+    if (evaluatedAt === null) return;
+    retrySkippedIndicationNarratives({ store, indications, evaluatedAt, allowNarration });
+  }, [allowNarration, evaluatedAt, indications, store]);
 
   if (indications.length === 0) {
     return (
@@ -86,10 +124,12 @@ export function PtmtTriageList({
       <h2 className="text-xl font-semibold">PT/MT triage</h2>
       {indications.map((indication) => {
         const isOpen = Boolean(open[indication.id]);
-        const entry =
+        const key = evaluatedAt !== null ? narrativeKey(evaluatedAt, "ptmt", indication.id) : null;
+        const entry = key !== null ? getEntry(key) : undefined;
+        const payload: NarrativeRequest | null =
           evaluatedAt !== null
-            ? getEntry(narrativeKey(evaluatedAt, "ptmt", indication.id))
-            : undefined;
+            ? { kind: "ptmt", evaluatedAt, indication }
+            : null;
         return (
           <article
             key={indication.id}
@@ -115,20 +155,13 @@ export function PtmtTriageList({
                 aria-controls={`reasoning-ptmt-${indication.id}`}
                 onClick={() => {
                   toggle(indication.id);
-                  if (
-                    !isOpen &&
-                    evaluatedAt !== null &&
-                    getEntry(narrativeKey(evaluatedAt, "ptmt", indication.id)) === undefined
-                  ) {
-                    store.open(
-                      narrativeKey(evaluatedAt, "ptmt", indication.id),
-                      {
-                        kind: "ptmt",
-                        evaluatedAt,
-                        indication,
-                      },
-                      { allowNarration },
-                    );
+                  // First open fetches; re-opening an errored pane retries
+                  // once narration is allowed. The store owns the UI-41 gate.
+                  if (!isOpen && key !== null && payload !== null) {
+                    const current = getEntry(key);
+                    if (current === undefined || current.status === "error") {
+                      store.open(key, payload, { allowNarration });
+                    }
                   }
                 }}
               >
@@ -139,19 +172,27 @@ export function PtmtTriageList({
                 {isOpen ? "Hide reasoning" : "View reasoning"}
               </button>
               {isOpen ? (
-                <div
-                  id={`reasoning-ptmt-${indication.id}`}
-                  aria-label={`Reasoning for ${indication.id}`}
-                >
-                  <ReasoningPane
-                    indication={indication}
-                    metadata={undefined}
-                    entry={
-                      entry ?? { status: "error", text: "", errorReason: "narrative request unavailable in this render context" }
-                    }
-                    onUnresolvedCitation={onUnresolvedCitation}
-                  />
-                </div>
+                <>
+                  <div
+                    id={`reasoning-ptmt-${indication.id}`}
+                    aria-label={`Reasoning for ${indication.id}`}
+                  >
+                    <ReasoningPane
+                      indication={indication}
+                      metadata={undefined}
+                      entry={
+                        entry ?? { status: "error", text: "", errorReason: "narrative request unavailable in this render context" }
+                      }
+                      onUnresolvedCitation={onUnresolvedCitation}
+                    />
+                  </div>
+                  {entry?.status === "error" && key !== null && payload !== null ? (
+                    <RetryNarrativeButton
+                      blockedMessage={blockedReason}
+                      onRetry={() => store.retry(key, payload)}
+                    />
+                  ) : null}
+                </>
               ) : null}
             </div>
             <VerdictChip verdict={indication.verdict} />
