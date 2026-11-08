@@ -13,6 +13,7 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ReasoningPane } from "@/components/wizard/reasoning-pane";
+import { EXTRACTION_SKIPPED_REASON } from "@/hooks/use-narrative-stream";
 import type { ComponentMetadata, ReadingResult } from "@/lib/ingest/session";
 import type { NarrativeEntryState } from "@/components/wizard/reasoning-pane";
 
@@ -98,9 +99,10 @@ describe("ReasoningPane state markup (03-UI-SPEC pane states)", () => {
     const html = markup({
       status: "error",
       text: "",
-      errorReason: "Extraction failed — narrative generation was skipped.",
+      errorReason: EXTRACTION_SKIPPED_REASON,
     });
-    expect(html).toContain("Extraction failed — narrative generation was skipped.");
+    expect(html).toContain("Extraction has not completed — narrative generation was skipped.");
+    expect(html).not.toContain("skipped..");
     // WR-03: no dead in-pane button — the single control is the gated one in
     // the surrounding detail row (results-table).
     expect(html).not.toContain("Retry narrative");

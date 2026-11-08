@@ -11,6 +11,7 @@ import { ReasoningPane } from "@/components/wizard/reasoning-pane";
 import { PtmtTriageList } from "@/components/wizard/ptmt-triage-list";
 import { RESULTS_PAGE_SIZE } from "@/components/wizard/results-table";
 import { criteria } from "@/lib/calc/criteria";
+import { EXTRACTION_SKIPPED_REASON } from "@/hooks/use-narrative-stream";
 import type { PtmIndicationResult } from "@/lib/ingest/session";
 
 const INDICATION: PtmIndicationResult = {
@@ -31,7 +32,7 @@ const INDICATION: PtmIndicationResult = {
 const ERROR_ENTRY = {
   status: "error" as const,
   text: "",
-  errorReason: "Extraction failed — narrative generation was skipped.",
+  errorReason: EXTRACTION_SKIPPED_REASON,
 };
 
 describe("Screen 3 integration (03-04)", () => {
@@ -54,7 +55,9 @@ describe("Screen 3 integration (03-04)", () => {
     );
     // VERDICT chip
     expect(html).toContain("FAIL");
-    expect(html).toContain("Extraction failed — narrative generation was skipped.");
+    // The reason renders once with a single closing period (no "..").
+    expect(html).toContain("Extraction has not completed — narrative generation was skipped. The computed verdict is unaffected.");
+    expect(html).not.toContain("skipped..");
   });
 
   it("PT/MT triage cards carry the toggle contract (aria-expanded/aria-controls)", () => {

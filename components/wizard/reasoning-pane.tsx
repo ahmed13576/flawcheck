@@ -307,6 +307,8 @@ export function ReasoningPane({
   const streaming = entry.status === "streaming";
   const narrativeText = entry.status === "fallback" ? (entry.fallbackText ?? "") : entry.text;
   const unresolved = unresolvedCitationIds(narrativeText);
+  // Store reasons are complete sentences; the copy below adds its own period.
+  const errorReasonText = (entry.errorReason ?? "request failed").replace(/\.$/, "");
 
   // Client-side notification hook (the stamp rendering above is synchronous
   // and SSR-safe); reported ids mirror the rendered stamps exactly.
@@ -377,7 +379,7 @@ export function ReasoningPane({
           // in the surrounding detail row / triage card, where it can be
           // disabled and explained.
           <p role="alert" className="text-sm text-fail">
-            {`Narrative unavailable: ${entry.errorReason ?? "request failed"}. The computed verdict is unaffected.`}
+            {`Narrative unavailable: ${errorReasonText}. The computed verdict is unaffected.`}
           </p>
         )}
         {entry.status === "fallback" && (

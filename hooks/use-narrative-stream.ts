@@ -34,7 +34,7 @@ export interface StoreTotals {
 
 export const FIFO_CAP = 3;
 export const EXTRACTION_SKIPPED_REASON =
-  "Extraction failed — narrative generation was skipped.";
+  "Extraction has not completed — narrative generation was skipped.";
 
 export interface NarrativeStore {
   get(key: NarrativeKey): NarrativeEntryState | undefined;
